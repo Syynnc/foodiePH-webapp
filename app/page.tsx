@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { ScrollReveal } from "./components/ScrollReveal";
 
 const NAV_LINKS = ["Menu", "Restaurants", "Deals", "About"];
@@ -37,27 +37,29 @@ const HOW_IT_WORKS = [
     n: "01",
     title: "Browse & Discover",
     body: "Explore hundreds of local restaurants, filter by cuisine, dietary needs, or delivery time.",
-    img: "https://picsum.photos/seed/foodbrowse/600/400",
+    img: "https://images.unsplash.com/photo-1601972602288-3be527b4f18a?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     n: "02",
     title: "Order in Seconds",
     body: "Pick your favourites, customize your meal, and check out with saved payment details.",
-    img: "https://picsum.photos/seed/foodorder/600/400",
+    img: "https://images.unsplash.com/photo-1609427955204-d0a737cb2c1a?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     n: "03",
     title: "Track & Enjoy",
     body: "Watch your rider in real-time and get notified the moment your food arrives hot.",
-    img: "https://picsum.photos/seed/foodtrack/600/400",
+    img: "https://images.unsplash.com/photo-1617347454431-f49d7ff5c3b1?q=80&w=1115&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
 ];
 
 const GALLERY = [
-  { src: "https://picsum.photos/seed/ramen1/500/700", alt: "Ramen bowl" },
-  { src: "https://picsum.photos/seed/sushi2/500/500", alt: "Sushi platter" },
-  { src: "https://picsum.photos/seed/taco3/500/650", alt: "Street tacos" },
-  { src: "https://picsum.photos/seed/pizza4/500/500", alt: "Wood-fired pizza" },  
+  { src: "https://images.unsplash.com/photo-1623341214825-9f4f963727da?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Ramen bowl" },
+  { src: "https://images.unsplash.com/photo-1736885978380-8d7d9f7d7880?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Sushi platter" },
+  { src: "https://images.unsplash.com/photo-1683062332605-4e1209d75346?q=80&w=1236&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Street tacos" },
+  { src: "https://images.unsplash.com/photo-1694718950978-6e574ee95440?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Wood-fired pizza" },
+  { src: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Poke Bowl" },
+  { src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=780&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Pancake" },  
 ];
 
 // Floating delivery badge
@@ -100,7 +102,7 @@ function OrderTicker() {
   useEffect(() => {
     const iv = setInterval(() => setIdx((i) => (i + 1) % items.length), 3000);
     return () => clearInterval(iv);
-  }, []);
+  }, [items.length]);
   const item = items[idx];
   return (
     <div className="z-10">
@@ -418,7 +420,7 @@ export default function HomePage() {
       
         {/* Scroll strip — bleeds past container */}
         <div
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-6"
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-6 md:justify-center"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
