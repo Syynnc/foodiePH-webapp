@@ -301,146 +301,345 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
+      
       {/* ── Category Grid ── */}
-      <section id="menu" className="px-6 py-20">
+      <section id="menu" className="px-6 py-24">
         <div className="max-w-5xl mx-auto">
+      
+          {/* Header row */}
           <ScrollReveal>
-            <div className="mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#1a1208]/10 bg-[#1a1208]/[0.04] px-4 py-1.5 mb-5">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#1a1208]/55">What&apos;s Trending</span>
-                </div>
-                <h2 className="font-playfair text-[clamp(2.2rem,4.5vw,3.5rem)] font-bold leading-tight">
-                  Every craving,<br />
-                  <span className="italic text-[#c8783a]">covered.</span>
+                <p className="text-[10px] uppercase tracking-[0.22em] font-medium text-[#1a1208]/45 mb-4">
+                  What&apos;s Trending
+                </p>
+                <h2 className="font-playfair text-[clamp(2.4rem,4.5vw,3.6rem)] font-bold leading-[1.05] tracking-tight">
+                  Every craving,{" "}
+                  <em className="not-italic text-[#c8783a]">covered.</em>
                 </h2>
               </div>
-              <Link href="/auth?tab=signup"
-                className="text-sm font-medium text-[#c8783a] hover:text-[#b5692e] transition-colors duration-300 flex items-center gap-1.5 flex-shrink-0">
+              <a
+                href="/auth?tab=signup"
+                className="group inline-flex items-center gap-1.5 text-sm font-medium text-[#1a1208]/50 hover:text-[#c8783a] transition-colors duration-300 md:mb-1 flex-shrink-0"
+              >
                 View all cuisines
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14m-7-7 7 7-7 7"/>
+                <svg
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                  width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                >
+                  <path d="M5 12h14m-7-7 7 7-7 7" />
                 </svg>
-              </Link>
+              </a>
             </div>
           </ScrollReveal>
-
-          {/* Asymmetric bento — 2 wide + 4 standard */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      
+          {/*
+            Layout: 3-col grid on lg+, 2-col on sm, 1-col on xs.
+            First card spans 2 cols on lg (feature card). 
+          */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {CATEGORIES.map((cat, i) => (
-              <ScrollReveal key={cat.label} delay={i * 55}>
-                <div className={`group cursor-pointer rounded-[1.5rem] ${cat.color} p-7 flex flex-col justify-between min-h-[140px] hover:scale-[1.015] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] border border-[#1a1208]/[0.06]`}>
-                  <span className="text-[10px] uppercase tracking-[0.18em] font-medium text-[#1a1208]/45">{cat.count}</span>
-                  <div className="flex items-end justify-between gap-2 mt-4">
-                    <h3 className="font-playfair text-xl font-semibold leading-snug">{cat.label}</h3>
-                    <div className="w-8 h-8 rounded-full bg-[#1a1208]/8 flex items-center justify-center flex-shrink-0 group-hover:bg-[#c8783a] group-hover:text-white transition-colors duration-300">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14m-7-7 7 7-7 7"/>
-                      </svg>
+              <ScrollReveal key={cat.label} delay={i * 60}>
+                <a
+                  href="#"
+                  className={`
+                    group block rounded-[1.25rem] p-6 border border-[#1a1208]/[0.07]
+                    hover:border-[#1a1208]/[0.14] hover:-translate-y-0.5
+                    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                    ${i === 0 ? "sm:col-span-2 lg:col-span-1 min-h-[200px]" : "min-h-[152px]"}
+                  `}
+                  style={{ backgroundColor: cat.color + "55" }}
+                >
+                  {/* Count */}
+                  <p className="text-[9px] uppercase tracking-[0.22em] font-medium text-[#1a1208]/38 mb-auto">
+                    {cat.count}
+                  </p>
+      
+                  {/* Spacer pushes content to bottom */}
+                  <div className="flex flex-col justify-between h-full">
+                    <div className="flex justify-end mt-1 mb-6">
+                      {/* Small decorative dot cluster */}
+                      <div className="flex gap-1 opacity-40">
+                        <span className="block w-1.5 h-1.5 rounded-full bg-[#1a1208]" />
+                        <span className="block w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Food Gallery Strip ── */}
-      <section id="about" className="px-6 py-12 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <ScrollReveal className="mb-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#1a1208]/10 bg-[#1a1208]/[0.04] px-4 py-1.5">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#1a1208]/55">Fresh From Our Partners</span>
-            </div>
-          </ScrollReveal>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-none">
-            {GALLERY.map((g, i) => (
-              <ScrollReveal key={i} delay={i * 70}
-                className="flex-shrink-0 snap-start relative rounded-2xl overflow-hidden img-shimmer w-44 md:w-52 aspect-[3/4]">
-                <Image src={g.src} alt={g.alt} fill className="object-cover hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]" sizes="224px" />
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How It Works ── */}
-      <section id="deals" className="px-6 py-28 bg-[#1a1208] text-[#FDFBF7]">
-        <div className="max-w-5xl mx-auto">
-          <ScrollReveal>
-            <div className="mb-20 text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-1.5 mb-6">
-                <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-white/45">How It Works</span>
-              </div>
-              <h2 className="font-playfair text-[clamp(2.2rem,5vw,3.8rem)] font-bold leading-tight">
-                Order in three steps.
-              </h2>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {HOW_IT_WORKS.map((step, i) => (
-              <ScrollReveal key={step.n} delay={i * 100}>
-                <div className="p-1.5 rounded-[2rem] bg-white/[0.05] ring-1 ring-white/8 h-full">
-                  <div className="relative h-full rounded-[calc(2rem-0.375rem)] bg-white/[0.04] overflow-hidden">
-                    <div className="relative h-40 overflow-hidden">
-                      <Image src={step.img} alt={step.title} fill className="object-cover opacity-40" sizes="400px" />
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1a1208]/80" />
-                    </div>
-                    <div className="p-7 flex flex-col gap-3">
-                      <span className="font-playfair text-5xl font-bold text-white/8 leading-none">{step.n}</span>
-                      <div>
-                        <h3 className="font-playfair text-xl font-semibold mb-2 leading-snug">{step.title}</h3>
-                        <p className="text-sm leading-7 text-white/48 font-light">{step.body}</p>
+      
+                    <div className="flex items-end justify-between gap-3">
+                      <h3 className="font-playfair text-[1.15rem] font-semibold leading-snug text-[#1a1208]">
+                        {cat.label}
+                      </h3>
+                      <div
+                        className="
+                          flex-shrink-0 w-8 h-8 rounded-full border border-[#1a1208]/12
+                          flex items-center justify-center
+                          group-hover:bg-[#c8783a] group-hover:border-[#c8783a]
+                          transition-all duration-300
+                        "
+                      >
+                        <svg
+                          className="text-[#1a1208]/40 group-hover:text-white transition-colors duration-300"
+                          width="13" height="13" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" strokeWidth="2.5"
+                          strokeLinecap="round" strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14m-7-7 7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
+                </a>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* ── Food Gallery Strip ── */}
+      <section id="about" className="py-20 overflow-hidden">
+      
+        {/* Header — full bleed with px */}
+        <ScrollReveal>
+          <div className="px-6 max-w-5xl mx-auto mb-10 flex items-center gap-6">
+            <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 flex-shrink-0">
+              Fresh From Our Partners
+            </p>
+            <div className="flex-1 h-px bg-[#1a1208]/10" />
+            <a
+              href="#"
+              className="text-[9px] uppercase tracking-[0.22em] font-medium text-[#c8783a] hover:text-[#b5692e] transition-colors duration-300 flex-shrink-0"
+            >
+              See all →
+            </a>
+          </div>
+        </ScrollReveal>
+      
+        {/* Scroll strip — bleeds past container */}
+        <div
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-6"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          {GALLERY.map((g, i) => {
+            // Alternating heights for visual rhythm
+            const heights = ["h-72", "h-56", "h-80", "h-60", "h-72"];
+            return (
+              <ScrollReveal
+                key={i}
+                delay={i * 65}
+                className={`
+                  flex-shrink-0 snap-start relative rounded-2xl overflow-hidden img-shimmer
+                  w-44 md:w-52 ${heights[i % heights.length]}
+                  cursor-pointer
+                `}
+              >
+                <Image
+                  src={g.src}
+                  alt={g.alt}
+                  fill
+                  className="object-cover hover:scale-[1.04] transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                  sizes="224px"
+                />
+                {/* Bottom label overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/70 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <span className="font-playfair text-white text-sm font-semibold leading-snug">
+                    {g.alt}
+                  </span>
+                </div>
+              </ScrollReveal>
+            );
+          })}
+          {/* Trailing spacer so last card doesn't touch viewport edge */}
+          <div className="flex-shrink-0 w-6" aria-hidden="true" />
+        </div>
+      </section>
+      
+      {/* ── How It Works ── */}
+      <section id="deals" className="px-6 py-28 bg-[#1a1208] text-[#FDFBF7]">
+        <div className="max-w-5xl mx-auto">
+      
+          {/* Header */}
+          <ScrollReveal>
+            <div className="mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-white/30 mb-4">
+                  How It Works
+                </p>
+                <h2 className="font-playfair text-[clamp(2.2rem,4.5vw,3.6rem)] font-bold leading-[1.05]">
+                  Three steps to<br />
+                  <em className="not-italic text-[#c8783a]">your front door.</em>
+                </h2>
+              </div>
+              <p className="text-sm text-white/38 font-light max-w-xs leading-7">
+                From browsing to biting — the whole experience takes less than two minutes.
+              </p>
+            </div>
+          </ScrollReveal>
+      
+          {/* Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/[0.07] rounded-3xl overflow-hidden">
+            {HOW_IT_WORKS.map((step, i) => (
+              <ScrollReveal key={step.n} delay={i * 110}>
+                <div className="relative bg-[#1a1208] p-8 flex flex-col gap-0 group hover:bg-white/[0.03] transition-colors duration-500 h-full">
+      
+                  {/* Ghosted step number — decorative watermark */}
+                  <span
+                    className="absolute top-6 right-7 font-playfair text-[5.5rem] font-bold leading-none select-none pointer-events-none"
+                    style={{ color: "rgba(255,255,255,0.04)" }}
+                  >
+                    {step.n}
+                  </span>
+      
+                  {/* Image — cinematic strip */}
+                  <div className="relative w-full h-44 rounded-xl overflow-hidden mb-8 flex-shrink-0">
+                    <Image
+                      src={step.img}
+                      alt={step.title}
+                      fill
+                      className="object-cover opacity-50 group-hover:opacity-65 group-hover:scale-[1.03] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                      sizes="400px"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#c8783a]/20 to-transparent" />
+                  </div>
+      
+                  {/* Step index pill */}
+                  <div className="inline-flex items-center gap-2 mb-5">
+                    <span className="w-5 h-5 rounded-full bg-[#c8783a]/15 border border-[#c8783a]/30 text-[#c8783a] text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                      {parseInt(step.n)}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-medium">
+                      Step {step.n}
+                    </span>
+                  </div>
+      
+                  <h3 className="font-playfair text-[1.2rem] font-semibold mb-3 leading-snug">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm leading-[1.8] text-white/42 font-light">
+                    {step.body}
+                  </p>
+      
+                  {/* Connector arrow — visible on desktop between steps 1→2 and 2→3 */}
+                  {i < 2 && (
+                    <div
+                      className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-[#1a1208] border border-white/10 items-center justify-center"
+                      aria-hidden="true"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14m-7-7 7 7-7 7" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
               </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
-
+      
       {/* ── CTA Banner ── */}
-      <section className="px-6 py-28">
+      <section className="px-6 py-24">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
-            <div className="p-2 rounded-[2.5rem] bg-[#1a1208]/[0.055] ring-1 ring-[#1a1208]/8">
-              <div className="relative rounded-[calc(2.5rem-0.5rem)] bg-gradient-to-br from-[#c8783a] to-[#a85e2a] p-14 text-center overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
-                <div className="absolute inset-0">
-                  <Image
-                    src="/hero-bg.png"
-                    alt="Food background"
-                    fill
-                    className="object-cover opacity-[0.08]"
-                    sizes="1200px"
-                  />
-                </div>
-                <div className="relative">
-                  <h2 className="font-playfair text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-white leading-tight mb-5">
-                    Hungry right now?<br />
-                    <span className="italic">We&apos;ve got you.</span>
-                  </h2>
-                  <p className="text-white/65 text-lg font-light mb-10 max-w-sm mx-auto">
-                    Join thousands of food lovers across Metro Manila and Cebu getting fresh meals delivered daily.
-                  </p>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <Link href="/auth?tab=signup"
-                      className="group inline-flex items-center gap-3 rounded-full bg-white text-[#1a1208] px-8 py-4 text-sm font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#FDFBF7] active:scale-[0.98]">
-                      Get Started — It&apos;s Free
-                      <span className="w-7 h-7 rounded-full bg-[#1a1208]/8 flex items-center justify-center transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px">↗</span>
-                    </Link>
-                    <Link href="/auth"
-                      className="text-white/70 text-sm font-medium hover:text-white transition-colors duration-300 underline underline-offset-4">
-                      Already have an account?
-                    </Link>
+      
+            {/* Outer frame */}
+            <div className="rounded-[2rem] overflow-hidden ring-1 ring-[#1a1208]/[0.09] bg-[#1a1208]/[0.03]">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr]">
+      
+                {/* ── Left — Headline ── */}
+                <div className="px-10 py-14 md:px-14 flex flex-col justify-between gap-10">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/38 mb-6">
+                      Start Ordering
+                    </p>
+                    <h2 className="font-playfair text-[clamp(2.2rem,4vw,3.4rem)] font-bold leading-[1.08] tracking-tight mb-5">
+                      Hungry right now?<br />
+                      <em className="not-italic text-[#c8783a]">We&apos;ve got you.</em>
+                    </h2>
+                    <p className="text-[#1a1208]/50 text-base font-light leading-[1.8] max-w-[320px]">
+                      Join thousands of food lovers across Metro Manila and Cebu getting fresh meals delivered daily.
+                    </p>
+                  </div>
+      
+                  {/* Bottom trust bar */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex -space-x-2">
+                      {["11", "12", "14", "19"].map((seed) => (
+                        <div key={seed} className="w-7 h-7 rounded-full ring-2 ring-[#FDFBF7] overflow-hidden relative">
+                          <Image src={`https://i.pravatar.cc/64?img=${seed}`} alt="" fill className="object-cover" sizes="28px" />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-[#1a1208]/45 font-light leading-tight">
+                      <span className="font-semibold text-[#1a1208]">50,000+</span> orders this month
+                    </p>
                   </div>
                 </div>
+      
+                {/* ── Right — Action ── */}
+                <div className="relative px-10 py-14 md:px-14 bg-gradient-to-br from-[#c8783a] to-[#a85e28] flex flex-col justify-center gap-8 overflow-hidden">
+      
+                  {/* Soft noise overlay — reuses the existing grain from globals.css */}
+                  <div
+                    className="absolute inset-0 opacity-[0.06] pointer-events-none"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                    }}
+                  />
+      
+                  {/* Decorative circle blob */}
+                  <div
+                    className="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
+                    style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)" }}
+                  />
+      
+                  <div className="relative">
+                    <p className="font-playfair text-white/70 text-sm font-light mb-6 leading-relaxed">
+                      Free delivery on your first order. No commitment, cancel any time.
+                    </p>
+      
+                    {/* CTA buttons */}
+                    <div className="flex flex-col gap-3">
+                      <a
+                        href="/auth?tab=signup"
+                        className="group inline-flex items-center justify-center gap-3 rounded-full bg-white text-[#1a1208] px-7 py-3.5 text-sm font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#FDFBF7] hover:-translate-y-px active:scale-[0.98] shadow-[0_2px_20px_rgba(0,0,0,0.18)]"
+                      >
+                        Get Started — It&apos;s Free
+                        <span className="w-6 h-6 rounded-full bg-[#1a1208]/8 flex items-center justify-center transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px">
+                          ↗
+                        </span>
+                      </a>
+      
+                      <a
+                        href="/auth"
+                        className="inline-flex items-center justify-center text-white/60 text-sm font-medium hover:text-white transition-colors duration-300 underline underline-offset-4 py-1"
+                      >
+                        Already have an account?
+                      </a>
+                    </div>
+      
+                    {/* Feature pills */}
+                    <div className="flex flex-wrap gap-2 mt-8">
+                      {["100+ Restaurants", "30-min delivery", "Eat now, pay later"].map((feat) => (
+                        <span
+                          key={feat}
+                          className="text-[10px] font-medium text-white/70 border border-white/20 rounded-full px-3 py-1"
+                        >
+                          {feat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+      
               </div>
             </div>
+      
           </ScrollReveal>
         </div>
       </section>
