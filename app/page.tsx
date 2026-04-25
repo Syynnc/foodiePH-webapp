@@ -57,8 +57,7 @@ const GALLERY = [
   { src: "https://picsum.photos/seed/ramen1/500/700", alt: "Ramen bowl" },
   { src: "https://picsum.photos/seed/sushi2/500/500", alt: "Sushi platter" },
   { src: "https://picsum.photos/seed/taco3/500/650", alt: "Street tacos" },
-  { src: "https://picsum.photos/seed/pizza4/500/500", alt: "Wood-fired pizza" },
-  { src: "https://picsum.photos/seed/bowl5/500/700", alt: "Poke bowl" },
+  { src: "https://picsum.photos/seed/pizza4/500/500", alt: "Wood-fired pizza" },  
 ];
 
 // Floating delivery badge
@@ -70,8 +69,8 @@ function DeliveryBadge() {
   }, []);
   return (
     <div
-      className={`absolute bottom-8 left-0 z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+      className={`z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        visible ? "translate-y-32 opacity-100" : "translate-y-6 opacity-0"
       }`}
     >
       <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 flex items-center gap-3">
@@ -104,7 +103,7 @@ function OrderTicker() {
   }, []);
   const item = items[idx];
   return (
-    <div className="absolute top-8 right-0 z-10">
+    <div className="z-10">
       <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 w-52 overflow-hidden">
         <p className="text-[9px] uppercase tracking-[0.18em] text-[#1a1208]/40 mb-1.5 font-medium">Live Orders</p>
         <div key={idx} className="animate-fade-up">
@@ -180,7 +179,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Hero — full bleed background image ── */}
-      <section className="relative min-h-[100dvh] flex items-end overflow-hidden">
+      <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
 
         {/* Background: the illustration */}
         <div className="absolute inset-0">
@@ -194,12 +193,21 @@ export default function HomePage() {
           />
           {/* Soft gradient overlays to make text legible without killing the image */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] via-[#FDFBF7]/35 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FDFBF7]/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[#FDFBF7]/50" />
         </div>
 
-        {/* Content — bottom-left aligned */}
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pb-20 pt-36">
-          <div className="max-w-xl">
+        {/* Content — centered */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pb-12 pt-36 flex flex-col items-center text-center">
+          <div className="max-w-2xl relative flex flex-col items-center">
+            
+            {/* Floating UI badges - placed around the hero text */}
+            <div className="absolute -left-32 top-32 hidden xl:block z-10 scale-95 w-max">
+              <DeliveryBadge />
+            </div>
+            <div className="absolute -right-28 top-64 hidden xl:block z-10 scale-95 w-max">
+              <OrderTicker />
+            </div>
+
             <div className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#1a1208]/12 bg-white/70 backdrop-blur-sm px-4 py-1.5 mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
               <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#1a1208]/60">
@@ -212,13 +220,13 @@ export default function HomePage() {
               <span className="italic text-[#c8783a]">right to your door.</span>
             </h1>
 
-            <p className="animate-fade-up delay-200 text-lg leading-8 text-[#1a1208]/60 font-light mb-10 max-w-md">
+            <p className="animate-fade-up delay-200 text-lg leading-8 text-[#1a1208]/60 font-light mb-10 max-w-md mx-auto">
               From ramen to sushi, tacos to pizza — order from 100+ local restaurants and get fresh food delivered fast.
             </p>
 
             {/* Search bar CTA */}
-            <div className="animate-fade-up delay-300">
-              <div className="flex flex-col sm:flex-row gap-3 bg-white/80 backdrop-blur-xl border border-[#1a1208]/8 rounded-2xl p-3 shadow-[0_8px_40px_rgba(0,0,0,0.08)] max-w-lg">
+            <div className="animate-fade-up delay-300 w-full max-w-lg">
+              <div className="flex flex-col sm:flex-row gap-3 bg-white/80 backdrop-blur-xl border border-[#1a1208]/8 rounded-2xl p-3 shadow-[0_8px_40px_rgba(0,0,0,0.08)]">
                 <div className="flex items-center gap-3 flex-1 px-2">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
@@ -226,7 +234,7 @@ export default function HomePage() {
                   <input
                     type="text"
                     placeholder="Enter your delivery address"
-                    className="flex-1 text-sm bg-transparent outline-none text-[#1a1208] placeholder:text-[#1a1208]/35 py-1.5 font-medium"
+                    className="flex-1 text-sm bg-transparent outline-none text-[#1a1208] placeholder:text-[#1a1208]/35 py-1.5 font-medium min-w-0"
                   />
                 </div>
                 <Link href="/auth?tab=signup"
@@ -237,11 +245,11 @@ export default function HomePage() {
                   </svg>
                 </Link>
               </div>
-              <p className="text-xs text-[#1a1208]/35 mt-3 pl-2">No signup needed to browse · Free delivery on first order</p>
+              <p className="text-xs text-[#1a1208]/35 mt-3">No signup needed to browse · Free delivery on first order</p>
             </div>
 
             {/* Trust row */}
-            <div className="animate-fade-up delay-500 flex items-center gap-6 mt-10 flex-wrap">
+            <div className="animate-fade-up delay-500 flex items-center justify-center gap-6 mt-10 flex-wrap">
               <div className="flex -space-x-2">
                 {["11", "12", "14", "19"].map((seed) => (
                   <div key={seed} className="w-8 h-8 rounded-full ring-2 ring-[#FDFBF7] overflow-hidden relative">
@@ -263,14 +271,6 @@ export default function HomePage() {
                 <span className="text-xs text-[#1a1208]/50">4.8 App Store</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Floating UI badges */}
-        <div className="absolute right-12 bottom-1/2 translate-y-1/2 hidden lg:block z-10">
-          <div className="relative w-64 h-48">
-            <DeliveryBadge />
-            <OrderTicker />
           </div>
         </div>
       </section>
