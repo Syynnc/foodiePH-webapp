@@ -18,7 +18,7 @@ export default function DashboardShell({ children, userEmail }: { children: Reac
       {/* ── Floating Nav ── */}
       <nav className="absolute top-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-5xl">
         <div className="bg-[#FDFBF7]/85 backdrop-blur-xl border border-[#1a1208]/8 rounded-full px-4 py-2.5 flex items-center justify-between shadow-[0_2px_32px_rgba(0,0,0,0.06)]">
-          <Link href="/dashboard" className="flex items-center gap-2 pl-4">
+          <Link href="/" className="flex items-center gap-2 pl-4">
             <span className="font-playfair text-xl font-bold tracking-tight">
               Foodie<span className="text-[#c8783a]">.ph</span>
             </span>
@@ -81,7 +81,7 @@ export default function DashboardShell({ children, userEmail }: { children: Reac
         <aside className={`absolute top-0 right-0 z-30 h-full w-full max-w-[400px] bg-white border-l border-[#1a1208]/[0.06] shadow-[-20px_0_40px_rgba(0,0,0,0.03)] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${isCartOpen ? "translate-x-0" : "translate-x-full"}`}>
           <div className="flex items-center justify-between p-6 border-b border-[#1a1208]/[0.05]">
             <h2 className="font-playfair text-2xl font-bold text-[#1a1208]">Your Cart</h2>
-            <button onClick={() => setIsCartOpen(false)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <button onClick={() => setIsCartOpen(false)} className="p-2 rounded-full hover:bg-gray-100 transition-colors" title="Close cart">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>
@@ -91,7 +91,7 @@ export default function DashboardShell({ children, userEmail }: { children: Reac
               <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
                 <svg width="48" height="48" className="mb-4 text-[#1a1208]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 <p className="font-medium text-lg text-[#1a1208]">Your cart is empty</p>
-                <p className="text-[13px] mt-1 text-[#1a1208]/60">Looks like you haven't added anything yet.</p>
+                <p className="text-[13px] mt-1 text-[#1a1208]/60">Looks like you haven&apos;t added anything yet.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-6">

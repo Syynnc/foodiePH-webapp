@@ -4,8 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ScrollReveal } from "./components/ScrollReveal";
-
-const NAV_LINKS = ["Menu", "Restaurants", "Deals", "About"];
+import { Navbar } from "./components/Navbar";
 
 const CATEGORIES = [
   { label: "Ramen & Noodles", count: "38 spots", color: "bg-[#f5ede0]" },
@@ -118,67 +117,10 @@ function OrderTicker() {
 }
 
 export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <div className="relative min-h-[100dvh] bg-[#FDFBF7] text-[#1a1208]">
 
-      {/* ── Floating Nav ── */}
-      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-4xl">
-        <div className="bg-[#FDFBF7]/85 backdrop-blur-xl border border-[#1a1208]/8 rounded-full px-6 py-3 flex items-center justify-between shadow-[0_2px_32px_rgba(0,0,0,0.06)]">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-playfair text-xl font-bold tracking-tight">
-              Foodie<span className="text-[#c8783a]">.ph</span>
-            </span>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <Link key={link} href={`#${link.toLowerCase()}`}
-                className="text-sm font-medium text-[#1a1208]/55 hover:text-[#1a1208] transition-colors duration-300">
-                {link}
-              </Link>
-            ))}
-          </div>
-
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/auth"
-              className="text-sm font-medium text-[#1a1208]/55 hover:text-[#1a1208] transition-colors duration-300">
-              Sign in
-            </Link>
-            <Link href="/auth?tab=signup"
-              className="group flex items-center gap-2 rounded-full bg-[#c8783a] text-white px-5 py-2.5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#b5692e] active:scale-[0.98]">
-              Order Now
-              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px">↗</span>
-            </Link>
-          </div>
-
-          <button type="button"
-            className="md:hidden relative w-8 h-8 flex flex-col items-center justify-center gap-1.5"
-            onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
-            <span className={`block h-px w-6 bg-[#1a1208] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${menuOpen ? "rotate-45 translate-y-[3px]" : ""}`} />
-            <span className={`block h-px w-6 bg-[#1a1208] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${menuOpen ? "-rotate-45 -translate-y-[3.5px]" : ""}`} />
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile overlay */}
-      <div className={`fixed inset-0 z-30 backdrop-blur-3xl bg-[#FDFBF7]/92 flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
-        <div className="flex flex-col items-center gap-8">
-          {NAV_LINKS.map((link, i) => (
-            <a key={link} href={`#${link.toLowerCase()}`} onClick={() => setMenuOpen(false)}
-              className={`font-playfair text-4xl font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${menuOpen ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}
-              style={{ transitionDelay: menuOpen ? `${100 + i * 60}ms` : "0ms" }}>
-              {link}
-            </a>
-          ))}
-          <Link href="/auth" onClick={() => setMenuOpen(false)}
-            className={`mt-4 rounded-full bg-[#c8783a] text-white px-8 py-3 text-base font-medium transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${menuOpen ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}
-            style={{ transitionDelay: menuOpen ? "380ms" : "0ms" }}>
-            Order Now
-          </Link>
-        </div>
-      </div>
+      <Navbar />
 
       {/* ── Hero — full bleed background image ── */}
       <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">

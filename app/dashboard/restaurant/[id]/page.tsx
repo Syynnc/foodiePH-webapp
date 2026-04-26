@@ -6,7 +6,25 @@ import Link from "next/link";
 import { ScrollReveal } from "@/app/components/ScrollReveal";
 import { useCart } from "@/app/context/CartContext";
 
-const MOCK_RESTAURANTS: Record<string, any> = {
+type MenuItem = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+};
+
+type RestaurantData = {
+  name: string;
+  category: string;
+  rating: string;
+  reviews: string;
+  deliveryBase: string;
+  deliveryTime: string;
+  image: string;
+  menu: MenuItem[];
+};
+
+const MOCK_RESTAURANTS: Record<string, RestaurantData> = {
   "jollibee": {
     name: "Jollibee", category: "Fast Food", rating: "4.8", reviews: "10k+",
     deliveryBase: "Free delivery", deliveryTime: "15-20 mins",
@@ -105,7 +123,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {rest.menu.map((item: any, i: number) => {
+          {rest.menu.map((item: MenuItem, i: number) => {
             const isLiked = likedItems[item.id] || false;
             return (
               <ScrollReveal key={item.id} delay={i * 80}>
@@ -115,6 +133,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
                     
                     <button 
                       onClick={(e) => toggleHeart(item.id, e)}
+                      title="Like item"
                       className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md shadow-sm transition-all duration-300 ${isLiked ? 'bg-[#ff4757]/15 text-[#ff4757] scale-110' : 'bg-white/90 text-[#1a1208]/30 hover:text-[#ff4757] hover:scale-105'}`}
                     >
                       <svg width="18" height="18" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
