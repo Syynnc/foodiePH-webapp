@@ -403,11 +403,6 @@ export default function HomePage() {
       </section>
 
       {/* ── How It Works ── */}
-      {/* 
-        REPLACE the old <section id="deals" ...> block with this.
-        Background: warm off-white #F7F0E6 — distinct from the cream #FDFBF7 body
-        but harmonious with the terracotta palette. Dark text on light.
-      */}
       <section id="deals" className="px-6 py-28" style={{ background: "#F2E8D9" }}>
         <div className="max-w-5xl mx-auto">
 
