@@ -5,14 +5,15 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ScrollReveal } from "./components/ScrollReveal";
 import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 
 const CATEGORIES = [
-  { label: "Ramen & Noodles", count: "38 spots", color: "bg-[#f5ede0]" },
-  { label: "Sushi & Japanese", count: "24 spots", color: "bg-[#edf2e8]" },
-  { label: "Tacos & Mexican", count: "19 spots", color: "bg-[#e8edf5]" },
-  { label: "Pizza & Italian", count: "31 spots", color: "bg-[#f5ebe8]" },
-  { label: "Healthy Bowls", count: "27 spots", color: "bg-[#edf5e8]" },
-  { label: "Burgers", count: "42 spots", color: "bg-[#f5f0e8]" },
+  { label: "Ramen & Noodles", count: "38 spots", img: "https://picsum.photos/seed/ramen-bowl-ph/900/700", tint: "rgba(180,90,30,0.15)" },
+  { label: "Sushi & Japanese", count: "24 spots", img: "https://picsum.photos/seed/sushi-platter/600/500", tint: "rgba(80,130,100,0.12)" },
+  { label: "Tacos & Mexican", count: "19 spots", img: "https://picsum.photos/seed/taco-street/600/500", tint: "rgba(200,140,40,0.12)" },
+  { label: "Pizza & Italian", count: "31 spots", img: "https://picsum.photos/seed/pizza-wood-fire/600/500", tint: "rgba(180,60,40,0.12)" },
+  { label: "Healthy Bowls", count: "27 spots", img: "https://picsum.photos/seed/poke-greens/600/500", tint: "rgba(60,140,80,0.12)" },
+  { label: "Burgers", count: "42 spots", img: "https://picsum.photos/seed/smash-burger/600/500", tint: "rgba(160,100,40,0.12)" },
 ];
 
 const PARTNERS = [
@@ -70,7 +71,7 @@ function DeliveryBadge() {
   }, []);
   return (
     <div
-      className={`z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${visible ? "translate-y-32 opacity-100" : "translate-y-6 opacity-0"
+      className={`z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${visible ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
         }`}
     >
       <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 flex items-center gap-3">
@@ -141,15 +142,17 @@ export default function HomePage() {
 
         {/* Content — centered */}
         <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pb-12 pt-36 flex flex-col items-center text-center">
-          <div className="max-w-2xl relative flex flex-col items-center">
 
-            {/* Floating UI badges - placed around the hero text */}
-            <div className="absolute -left-32 top-32 hidden xl:block z-10 scale-95 w-max">
-              <DeliveryBadge />
-            </div>
-            <div className="absolute -right-28 top-64 hidden xl:block z-10 scale-95 w-max">
-              <OrderTicker />
-            </div>
+          {/* Floating UI badges — positioned from the outer 6xl container so they
+              sit in the ~240px gutter on each side of the 2xl text column */}
+          <div className="absolute left-4 top-52 hidden xl:block z-10 w-max">
+            <DeliveryBadge />
+          </div>
+          <div className="absolute right-4 top-72 hidden xl:block z-10 w-max">
+            <OrderTicker />
+          </div>
+
+          <div className="max-w-2xl relative flex flex-col items-center">
 
             <div className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#1a1208]/12 bg-white/70 backdrop-blur-sm px-4 py-1.5 mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
@@ -214,6 +217,36 @@ export default function HomePage() {
                 <span className="text-xs text-[#1a1208]/50">4.8 App Store</span>
               </div>
             </div>
+
+            {/* Inline badge strip — visible on md through lg, hidden at xl where badges float */}
+            <div className="animate-fade-up delay-500 hidden md:flex xl:hidden items-center justify-center gap-3 mt-6 flex-wrap">
+              {/* Delivery time pill */}
+              <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-4 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.08)] border border-white/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[#c8783a]/10 flex items-center justify-center flex-shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-[#1a1208] leading-tight">25–35 min delivery</p>
+                  <p className="text-[10px] text-[#1a1208]/50 leading-tight">Your area is covered</p>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-emerald-400 ml-0.5 flex-shrink-0" style={{ animation: "pulse 2s infinite" }} />
+              </div>
+              {/* Live orders pill */}
+              <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-4 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.08)] border border-white/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[#c8783a]/10 flex items-center justify-center flex-shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 11l19-9-9 19-2-8-8-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-[#1a1208] leading-tight">Orders flying in</p>
+                  <p className="text-[10px] text-[#1a1208]/50 leading-tight">Live in your area</p>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-emerald-400 ml-0.5 flex-shrink-0" style={{ animation: "pulse 2s infinite" }} />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -249,9 +282,9 @@ export default function HomePage() {
       <section id="menu" className="px-6 py-24">
         <div className="max-w-5xl mx-auto">
 
-          {/* Header row */}
+          {/* Header */}
           <ScrollReveal>
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.22em] font-medium text-[#1a1208]/45 mb-4">
                   What&apos;s Trending
@@ -261,77 +294,67 @@ export default function HomePage() {
                   <em className="not-italic text-[#c8783a]">covered.</em>
                 </h2>
               </div>
-              <a
-                href="/auth?tab=signup"
+              <Link
+                href="/restaurants"
                 className="group inline-flex items-center gap-1.5 text-sm font-medium text-[#1a1208]/50 hover:text-[#c8783a] transition-colors duration-300 md:mb-1 flex-shrink-0"
               >
                 View all cuisines
                 <svg
                   className="transition-transform duration-300 group-hover:translate-x-0.5"
                   width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                 >
                   <path d="M5 12h14m-7-7 7 7-7 7" />
                 </svg>
-              </a>
+              </Link>
             </div>
           </ScrollReveal>
 
-          {/*
-            Layout: 3-col grid on lg+, 2-col on sm, 1-col on xs.
-            First card spans 2 cols on lg (feature card). 
-          */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Category rows — editorial list */}
+          <div className="divide-y divide-[#1a1208]/[0.06]">
             {CATEGORIES.map((cat, i) => (
-              <ScrollReveal key={cat.label} delay={i * 60}>
+              <ScrollReveal key={cat.label} delay={i * 45}>
                 <a
                   href="#"
-                  className={`
-                    group block rounded-[1.25rem] p-6 border border-[#1a1208]/[0.07]
-                    hover:border-[#1a1208]/[0.14] hover:-translate-y-0.5
-                    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                    ${i === 0 ? "sm:col-span-2 lg:col-span-1 min-h-[200px]" : "min-h-[152px]"}
-                  `}
-                  style={{ backgroundColor: cat.color + "55" }}
+                  className="group relative flex items-center gap-4 md:gap-6 py-5 px-3 -mx-3 rounded-2xl hover:bg-[#1a1208]/[0.025] transition-all duration-400"
                 >
+                  {/* Left accent bar */}
+                  <span className="absolute left-0 top-4 bottom-4 w-[2.5px] bg-[#c8783a] opacity-0 group-hover:opacity-100 rounded-full transition-all duration-400" />
+
+                  {/* Index number */}
+                  <span className="font-playfair text-[1rem] font-bold text-[#c8783a]/30 w-8 flex-shrink-0 leading-none select-none group-hover:text-[#c8783a]/60 transition-colors duration-400">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+
+                  {/* Category name */}
+                  <h3 className="font-playfair text-[1.25rem] md:text-[1.45rem] font-semibold text-[#1a1208] leading-snug flex-1 group-hover:text-[#1a1208] transition-colors duration-300">
+                    {cat.label}
+                  </h3>
+
+                  {/* Extending rule */}
+                  <div className="hidden md:block flex-1 h-px bg-[#1a1208]/[0.06] group-hover:bg-[#c8783a]/20 transition-colors duration-400" />
+
+                  {/* Food thumbnail — slides in on hover, desktop only */}
+                  <div className="relative w-[52px] h-[38px] rounded-lg overflow-hidden flex-shrink-0 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-400 hidden md:block">
+                    <Image
+                      src={cat.img}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="52px"
+                    />
+                  </div>
+
                   {/* Count */}
-                  <p className="text-[9px] uppercase tracking-[0.22em] font-medium text-[#1a1208]/38 mb-auto">
+                  <span className="text-[11.5px] font-medium text-[#1a1208]/35 flex-shrink-0 hidden sm:block tabular-nums group-hover:text-[#1a1208]/55 transition-colors duration-300">
                     {cat.count}
-                  </p>
+                  </span>
 
-                  {/* Spacer pushes content to bottom */}
-                  <div className="flex flex-col justify-between h-full">
-                    <div className="flex justify-end mt-1 mb-6">
-                      {/* Small decorative dot cluster */}
-                      <div className="flex gap-1 opacity-40">
-                        <span className="block w-1.5 h-1.5 rounded-full bg-[#1a1208]" />
-                        <span className="block w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
-                      </div>
-                    </div>
-
-                    <div className="flex items-end justify-between gap-3">
-                      <h3 className="font-playfair text-[1.15rem] font-semibold leading-snug text-[#1a1208]">
-                        {cat.label}
-                      </h3>
-                      <div
-                        className="
-                          flex-shrink-0 w-8 h-8 rounded-full border border-[#1a1208]/12
-                          flex items-center justify-center
-                          group-hover:bg-[#c8783a] group-hover:border-[#c8783a]
-                          transition-all duration-300
-                        "
-                      >
-                        <svg
-                          className="text-[#1a1208]/40 group-hover:text-white transition-colors duration-300"
-                          width="13" height="13" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" strokeWidth="2.5"
-                          strokeLinecap="round" strokeLinejoin="round"
-                        >
-                          <path d="M5 12h14m-7-7 7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
+                  {/* Arrow */}
+                  <div className="w-8 h-8 rounded-full border border-[#1a1208]/[0.09] flex items-center justify-center text-[#1a1208]/30 flex-shrink-0 group-hover:bg-[#c8783a] group-hover:border-[#c8783a] group-hover:text-white transition-all duration-400">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14m-7-7 7 7-7 7" />
+                    </svg>
                   </div>
                 </a>
               </ScrollReveal>
@@ -634,22 +657,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="px-6 py-12 border-t border-[#1a1208]/8">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <span className="font-playfair text-xl font-bold">
-            Foodie<span className="text-[#c8783a]">.ph</span>
-          </span>
-          <p className="text-sm text-[#1a1208]/38 font-light">
-            © {new Date().getFullYear()} Foodie.ph · Metro Manila &amp; Metro Cebu
-          </p>
-          <div className="flex gap-6 text-sm text-[#1a1208]/38">
-            <Link href="#" className="hover:text-[#1a1208] transition-colors duration-300">Privacy</Link>
-            <Link href="#" className="hover:text-[#1a1208] transition-colors duration-300">Terms</Link>
-            <Link href="/auth" className="hover:text-[#1a1208] transition-colors duration-300">Sign In</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

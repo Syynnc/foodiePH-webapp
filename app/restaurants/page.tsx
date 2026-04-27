@@ -1,24 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "@/app/context/CartContext";
-
-type MenuItem = {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  imageUrl: string | null;
-  category: string | null;
-  rating: string | null;
-};
-
-type MenuGroup = {
-  category: string;
-  items: MenuItem[];
-};
+import { ScrollReveal } from "@/app/components/ScrollReveal";
+import { Navbar } from "@/app/components/Navbar";
+import { Footer } from "@/app/components/Footer";
 
 type Restaurant = {
   id: string;
@@ -30,451 +17,387 @@ type Restaurant = {
   deliveryTime: string | null;
 };
 
+const CUISINE_FILTERS = [
+  "All",
+  "Italian",
+  "Japanese",
+  "American",
+  "Mexican",
+  "Chinese",
+  "Filipino",
+];
+
+function StarIcon() {
+  return (
+    <svg width="10" height="10" fill="#facc15" viewBox="0 0 24 24">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </svg>
+  );
+}
+
+function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
+  return (
+    <Link
+      href={`/dashboard/restaurant/${restaurant.id}`}
+      className="group block bg-white rounded-[1.5rem] overflow-hidden border border-[#1a1208]/[0.06] hover:border-[#1a1208]/[0.12] hover:shadow-[0_16px_44px_rgba(26,18,8,0.08)] hover:-translate-y-0.5 transition-all duration-500"
+    >
+      <div className="relative h-[200px] overflow-hidden bg-[#f5ede0] img-shimmer">
+        {restaurant.imageUrl ? (
+          <Image
+            src={restaurant.imageUrl}
+            alt={restaurant.name}
+            fill
+            className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.04]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-[#c8783a]/15 to-[#1a1208]/10 flex items-center justify-center">
+            <svg width="36" height="36" fill="none" stroke="#1a1208" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="opacity-15">
+              <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+              <path d="M7 2v20" />
+              <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+            </svg>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {restaurant.cuisine && (
+          <div className="absolute top-4 left-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] bg-[#FDFBF7]/90 backdrop-blur-md text-[#1a1208] px-3 py-1.5 rounded-full border border-[#1a1208]/[0.06] shadow-[0_2px_8px_rgba(26,18,8,0.1)]">
+              {restaurant.cuisine}
+            </span>
+          </div>
+        )}
+        {restaurant.rating && (
+          <div className="absolute top-4 right-4">
+            <span className="flex items-center gap-1.5 text-[11px] font-bold bg-[#FDFBF7]/90 backdrop-blur-md text-[#1a1208] px-2.5 py-1.5 rounded-full border border-[#1a1208]/[0.06] shadow-[0_2px_8px_rgba(26,18,8,0.1)]">
+              <StarIcon />
+              {restaurant.rating}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className="font-playfair text-[1.15rem] font-bold text-[#1a1208] leading-snug group-hover:text-[#c8783a] transition-colors duration-400">
+            {restaurant.name}
+          </h3>
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="#1a1208"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            className="flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-400 -translate-x-1 group-hover:translate-x-0"
+          >
+            <path d="M5 12h14m-7-7 7 7-7 7" />
+          </svg>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {restaurant.deliveryTime && (
+            <span className="flex items-center gap-1.5 text-[11.5px] text-[#1a1208]/50">
+              <ClockIcon />
+              {restaurant.deliveryTime}
+            </span>
+          )}
+          {restaurant.deliveryTime && restaurant.minOrder && restaurant.minOrder > 0 && (
+            <span className="w-1 h-1 rounded-full bg-[#1a1208]/20" />
+          )}
+          {restaurant.minOrder && restaurant.minOrder > 0 && (
+            <span className="text-[11.5px] text-[#1a1208]/50">
+              ₱{restaurant.minOrder.toLocaleString()} min.
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function SkeletonCard() {
   return (
-    <div className="flex gap-4 p-5 bg-white rounded-2xl border border-[#1a1208]/[0.05] animate-pulse">
-      <div className="flex-1 space-y-3">
-        <div className="h-4 w-3/4 rounded-full bg-[#1a1208]/[0.07]" />
-        <div className="h-3 w-full rounded-full bg-[#1a1208]/[0.04]" />
-        <div className="h-3 w-2/3 rounded-full bg-[#1a1208]/[0.04]" />
-        <div className="h-5 w-1/4 rounded-full bg-[#1a1208]/[0.07] mt-4" />
+    <div className="bg-white rounded-[1.5rem] overflow-hidden border border-[#1a1208]/[0.05] animate-pulse">
+      <div className="h-[200px] bg-[#1a1208]/[0.06]" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 w-2/3 bg-[#1a1208]/[0.07] rounded-full" />
+        <div className="h-3 w-1/2 bg-[#1a1208]/[0.04] rounded-full" />
       </div>
-      <div className="w-[100px] h-[100px] rounded-xl bg-[#1a1208]/[0.07] flex-shrink-0" />
     </div>
   );
 }
 
-export default function RestaurantPage({ params }: { params: { id: string } }) {
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  const [menu, setMenu] = useState<MenuGroup[]>([]);
+export default function RestaurantsPage() {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
-  const [activeCategory, setActiveCategory] = useState<string>("");
-  const [headerVisible, setHeaderVisible] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  const heroRef = useRef<HTMLDivElement>(null);
-  const categoryRefs = useRef<Record<string, HTMLElement | null>>({});
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const { addToCart, updateQty, cart, cartTotal, setIsCartOpen: openGlobalCart } = useCart();
-
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  const [error, setError] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeCuisine, setActiveCuisine] = useState("All");
 
   useEffect(() => {
-    fetch(`/api/restaurants/${params.id}`)
+    fetch("/api/restaurants")
       .then((r) => {
-        if (!r.ok) throw new Error("Not found");
+        if (!r.ok) throw new Error("Failed");
         return r.json();
       })
-      .then(({ restaurant, menu }) => {
-        setRestaurant(restaurant);
-        setMenu(menu);
-        if (menu?.[0]?.category) setActiveCategory(menu[0].category);
-      })
-      .catch(console.error)
+      .then((data: Restaurant[]) => setRestaurants(data))
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [params.id]);
-
-  const handleScroll = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const scrollY = container.scrollTop;
-
-    // Show compact header after hero
-    const heroHeight = heroRef.current?.offsetHeight ?? 300;
-    setHeaderVisible(scrollY > heroHeight - 80);
-
-    // Highlight active category
-    const offsets = Object.entries(categoryRefs.current)
-      .map(([cat, el]) => ({ cat, top: el ? el.getBoundingClientRect().top : Infinity }))
-      .sort((a, b) => a.top - b.top);
-
-    const active = offsets.find((o) => o.top > 120) ?? offsets[offsets.length - 1];
-    const previous = offsets[offsets.indexOf(active ?? offsets[0]) - 1];
-    if (previous) setActiveCategory(previous.cat);
-    else if (offsets[0]) setActiveCategory(offsets[0].cat);
   }, []);
 
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  function scrollToCategory(cat: string) {
-    const el = categoryRefs.current[cat];
-    const container = scrollContainerRef.current;
-    if (!el || !container) return;
-    const offset = el.offsetTop - 120;
-    container.scrollTo({ top: offset, behavior: "smooth" });
-    setActiveCategory(cat);
-  }
-
-  function handleAdd(item: MenuItem) {
-    addToCart({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      image: item.imageUrl ?? "",
-      restaurant: restaurant?.name ?? "",
-      restaurantId: params.id,
-    });
-    setAddedIds((prev) => new Set(prev).add(item.id));
-    setTimeout(() => {
-      setAddedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(item.id);
-        return next;
-      });
-    }, 900);
-  }
-
-  function getQty(itemId: string) {
-    return cart.find((i) => i.id === itemId)?.qty ?? 0;
-  }
-
-  if (!loading && !restaurant) {
-    return (
-      <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center text-center px-6 gap-4">
-        <p className="font-playfair text-2xl font-bold text-[#1a1208]">Restaurant not found</p>
-        <p className="text-sm text-[#1a1208]/40">It may have been removed or is no longer active.</p>
-        <Link href="/dashboard" className="mt-2 text-sm font-semibold text-[#c8783a] underline underline-offset-4">
-          ← Back to dashboard
-        </Link>
-      </div>
-    );
-  }
+  const filtered = restaurants.filter((r) => {
+    const matchSearch =
+      !search ||
+      r.name.toLowerCase().includes(search.toLowerCase()) ||
+      (r.cuisine ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchCuisine =
+      activeCuisine === "All" ||
+      (r.cuisine ?? "").toLowerCase().includes(activeCuisine.toLowerCase());
+    return matchSearch && matchCuisine;
+  });
 
   return (
-    <div ref={scrollContainerRef} className="relative min-h-screen bg-[#FDFBF7] overflow-y-auto">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-[#FDFBF7] text-[#1a1208] pt-28 pb-24">
 
-      {/* ── Compact sticky header (appears after hero) ──────────────────────── */}
-      <div
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          headerVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
-        }`}
-      >
-        <div className="bg-[#FDFBF7]/90 backdrop-blur-xl border-b border-[#1a1208]/[0.06] px-5 sm:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-[#1a1208]/[0.05] hover:bg-[#1a1208]/[0.09] transition-colors"
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </Link>
-            <span className="font-playfair font-bold text-[#1a1208] text-lg leading-none">
-              {loading ? "Loading…" : restaurant?.name}
-            </span>
-          </div>
-          {cartCount > 0 && (
-            <button
-              onClick={() => openGlobalCart(true)}
-              className="flex items-center gap-2 bg-[#c8783a] text-white text-[13px] font-semibold px-4 py-2 rounded-full"
-            >
-              <span className="w-5 h-5 rounded-full bg-white/20 text-[11px] font-bold flex items-center justify-center">
-                {cartCount > 9 ? "9+" : cartCount}
-              </span>
-              ₱{cartTotal.toLocaleString()}
-            </button>
-          )}
-        </div>
-      </div>
+        {/* ── Hero ── */}
+        <div className="px-6 md:px-10 mb-12">
+          <div className="max-w-5xl mx-auto">
+            <ScrollReveal>
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-4">Our Partners</p>
+                  <h1 className="font-playfair text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[1.05] tracking-tight mb-3">
+                    100+ restaurants,<br />
+                    <em className="not-italic text-[#c8783a]">one platform.</em>
+                  </h1>
+                  <p className="text-[#1a1208]/50 text-base font-light leading-[1.8] max-w-md">
+                    Every restaurant here is hand-picked, reviewed in person, and held to our quality standards before going live.
+                  </p>
+                </div>
 
-      {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <div ref={heroRef} className="relative w-full h-[300px] sm:h-[380px] overflow-hidden bg-[#1a1208]/10">
-        {restaurant?.imageUrl ? (
-          <Image
-            src={restaurant.imageUrl}
-            alt={restaurant?.name ?? ""}
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#c8783a]/20 to-[#1a1208]/20" />
-        )}
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/80 via-[#1a1208]/25 to-[#1a1208]/10" />
-
-        {/* Back button */}
-        <Link
-          href="/dashboard"
-          className="absolute top-5 left-5 sm:left-8 z-10 flex items-center gap-2 text-white text-[13px] font-semibold bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 transition-all duration-300"
-        >
-          <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          Back
-        </Link>
-
-        {/* Restaurant info */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 pb-7">
-          {loading ? (
-            <div className="space-y-2 animate-pulse">
-              <div className="h-9 w-64 rounded-lg bg-white/20" />
-              <div className="h-4 w-48 rounded-lg bg-white/15" />
-            </div>
-          ) : (
-            <>
-              <h1 className="font-playfair text-[2rem] sm:text-[2.6rem] font-bold text-white leading-tight mb-2 tracking-tight">
-                {restaurant?.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2">
-                {restaurant?.cuisine && (
-                  <span className="text-white/80 text-[13px] font-medium">
-                    {restaurant.cuisine}
-                  </span>
-                )}
-                {restaurant?.rating && (
-                  <>
-                    <span className="text-white/30 text-xs">·</span>
-                    <span className="flex items-center gap-1 bg-white/15 backdrop-blur-sm text-white text-[12px] font-bold px-2.5 py-1 rounded-full border border-white/10">
-                      <svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg>
-                      {restaurant.rating}
-                    </span>
-                  </>
-                )}
-                {restaurant?.deliveryTime && (
-                  <>
-                    <span className="text-white/30 text-xs">·</span>
-                    <span className="flex items-center gap-1.5 text-white/80 text-[12px] font-medium">
-                      <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
-                      </svg>
-                      {restaurant.deliveryTime}
-                    </span>
-                  </>
-                )}
-                {restaurant?.minOrder && restaurant.minOrder > 0 && (
-                  <>
-                    <span className="text-white/30 text-xs">·</span>
-                    <span className="text-white/80 text-[12px] font-medium">₱{restaurant.minOrder} min.</span>
-                  </>
-                )}
+                {/* Stats */}
+                <div className="flex gap-6 flex-shrink-0">
+                  <div className="text-center">
+                    <p className="font-playfair text-[2.4rem] font-bold text-[#c8783a] leading-none">{loading ? "—" : restaurants.length}</p>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-[#1a1208]/40 mt-1">Active</p>
+                  </div>
+                  <div className="w-px bg-[#1a1208]/[0.08]" />
+                  <div className="text-center">
+                    <p className="font-playfair text-[2.4rem] font-bold text-[#1a1208] leading-none">30min</p>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-[#1a1208]/40 mt-1">Avg. delivery</p>
+                  </div>
+                </div>
               </div>
-            </>
-          )}
+            </ScrollReveal>
+          </div>
         </div>
-      </div>
 
-      {/* ── Sticky category tabs ────────────────────────────────────────────── */}
-      {(menu.length > 1 || loading) && (
-        <div className="sticky top-0 z-40 bg-[#FDFBF7]/95 backdrop-blur-xl border-b border-[#1a1208]/[0.06]">
-          <div
-            ref={tabsRef}
-            className="flex items-center gap-1 px-5 sm:px-8 py-3 overflow-x-auto scrollbar-none"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {loading
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-8 rounded-full bg-[#1a1208]/[0.06] animate-pulse flex-shrink-0"
-                    style={{ width: 64 + i * 16 }}
-                  />
-                ))
-              : menu.map((group) => (
-                  <button
-                    key={group.category}
-                    onClick={() => scrollToCategory(group.category)}
-                    className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-300 ${
-                      activeCategory === group.category
-                        ? "bg-[#1a1208] text-[#FDFBF7] shadow-[0_2px_8px_rgba(26,18,8,0.18)]"
-                        : "text-[#1a1208]/50 hover:text-[#1a1208] hover:bg-[#1a1208]/[0.05]"
-                    }`}
+        {/* ── Search + Filters ── */}
+        <div className="px-6 md:px-10 mb-10">
+          <div className="max-w-5xl mx-auto">
+            <ScrollReveal>
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                {/* Search */}
+                <div className="relative w-full sm:w-72">
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="#1a1208"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-30"
                   >
-                    {group.category}
-                  </button>
-                ))}
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search restaurants or cuisines…"
+                    className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-[#1a1208]/[0.09] rounded-full text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#1a1208]/25 transition-colors duration-300"
+                  />
+                </div>
+
+                {/* Cuisine pills */}
+                <div className="flex flex-wrap gap-2">
+                  {CUISINE_FILTERS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setActiveCuisine(c)}
+                      className={`px-4 py-2 rounded-full text-[12.5px] font-medium border transition-all duration-300 ${
+                        activeCuisine === c
+                          ? "bg-[#1a1208] text-white border-[#1a1208]"
+                          : "bg-white text-[#1a1208]/55 border-[#1a1208]/10 hover:border-[#1a1208]/25"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
-      )}
 
-      {/* ── Menu ────────────────────────────────────────────────────────────── */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-36 space-y-10">
-        {loading ? (
-          <>
-            {[4, 3].map((count, gi) => (
-              <div key={gi} className="space-y-3">
-                <div className="h-5 w-28 rounded-full bg-[#1a1208]/[0.07] animate-pulse mb-5" />
-                {Array.from({ length: count }).map((_, i) => <SkeletonCard key={i} />)}
+        {/* ── Grid ── */}
+        <div className="px-6 md:px-10">
+          <div className="max-w-5xl mx-auto">
+
+            {/* Loading */}
+            {loading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} style={{ animationDelay: `${i * 60}ms` }}>
+                    <SkeletonCard />
+                  </div>
+                ))}
               </div>
-            ))}
-          </>
-        ) : menu.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#c8783a]/[0.08] flex items-center justify-center mb-4">
-              <svg width="28" height="28" fill="none" stroke="#c8783a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-            </div>
-            <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">No items available</p>
-            <p className="text-sm text-[#1a1208]/40">This restaurant hasn't added menu items yet.</p>
+            )}
+
+            {/* Error */}
+            {!loading && error && (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
+                  <svg width="24" height="24" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">Could not load restaurants</p>
+                <p className="text-sm text-[#1a1208]/40">Please refresh the page to try again.</p>
+              </div>
+            )}
+
+            {/* Empty search result */}
+            {!loading && !error && filtered.length === 0 && restaurants.length > 0 && (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-[#c8783a]/[0.07] flex items-center justify-center mb-4">
+                  <svg width="24" height="24" fill="none" stroke="#c8783a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                </div>
+                <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">No results found</p>
+                <p className="text-sm text-[#1a1208]/40 mb-4">Try a different search term or cuisine filter.</p>
+                <button
+                  onClick={() => { setSearch(""); setActiveCuisine("All"); }}
+                  className="text-sm font-semibold text-[#c8783a] hover:text-[#b5692e] transition-colors underline underline-offset-4"
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
+
+            {/* Empty DB */}
+            {!loading && !error && restaurants.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">No restaurants yet</p>
+                <p className="text-sm text-[#1a1208]/40">Check back soon — we&apos;re onboarding new partners daily.</p>
+              </div>
+            )}
+
+            {/* Results */}
+            {!loading && !error && filtered.length > 0 && (
+              <>
+                {(search || activeCuisine !== "All") && (
+                  <p className="text-sm text-[#1a1208]/40 mb-6">
+                    {filtered.length} restaurant{filtered.length !== 1 ? "s" : ""} found
+                  </p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {filtered.map((r, i) => (
+                    <ScrollReveal key={r.id} delay={i * 50}>
+                      <RestaurantCard restaurant={r} />
+                    </ScrollReveal>
+                  ))}
+                </div>
+              </>
+            )}
+
           </div>
-        ) : (
-          menu.map((group) => (
-            <section
-              key={group.category}
-              ref={(el) => { categoryRefs.current[group.category] = el; }}
-            >
-              {/* Category heading */}
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-playfair text-[1.15rem] font-bold text-[#1a1208] whitespace-nowrap leading-none">
-                  {group.category}
-                </h2>
-                <div className="flex-1 h-px bg-[#1a1208]/[0.07]" />
-                <span className="text-[11px] font-bold text-[#1a1208]/25 uppercase tracking-widest whitespace-nowrap">
-                  {group.items.length}
-                </span>
-              </div>
+        </div>
 
-              {/* Items */}
-              <div className="flex flex-col gap-3">
-                {group.items.map((item) => {
-                  const qty = getQty(item.id);
-                  const justAdded = addedIds.has(item.id);
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="group flex gap-4 bg-white rounded-2xl p-4 border border-[#1a1208]/[0.05] hover:border-[#1a1208]/[0.10] hover:shadow-[0_6px_24px_rgba(26,18,8,0.07)] transition-all duration-300"
-                    >
-                      {/* Info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-2 justify-between">
+        {/* ── Why our restaurants ── */}
+        {!loading && !error && restaurants.length > 0 && (
+          <div className="px-6 md:px-10 mt-24">
+            <div className="max-w-5xl mx-auto">
+              <ScrollReveal>
+                <div className="border-t border-[#1a1208]/[0.07] pt-14">
+                  <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-6">The Foodie.ph Standard</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    {[
+                      {
+                        title: "In-Person Review",
+                        body: "Every restaurant is visited and assessed by our team before listing. No shortcuts, no third-party audits.",
+                      },
+                      {
+                        title: "Trained Riders",
+                        body: "Our delivery riders are trained, insured, and equipped with thermal bags to keep every order at the right temperature.",
+                      },
+                      {
+                        title: "Live Support",
+                        body: "Something goes wrong? Our support team responds in under 5 minutes during operating hours.",
+                      },
+                    ].map((item, i) => (
+                      <div key={item.title} className="flex gap-4">
+                        <span className="font-playfair text-[1.8rem] font-bold text-[#c8783a]/30 leading-none flex-shrink-0 pt-0.5">0{i + 1}</span>
                         <div>
-                          <p className="text-[15px] font-bold text-[#1a1208] leading-snug mb-1">
-                            {item.name}
-                          </p>
-                          {item.description && (
-                            <p className="text-[12px] text-[#1a1208]/45 font-light leading-relaxed line-clamp-2">
-                              {item.description}
-                            </p>
-                          )}
-                          {item.rating && (
-                            <div className="flex items-center gap-1 mt-1.5">
-                              <svg width="10" height="10" fill="#facc15" viewBox="0 0 24 24">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                              </svg>
-                              <span className="text-[11px] font-bold text-[#1a1208]/45">{item.rating}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-[17px] text-[#1a1208]">
-                            ₱{item.price.toLocaleString()}
-                          </span>
-
-                          {qty > 0 ? (
-                            /* Qty stepper */
-                            <div className="flex items-center rounded-xl overflow-hidden border border-[#c8783a]/25 bg-[#c8783a]/[0.04]">
-                              <button
-                                onClick={() => updateQty(item.id, -1)}
-                                className="w-8 h-8 flex items-center justify-center text-[#c8783a] hover:bg-[#c8783a]/10 transition-colors text-lg font-bold leading-none"
-                                aria-label="Decrease quantity"
-                              >−</button>
-                              <span className="w-7 text-center text-[13px] font-bold text-[#c8783a] tabular-nums">
-                                {qty}
-                              </span>
-                              <button
-                                onClick={() => handleAdd(item)}
-                                className="w-8 h-8 flex items-center justify-center text-[#c8783a] hover:bg-[#c8783a]/10 transition-colors text-lg font-bold leading-none"
-                                aria-label="Increase quantity"
-                              >+</button>
-                            </div>
-                          ) : (
-                            /* Add button */
-                            <button
-                              onClick={() => handleAdd(item)}
-                              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                                justAdded
-                                  ? "bg-[#10b981] text-white scale-95 shadow-[0_4px_12px_rgba(16,185,129,0.25)]"
-                                  : "bg-[#1a1208]/[0.06] text-[#1a1208] hover:bg-[#c8783a] hover:text-white hover:shadow-[0_4px_14px_rgba(200,120,58,0.30)] active:scale-95"
-                              }`}
-                            >
-                              {justAdded ? (
-                                <>
-                                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                    <polyline points="20 6 9 17 4 12" />
-                                  </svg>
-                                  Added
-                                </>
-                              ) : (
-                                <>
-                                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                    <path d="M12 5v14M5 12h14" />
-                                  </svg>
-                                  Add
-                                </>
-                              )}
-                            </button>
-                          )}
+                          <p className="font-semibold text-[#1a1208] text-sm mb-1.5">{item.title}</p>
+                          <p className="text-[12.5px] text-[#1a1208]/45 font-light leading-[1.78]">{item.body}</p>
                         </div>
                       </div>
-
-                      {/* Thumbnail */}
-                      {item.imageUrl && (
-                        <div className="relative w-[96px] h-[96px] rounded-xl overflow-hidden flex-shrink-0 bg-[#f5ede0]">
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.name}
-                            fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            sizes="96px"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          ))
+                    ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
         )}
-      </div>
 
-      {/* ── Floating cart bar ───────────────────────────────────────────────── */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          cartCount > 0 ? "translate-y-0" : "translate-y-full"
-        }`}
-      >
-        <div className="max-w-2xl mx-auto px-4 pb-5">
-          <button
-            onClick={() => openGlobalCart(true)}
-            className="w-full flex items-center justify-between bg-[#1a1208] text-[#FDFBF7] px-5 py-4 rounded-2xl shadow-[0_8px_40px_rgba(26,18,8,0.30)] hover:bg-[#c8783a] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-7 h-7 rounded-full bg-[#FDFBF7]/15 text-[12px] font-bold flex items-center justify-center tabular-nums">
-                {cartCount > 9 ? "9+" : cartCount}
-              </span>
-              <span className="text-[14px] font-semibold">
-                {cartCount === 1 ? "1 item" : `${cartCount} items`} in cart
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-[16px]">₱{cartTotal.toLocaleString()}</span>
-              <svg
-                width="16" height="16"
-                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                viewBox="0 0 24 24"
-                className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-px"
-              >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </div>
-          </button>
+        {/* ── Partner CTA ── */}
+        <div className="px-6 md:px-10 mt-16">
+          <div className="max-w-5xl mx-auto">
+            <ScrollReveal>
+              <div className="rounded-[1.75rem] bg-[#1a1208]/[0.03] border border-[#1a1208]/[0.07] px-8 md:px-12 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div>
+                  <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">Own a restaurant in Manila or Cebu?</p>
+                  <p className="text-sm text-[#1a1208]/45 font-light">Apply to join our platform and reach thousands of corporate clients.</p>
+                </div>
+                <Link
+                  href="/auth?tab=signup"
+                  className="flex-shrink-0 flex items-center gap-2 bg-[#c8783a] text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-[#b5692e] transition-colors duration-300 active:scale-[0.97]"
+                >
+                  Apply as Partner
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14m-7-7 7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
         </div>
+
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }
