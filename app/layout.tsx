@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/app/context/CartContext";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -24,12 +25,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${jakarta.variable} h-full`}
-    >
+    <html lang="en" className={`${playfair.variable} ${jakarta.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-[#FDFBF7] text-[#1a1208] antialiased">
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
