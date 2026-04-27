@@ -113,7 +113,7 @@ export default function AboutPage() {
         <section className="py-24 px-6 md:px-10 lg:px-16">
           <div className="max-w-6xl mx-auto">
             <ScrollReveal>
-              <div className="grid grid-cols-3 grid-rows-2 gap-3 h-[400px] md:h-[480px]">
+              <div className="grid grid-cols-3 grid-rows-2 gap-3 h-[240px] sm:h-[340px] md:h-[480px]">
                 <div className="relative col-span-2 row-span-2 rounded-[1.5rem] overflow-hidden img-shimmer">
                   <Image
                     src="https://picsum.photos/seed/foodph-main/1000/800"
@@ -205,17 +205,17 @@ export default function AboutPage() {
             </ScrollReveal>
 
             <div className="relative">
-              <div className="absolute left-[3px] md:left-1/2 top-0 bottom-0 w-px bg-[#1a1208]/[0.08] md:-translate-x-px hidden sm:block" />
+              <div className="absolute left-[3px] md:left-1/2 top-0 bottom-0 w-px bg-[#1a1208]/[0.08] md:-translate-x-px hidden md:block" />
               <div className="flex flex-col gap-0">
                 {TIMELINE.map((t, i) => (
                   <ScrollReveal key={t.year} delay={i * 80}>
-                    <div className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-10 py-8 ${i % 2 === 0 ? "sm:flex-row-reverse sm:text-right" : ""}`}>
-                      <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-[#c8783a] ring-4 ring-[#FDFBF7]" />
-                      <div className={`sm:w-1/2 ${i % 2 === 0 ? "sm:pr-14" : "sm:pl-14"}`}>
+                    <div className={`relative flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-10 py-8 ${i % 2 === 0 ? "md:flex-row-reverse md:text-right" : ""}`}>
+                      <div className="hidden md:block absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-[#c8783a] ring-4 ring-[#FDFBF7]" />
+                      <div className={`md:w-1/2 ${i % 2 === 0 ? "md:pr-14" : "md:pl-14"}`}>
                         <span className="font-playfair text-[2rem] font-bold text-[#c8783a]/50 leading-none block mb-2">{t.year}</span>
                         <p className="text-sm text-[#1a1208]/55 font-light leading-[1.8]">{t.event}</p>
                       </div>
-                      <div className="sm:w-1/2" />
+                      <div className="md:w-1/2" />
                     </div>
                   </ScrollReveal>
                 ))}

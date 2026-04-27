@@ -199,7 +199,7 @@ export function Footer() {
             <span className="text-[11px] text-[#1a1208]/30 font-light">Operating in Metro Manila &amp; Metro Cebu</span>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 justify-center sm:justify-end">
             {LEGAL.map((l) => (
               <Link
                 key={l.label}

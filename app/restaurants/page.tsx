@@ -190,7 +190,7 @@ export default function RestaurantsPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="flex gap-6 flex-shrink-0">
+                <div className="hidden md:flex gap-6 flex-shrink-0">
                   <div className="text-center">
                     <p className="font-playfair text-[2.4rem] font-bold text-[#c8783a] leading-none">{loading ? "—" : restaurants.length}</p>
                     <p className="text-[10px] uppercase tracking-[0.16em] text-[#1a1208]/40 mt-1">Active</p>
@@ -237,7 +237,7 @@ export default function RestaurantsPage() {
                 </div>
 
                 {/* Cuisine pills */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex overflow-x-auto gap-2 pb-1 -mb-1 scrollbar-none flex-nowrap sm:flex-wrap sm:overflow-visible sm:pb-0 sm:mb-0">
                   {CUISINE_FILTERS.map((c) => (
                     <button
                       key={c}

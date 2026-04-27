@@ -161,7 +161,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h1 className="font-playfair animate-fade-up delay-100 text-[clamp(2.8rem,6vw,5rem)] font-bold leading-[1.06] tracking-tight mb-6">
+            <h1 className="font-playfair animate-fade-up delay-100 text-[clamp(2.1rem,6vw,5rem)] font-bold leading-[1.06] tracking-tight mb-6">
               Cravings delivered<br />
               <span className="italic text-[#c8783a]">right to your door.</span>
             </h1>

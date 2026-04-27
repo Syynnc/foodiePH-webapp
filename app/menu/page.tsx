@@ -163,7 +163,7 @@ export default function MenuPage() {
                   </p>
                 </div>
                 {!loading && !error && totalItems > 0 && (
-                  <div className="flex-shrink-0 flex items-center gap-3 bg-[#1a1208]/[0.03] border border-[#1a1208]/[0.06] rounded-2xl px-5 py-4">
+                  <div className="hidden md:flex flex-shrink-0 items-center gap-3 bg-[#1a1208]/[0.03] border border-[#1a1208]/[0.06] rounded-2xl px-5 py-4">
                     <div>
                       <p className="font-playfair text-[1.9rem] font-bold text-[#c8783a] leading-none">{totalItems}</p>
                       <p className="text-[10px] uppercase tracking-[0.16em] text-[#1a1208]/40 mt-0.5">Dishes available</p>
