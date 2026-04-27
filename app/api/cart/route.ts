@@ -10,7 +10,9 @@ const db = drizzle(client);
 
 async function getUserId() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
     return user?.id ?? null;
 }
 
@@ -18,7 +20,8 @@ async function getUserId() {
 export async function POST(req: Request) {
     try {
         const userId = await getUserId();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!userId)
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { menuItemId, quantity } = await req.json();
         if (!menuItemId || typeof quantity !== "number") {
@@ -60,11 +63,13 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
     try {
         const userId = await getUserId();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!userId)
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
         const menuItemId = searchParams.get("menuItemId");
-        if (!menuItemId) return NextResponse.json({ error: "Missing menuItemId" }, { status: 400 });
+        if (!menuItemId)
+            return NextResponse.json({ error: "Missing menuItemId" }, { status: 400 });
 
         await db
             .delete(cartItems)

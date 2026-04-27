@@ -1,77 +1,83 @@
 import { NextResponse } from "next/server";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { orders, orderItems, cartItems } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { orders, orderItems } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
-const db = drizzle(client);
+// Singleton client — avoids connection exhaustion in serverless/edge environments.
+let _client: ReturnType<typeof postgres> | null = null;
+function getDb() {
+    if (!_client) {
+        _client = postgres(process.env.DATABASE_URL!, {
+            prepare: false,
+            max: 5, // cap pool size; Supabase's free tier allows ~15 total connections
+        });
+    }
+    return drizzle(_client);
+}
 
-type OrderItemPayload = {
-    menuItemId: string;
-    quantity: number;
-    unitPrice: number;
-};
+async function getUserId() {
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    return user?.id ?? null;
+}
 
+// POST — place an order
+// Body: { restaurantId, items: [{ menuItemId, quantity, unitPrice }], subTotal, totalAmount }
 export async function POST(req: Request) {
     try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getUserId();
+        if (!userId)
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const {
-            restaurantId,
-            items,
-            subTotal,
-            totalAmount,
-            deliveryAddress,
-            notes,
-        }: {
-            restaurantId: string;
-            items: OrderItemPayload[];
-            subTotal: number;
-            totalAmount: number;
-            deliveryAddress?: string;
-            notes?: string;
-        } = await req.json();
+        const { restaurantId, items, subTotal, totalAmount } = await req.json();
 
-        if (!items?.length) {
-            return NextResponse.json({ error: "No items in order" }, { status: 400 });
+        if (
+            !Array.isArray(items) ||
+            items.length === 0 ||
+            typeof subTotal !== "number" ||
+            typeof totalAmount !== "number"
+        ) {
+            return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        // 1. Insert the order
+        const db = getDb();
+
+        // Create the order
         const [order] = await db
             .insert(orders)
             .values({
-                userId: user.id,
-                restaurantId,
-                subTotal,
-                totalAmount,
-                deliveryAddress,
-                notes,
+                userId,
+                restaurantId: restaurantId ?? null,
                 status: "pending",
+                subTotal,
+                discount: 0,
+                totalAmount,
             })
             .returning();
 
-        // 2. Insert order_items (price snapshot preserved)
+        // Insert line items
         await db.insert(orderItems).values(
-            items.map((i) => ({
+            items.map((item: { menuItemId: string; quantity: number; unitPrice: number }) => ({
                 orderId: order.id,
-                menuItemId: i.menuItemId,
-                quantity: i.quantity,
-                unitPrice: i.unitPrice,
+                menuItemId: item.menuItemId,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
             }))
         );
 
-        // 3. Clear the user's cart
-        await db
-            .delete(cartItems)
-            .where(eq(cartItems.userId, user.id));
-
-        return NextResponse.json({ orderId: order.id });
+        return NextResponse.json({ ok: true, orderId: order.id });
     } catch (err) {
-        console.error("[POST /api/orders]", err);
-        return NextResponse.json({ error: "Failed to place order" }, { status: 500 });
+        // Log the real error server-side and surface the message to the client
+        // so you can see exactly what Postgres is rejecting during development.
+        // Remove the `detail` field before going to production.
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[POST /api/orders]", message);
+        return NextResponse.json(
+            { error: "Failed to place order", detail: message },
+            { status: 500 }
+        );
     }
 }
