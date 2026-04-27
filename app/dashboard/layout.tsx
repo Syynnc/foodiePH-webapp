@@ -12,7 +12,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <CartProvider>
-      <DashboardShell userEmail={user.email || "user@foodie.ph"}>
+      <DashboardShell userEmail={user?.email || "user@foodie.ph"}>
         {children}
       </DashboardShell>
     </CartProvider>

@@ -58,7 +58,7 @@ const GALLERY = [
   { src: "https://images.unsplash.com/photo-1683062332605-4e1209d75346?q=80&w=1236&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Street tacos" },
   { src: "https://images.unsplash.com/photo-1694718950978-6e574ee95440?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Wood-fired pizza" },
   { src: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Poke Bowl" },
-  { src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=780&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Pancake" },  
+  { src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=780&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Pancake" },
 ];
 
 // Floating delivery badge
@@ -70,14 +70,13 @@ function DeliveryBadge() {
   }, []);
   return (
     <div
-      className={`z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        visible ? "translate-y-32 opacity-100" : "translate-y-6 opacity-0"
-      }`}
+      className={`z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${visible ? "translate-y-32 opacity-100" : "translate-y-6 opacity-0"
+        }`}
     >
       <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[#c8783a]/12 flex items-center justify-center flex-shrink-0">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>
         </div>
         <div>
@@ -143,7 +142,7 @@ export default function HomePage() {
         {/* Content — centered */}
         <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pb-12 pt-36 flex flex-col items-center text-center">
           <div className="max-w-2xl relative flex flex-col items-center">
-            
+
             {/* Floating UI badges - placed around the hero text */}
             <div className="absolute -left-32 top-32 hidden xl:block z-10 scale-95 w-max">
               <DeliveryBadge />
@@ -173,7 +172,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-3 bg-white/80 backdrop-blur-xl border border-[#1a1208]/8 rounded-2xl p-3 shadow-[0_8px_40px_rgba(0,0,0,0.08)]">
                 <div className="flex items-center gap-3 flex-1 px-2">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                   </svg>
                   <input
                     type="text"
@@ -185,7 +184,7 @@ export default function HomePage() {
                   className="group flex items-center justify-center gap-2 rounded-xl bg-[#c8783a] text-white px-6 py-3 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#b5692e] active:scale-[0.98] flex-shrink-0">
                   Find Food
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                    <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    <path d="M5 12h14m-7-7 7 7-7 7" />
                   </svg>
                 </Link>
               </div>
@@ -208,7 +207,7 @@ export default function HomePage() {
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <svg key={i} width="12" height="12" viewBox="0 0 24 24" fill="#c8783a" stroke="none">
-                      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
                     </svg>
                   ))}
                 </div>
@@ -245,11 +244,11 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-      
+
       {/* ── Category Grid ── */}
       <section id="menu" className="px-6 py-24">
         <div className="max-w-5xl mx-auto">
-      
+
           {/* Header row */}
           <ScrollReveal>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
@@ -278,7 +277,7 @@ export default function HomePage() {
               </a>
             </div>
           </ScrollReveal>
-      
+
           {/*
             Layout: 3-col grid on lg+, 2-col on sm, 1-col on xs.
             First card spans 2 cols on lg (feature card). 
@@ -300,7 +299,7 @@ export default function HomePage() {
                   <p className="text-[9px] uppercase tracking-[0.22em] font-medium text-[#1a1208]/38 mb-auto">
                     {cat.count}
                   </p>
-      
+
                   {/* Spacer pushes content to bottom */}
                   <div className="flex flex-col justify-between h-full">
                     <div className="flex justify-end mt-1 mb-6">
@@ -310,7 +309,7 @@ export default function HomePage() {
                         <span className="block w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
                       </div>
                     </div>
-      
+
                     <div className="flex items-end justify-between gap-3">
                       <h3 className="font-playfair text-[1.15rem] font-semibold leading-snug text-[#1a1208]">
                         {cat.label}
@@ -340,10 +339,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      
+
       {/* ── Food Gallery Strip ── */}
       <section id="about" className="py-20 overflow-hidden">
-      
+
         {/* Header — full bleed with px */}
         <ScrollReveal>
           <div className="px-6 max-w-5xl mx-auto mb-10 flex items-center gap-6">
@@ -359,7 +358,7 @@ export default function HomePage() {
             </a>
           </div>
         </ScrollReveal>
-      
+
         {/* Scroll strip — bleeds past container */}
         <div
           className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-6 md:justify-center"
@@ -402,81 +401,133 @@ export default function HomePage() {
           <div className="flex-shrink-0 w-6" aria-hidden="true" />
         </div>
       </section>
-      
+
       {/* ── How It Works ── */}
-      <section id="deals" className="px-6 py-28 bg-[#1a1208] text-[#FDFBF7]">
+      {/* 
+        REPLACE the old <section id="deals" ...> block with this.
+        Background: warm off-white #F7F0E6 — distinct from the cream #FDFBF7 body
+        but harmonious with the terracotta palette. Dark text on light.
+      */}
+      <section id="deals" className="px-6 py-28" style={{ background: "#F2E8D9" }}>
         <div className="max-w-5xl mx-auto">
-      
-          {/* Header */}
+
+          {/* ── Header ── */}
           <ScrollReveal>
             <div className="mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
               <div>
-                <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-white/30 mb-4">
+                <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/35 mb-4">
                   How It Works
                 </p>
-                <h2 className="font-playfair text-[clamp(2.2rem,4.5vw,3.6rem)] font-bold leading-[1.05]">
+                <h2 className="font-playfair text-[clamp(2.2rem,4.5vw,3.6rem)] font-bold leading-[1.05] text-[#1a1208]">
                   Three steps to<br />
                   <em className="not-italic text-[#c8783a]">your front door.</em>
                 </h2>
               </div>
-              <p className="text-sm text-white/38 font-light max-w-xs leading-7">
+              <p className="text-sm text-[#1a1208]/45 font-light max-w-xs leading-7">
                 From browsing to biting — the whole experience takes less than two minutes.
               </p>
             </div>
           </ScrollReveal>
-      
-          {/* Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/[0.07] rounded-3xl overflow-hidden">
+
+          {/* ── Steps — stacked layout with alternating image side ── */}
+          <div className="flex flex-col gap-5">
             {HOW_IT_WORKS.map((step, i) => (
-              <ScrollReveal key={step.n} delay={i * 110}>
-                <div className="relative bg-[#1a1208] p-8 flex flex-col gap-0 group hover:bg-white/[0.03] transition-colors duration-500 h-full">
-      
-                  {/* Ghosted step number — decorative watermark */}
-                  <span
-                    className="absolute top-6 right-7 font-playfair text-[5.5rem] font-bold leading-none select-none pointer-events-none"
-                    style={{ color: "rgba(255,255,255,0.04)" }}
-                  >
-                    {step.n}
-                  </span>
-      
-                  {/* Image — cinematic strip */}
-                  <div className="relative w-full h-44 rounded-xl overflow-hidden mb-8 flex-shrink-0">
+              <ScrollReveal key={step.n} delay={i * 100}>
+                <div
+                  className={`
+                    group relative flex flex-col md:flex-row gap-0 rounded-[1.5rem] overflow-hidden
+                    border border-[#1a1208]/[0.08]
+                    hover:border-[#1a1208]/[0.15] hover:shadow-[0_16px_48px_rgba(26,18,8,0.08)]
+                    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                    ${i % 2 === 1 ? "md:flex-row-reverse" : ""}
+                  `}
+                  style={{ background: "#FDFBF7" }}
+                >
+
+                  {/* ── Image panel — 45% width on desktop ── */}
+                  <div className="relative md:w-[45%] h-56 md:h-auto flex-shrink-0 overflow-hidden">
                     <Image
                       src={step.img}
                       alt={step.title}
                       fill
-                      className="object-cover opacity-50 group-hover:opacity-65 group-hover:scale-[1.03] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                      sizes="400px"
+                      className="object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                      sizes="(max-width: 768px) 100vw, 450px"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#c8783a]/20 to-transparent" />
+                    {/* Warm tint overlay */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: i === 0
+                          ? "linear-gradient(135deg, rgba(200,120,58,0.22) 0%, transparent 65%)"
+                          : i === 1
+                            ? "linear-gradient(225deg, rgba(200,120,58,0.18) 0%, transparent 65%)"
+                            : "linear-gradient(135deg, rgba(200,120,58,0.20) 0%, transparent 65%)",
+                      }}
+                    />
+                    {/* Large step number — bottom corner of image */}
+                    <div
+                      className={`absolute bottom-4 font-playfair text-[6rem] font-bold leading-none select-none pointer-events-none text-white/25 ${i % 2 === 1 ? "left-5" : "right-5"}`}
+                    >
+                      {step.n}
+                    </div>
                   </div>
-      
-                  {/* Step index pill */}
-                  <div className="inline-flex items-center gap-2 mb-5">
-                    <span className="w-5 h-5 rounded-full bg-[#c8783a]/15 border border-[#c8783a]/30 text-[#c8783a] text-[9px] font-bold flex items-center justify-center flex-shrink-0">
-                      {parseInt(step.n)}
-                    </span>
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-medium">
-                      Step {step.n}
-                    </span>
+
+                  {/* ── Content panel ── */}
+                  <div className="flex flex-col justify-center px-9 py-10 md:py-12 flex-1">
+
+                    {/* Step pill */}
+                    <div className="inline-flex items-center gap-2.5 mb-6 w-fit">
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold"
+                        style={{ background: "#c8783a" }}
+                      >
+                        {parseInt(step.n)}
+                      </div>
+                      <span className="text-[9px] uppercase tracking-[0.22em] font-semibold text-[#1a1208]/40">
+                        Step {step.n}
+                      </span>
+                      {/* Thin rule to the right of pill */}
+                      <div className="w-10 h-px bg-[#1a1208]/12 hidden sm:block" />
+                    </div>
+
+                    <h3 className="font-playfair text-[1.55rem] font-bold mb-3 leading-snug text-[#1a1208]">
+                      {step.title}
+                    </h3>
+                    <p className="text-sm leading-[1.85] text-[#1a1208]/50 font-light max-w-xs">
+                      {step.body}
+                    </p>
+
+                    {/* Bottom action hint */}
+                    <div className="mt-8 flex items-center gap-2 text-[#c8783a]">
+                      <div
+                        className="w-7 h-7 rounded-full border border-[#c8783a]/30 bg-[#c8783a]/8
+                          flex items-center justify-center
+                          group-hover:bg-[#c8783a] group-hover:border-[#c8783a]
+                          transition-all duration-400"
+                      >
+                        <svg
+                          className="group-hover:text-white transition-colors duration-300 text-[#c8783a]"
+                          width="11" height="11" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" strokeWidth="2.5"
+                          strokeLinecap="round" strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14m-7-7 7 7-7 7" />
+                        </svg>
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c8783a]/60 group-hover:text-[#c8783a] transition-colors duration-300">
+                        {i === 0 ? "Browse Restaurants" : i === 1 ? "Start Ordering" : "Track Your Rider"}
+                      </span>
+                    </div>
                   </div>
-      
-                  <h3 className="font-playfair text-[1.2rem] font-semibold mb-3 leading-snug">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm leading-[1.8] text-white/42 font-light">
-                    {step.body}
-                  </p>
-      
-                  {/* Connector arrow — visible on desktop between steps 1→2 and 2→3 */}
+
+                  {/* Connecting thread between steps — only between cards, desktop only */}
                   {i < 2 && (
                     <div
-                      className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-[#1a1208] border border-white/10 items-center justify-center"
+                      className="hidden md:flex absolute -bottom-[10px] left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-0.5 pointer-events-none"
                       aria-hidden="true"
                     >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14m-7-7 7 7-7 7" />
-                      </svg>
+                      <div className="w-px h-3 bg-[#1a1208]/12" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#c8783a]/40" />
                     </div>
                   )}
                 </div>
@@ -485,16 +536,16 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      
+
       {/* ── CTA Banner ── */}
       <section className="px-6 py-24">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
-      
+
             {/* Outer frame */}
             <div className="rounded-[2rem] overflow-hidden ring-1 ring-[#1a1208]/[0.09] bg-[#1a1208]/[0.03]">
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr]">
-      
+
                 {/* ── Left — Headline ── */}
                 <div className="px-10 py-14 md:px-14 flex flex-col justify-between gap-10">
                   <div>
@@ -509,7 +560,7 @@ export default function HomePage() {
                       Join thousands of food lovers across Metro Manila and Cebu getting fresh meals delivered daily.
                     </p>
                   </div>
-      
+
                   {/* Bottom trust bar */}
                   <div className="flex items-center gap-4">
                     <div className="flex -space-x-2">
@@ -524,10 +575,10 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-      
+
                 {/* ── Right — Action ── */}
                 <div className="relative px-10 py-14 md:px-14 bg-gradient-to-br from-[#c8783a] to-[#a85e28] flex flex-col justify-center gap-8 overflow-hidden">
-      
+
                   {/* Soft noise overlay — reuses the existing grain from globals.css */}
                   <div
                     className="absolute inset-0 opacity-[0.06] pointer-events-none"
@@ -535,18 +586,18 @@ export default function HomePage() {
                       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
                     }}
                   />
-      
+
                   {/* Decorative circle blob */}
                   <div
                     className="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
                     style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)" }}
                   />
-      
+
                   <div className="relative">
                     <p className="font-playfair text-white/70 text-sm font-light mb-6 leading-relaxed">
                       Free delivery on your first order. No commitment, cancel any time.
                     </p>
-      
+
                     {/* CTA buttons */}
                     <div className="flex flex-col gap-3">
                       <a
@@ -558,7 +609,7 @@ export default function HomePage() {
                           ↗
                         </span>
                       </a>
-      
+
                       <a
                         href="/auth"
                         className="inline-flex items-center justify-center text-white/60 text-sm font-medium hover:text-white transition-colors duration-300 underline underline-offset-4 py-1"
@@ -566,7 +617,7 @@ export default function HomePage() {
                         Already have an account?
                       </a>
                     </div>
-      
+
                     {/* Feature pills */}
                     <div className="flex flex-wrap gap-2 mt-8">
                       {["100+ Restaurants", "30-min delivery", "Eat now, pay later"].map((feat) => (
@@ -580,10 +631,10 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-      
+
               </div>
             </div>
-      
+
           </ScrollReveal>
         </div>
       </section>
