@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍱 Foodie.ph Web App
 
-## Getting Started
+> Premium corporate concierge food delivery for Metro Manila and Metro Cebu.
 
-First, run the development server:
+Foodie.ph is a modern, high-performance web application built to handle corporate food delivery, group catering, and "eat-now-pay-later" services for businesses. It connects users with over 100+ partner restaurants through a seamless, fast, and beautifully designed interface.
 
-```bash
+## ✨ Features
+
+*   **🏪 Restaurant Discovery:** Browse, search, and filter through 100+ local partner restaurants.
+*   **🛒 Global Cart System:** Persistent shopping cart experience managed via React Context.
+*   **🔐 Authentication:** Secure user login and dashboard access powered by Supabase.
+*   **⚡ Real-time UI:** Live order tickers and dynamic delivery badges for an engaging user experience.
+*   **📱 Responsive Design:** Fully optimized for mobile, tablet, and desktop screens.
+*   **🎨 Custom Typography & Theming:** Utilizes *Playfair Display* and *Plus Jakarta Sans* with a warm, custom color palette.
+
+## 🛠️ Tech Stack
+
+This project is built with modern web technologies:
+
+*   **Framework:** [Next.js](https://nextjs.org/) (App Router)
+*   **Language:** [TypeScript](https://www.typescriptlang.org/) (97% of the codebase)
+*   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+*   **Backend & Auth:** [Supabase](https://supabase.com/)
+*   **Deployment:** Vercel (Recommended)
+
+## 🚀 Getting Started
+
+To run this project locally, follow these steps:
+
+### Prerequisites
+
+Make sure you have [Node.js](https://nodejs.org/) (v18 or higher) installed on your machine.
+
+### 1. Clone the repository
+\`\`\`bash
+git clone https://github.com/Syynnc/foodiePH-webapp.git
+cd foodiePH-webapp
+\`\`\`
+
+### 2. Install dependencies
+Using npm, yarn, or pnpm:
+\`\`\`bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+\`\`\`
+
+### 3. Set up Environment Variables
+Create a \`.env.local\` file in the root directory and add your Supabase credentials:
+
+\`\`\`env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+\`\`\`
+*(Note: If your Supabase project pauses due to inactivity, local requests will fail with a `ConnectTimeoutError` until you restore it from the Supabase dashboard).*
+
+### 4. Run the development server
+\`\`\`bash
 npm run dev
 # or
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
-```
+\`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A quick look at the core structure of the application:
 
-## Learn More
+\`\`\`text
+foodiePH-webapp/
+├── app/
+│   ├── auth/              # Authentication pages and actions
+│   ├── components/        # Reusable UI components (Navbar, Shell, ScrollReveal)
+│   ├── context/           # React Context providers (CartContext)
+│   ├── dashboard/         # Protected user dashboard routes
+│   ├── restaurants/       # Restaurant listing and filtering pages
+│   ├── layout.tsx         # Root layout and font configuration
+│   └── page.tsx           # Landing page
+├── lib/
+│   └── supabase/          # Supabase client utilities
+├── public/                # Static assets (images, icons)
+└── tailwind.config.ts     # Tailwind CSS configuration
+\`\`\`
 
-To learn more about Next.js, take a look at the following resources:
+## 📝 Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+*   \`npm run dev\` - Starts the local development server.
+*   \`npm run build\` - Creates an optimized production build.
+*   \`npm run start\` - Starts the production server.
+*   \`npm run lint\` - Runs ESLint to check for code issues.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🤝 Contributing
 
-## Deploy on Vercel
+Contributions, issues, and feature requests are welcome! 
+Feel free to check the [issues page](https://github.com/Syynnc/foodiePH-webapp/issues) if you want to contribute.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📄 License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is proprietary. All rights reserved. 
