@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -19,7 +19,8 @@ export function Navbar() {
   const [dropOpen, setDropOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const supabase = useMemo(() => createClient(), []);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -63,6 +64,7 @@ export function Navbar() {
   async function handleSignOut() {
     await supabase.auth.signOut();
     setDropOpen(false);
+    window.location.href = "/";
   }
 
   const displayName = profile?.full_name ?? profile?.email ?? user?.email ?? "U";
