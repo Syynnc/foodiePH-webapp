@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollReveal } from "@/app/components/ScrollReveal";
@@ -10,70 +10,59 @@ type MenuItem = {
   id: string;
   name: string;
   price: number;
-  image: string;
+  imageUrl: string | null;
+  category: string | null;
 };
 
 type RestaurantData = {
+  id: string;
   name: string;
-  category: string;
-  rating: string;
-  reviews: string;
-  deliveryBase: string;
-  deliveryTime: string;
-  image: string;
-  menu: MenuItem[];
+  cuisine: string | null;
+  rating: string | null;
+  minOrder: number | null;
+  deliveryTime: string | null;
+  imageUrl: string | null;
 };
 
-const MOCK_RESTAURANTS: Record<string, RestaurantData> = {
-  "jollibee": {
-    name: "Jollibee", category: "Fast Food", rating: "4.8", reviews: "10k+",
-    deliveryBase: "Free delivery", deliveryTime: "15-20 mins",
-    image: "https://images.unsplash.com/photo-1579065497397-2824d41272ce?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    menu: [
-      { id: "jb-1", name: "1-pc. Chickenjoy w/ Rice", price: 95, image: "https://images.unsplash.com/photo-1626082928501-8b0d4c82c61e?q=80&w=600&auto=format&fit=crop" },
-      { id: "jb-2", name: "Yumburger", price: 40, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop" },
-      { id: "jb-3", name: "Jolly Spaghetti", price: 60, image: "https://images.unsplash.com/photo-1626808642875-0aa54548ebfd?q=80&w=600&auto=format&fit=crop" },
-    ]
-  },
-  "mcdonalds": {
-    name: "McDonald's PH", category: "Burgers", rating: "4.7", reviews: "8k+",
-    deliveryBase: "₱39 delivery", deliveryTime: "20-30 mins",
-    image: "https://plus.unsplash.com/premium_photo-1683619761468-b06992704398?q=80&w=665&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    menu: [
-      { id: "mc-1", name: "Big Mac", price: 160, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop" },
-      { id: "mc-2", name: "6-pc. Chicken McNuggets", price: 140, image: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=600&auto=format&fit=crop" },
-      { id: "mc-3", name: "World Famous Fries (Large)", price: 85, image: "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=600&auto=format&fit=crop" },
-    ]
-  },
-  "mang-inasal": {
-    name: "Mang Inasal", category: "Chicken", rating: "4.6", reviews: "5k+",
-    deliveryBase: "Free delivery", deliveryTime: "15-25 mins",
-    image: "https://images.unsplash.com/photo-1592011432621-f7f576f44484?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    menu: [
-      { id: "mi-1", name: "Paa Large", price: 145, image: "https://images.unsplash.com/photo-1598514982205-f36b96d1ea8d?q=80&w=600&auto=format&fit=crop" },
-      { id: "mi-2", name: "Pecho Large", price: 165, image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=600&auto=format&fit=crop" },
-      { id: "mi-3", name: "Pork BBQ (2 sticks)", price: 130, image: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?q=80&w=600&auto=format&fit=crop" },
-    ]
-  },
-  "kfc": {
-    name: "KFC Philippines", category: "Fast Food", rating: "4.7", reviews: "7k+",
-    deliveryBase: "Free delivery", deliveryTime: "15-30 mins",
-    image: "https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?q=80&w=1167&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    menu: [
-      { id: "kfc-1", name: "Original Recipe Chicken", price: 100, image: "https://images.unsplash.com/photo-1626082928501-8b0d4c82c61e?q=80&w=600&auto=format&fit=crop" },
-      { id: "kfc-2", name: "Zinger Burger", price: 160, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop" },
-      { id: "kfc-3", name: "Famous Bowl", price: 80, image: "https://images.unsplash.com/photo-1588673756209-6449195b28d1?q=80&w=600&auto=format&fit=crop" },
-    ]
-  },
+type MenuCategory = {
+  category: string;
+  items: MenuItem[];
 };
 
 export default function RestaurantPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
-  const rest = MOCK_RESTAURANTS[unwrappedParams.id];
   const { addToCart } = useCart();
   const [likedItems, setLikedItems] = useState<Record<string, boolean>>({});
 
-  if (!rest) {
+  const [restaurant, setRestaurant] = useState<RestaurantData | null>(null);
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/restaurants/${unwrappedParams.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.restaurant) {
+          setRestaurant(data.restaurant);
+          setMenuCategories(data.menu || []);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, [unwrappedParams.id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-4 text-center animate-pulse">
+        <h2 className="font-playfair text-3xl font-bold text-[#1a1208]/60 mb-2">Loading...</h2>
+      </div>
+    );
+  }
+
+  if (!restaurant) {
     return (
       <div className="flex flex-col items-center justify-center h-full px-4 text-center">
         <h2 className="font-playfair text-3xl font-bold mb-4">Restaurant not found</h2>
@@ -90,11 +79,17 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
     setLikedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const flatMenu = menuCategories.flatMap(c => c.items);
+
   return (
     <div className="h-full overflow-y-auto custom-scrollbar">
       {/* Hero Banner */}
       <div className="relative w-full h-[300px] md:h-[350px]">
-        <Image src={rest.image} alt={rest.name} fill className="object-cover" priority />
+        {restaurant.imageUrl ? (
+          <Image src={restaurant.imageUrl} alt={restaurant.name} fill className="object-cover" priority sizes="(max-width: 1200px) 100vw, 1200px" />
+        ) : (
+          <div className="w-full h-full bg-[#1a1208]/10" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/80 via-[#1a1208]/20 to-transparent flex items-end">
           <div className="px-8 pb-10 w-full">
             <Link href="/dashboard" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors font-medium">
@@ -103,12 +98,14 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
             </Link>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">{rest.name}</h1>
+                <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">{restaurant.name}</h1>
                 <div className="flex items-center gap-4 text-white/90">
-                  <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-[13px] font-bold">
-                    ★ {rest.rating} ({rest.reviews})
-                  </span>
-                  <span className="text-[14px] font-medium">{rest.category}</span>
+                  {restaurant.rating && (
+                    <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-[13px] font-bold">
+                      ★ {restaurant.rating}
+                    </span>
+                  )}
+                  {restaurant.cuisine && <span className="text-[14px] font-medium">{restaurant.cuisine}</span>}
                 </div>
               </div>
             </div>
@@ -123,13 +120,21 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {rest.menu.map((item: MenuItem, i: number) => {
+          {flatMenu.map((item: MenuItem, i: number) => {
             const isLiked = likedItems[item.id] || false;
             return (
               <ScrollReveal key={item.id} delay={i * 80}>
                 <div className="bg-white rounded-3xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)] transition-all flex flex-col h-full border border-[#1a1208]/[0.03] group">
                   <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4 bg-gray-100">
-                    <Image src={item.image} alt={item.name} fill className="object-cover transition-transform duration-[600ms] group-hover:scale-105" sizes="(max-width: 768px) 100vw, 300px" />
+                    {item.imageUrl ? (
+                      <Image src={item.imageUrl} alt={item.name} fill className="object-cover transition-transform duration-[600ms] group-hover:scale-105" sizes="(max-width: 768px) 100vw, 300px" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                          <rect x="3" y="3" width="18" height="18" rx="3"/><path d="m9 9 6 6m0-6-6 6"/>
+                        </svg>
+                      </div>
+                    )}
                     
                     <button 
                       onClick={(e) => toggleHeart(item.id, e)}
@@ -145,7 +150,14 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
                     <div className="font-black text-[20px] text-[#c8783a] mb-5">₱ {item.price}</div>
                     
                     <button 
-                      onClick={() => addToCart({ ...item, restaurant: rest.name })}
+                      onClick={() => addToCart({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        image: item.imageUrl || "",
+                        restaurant: restaurant.name,
+                        restaurantId: restaurant.id
+                      })}
                       className="mt-auto w-full py-3.5 bg-[#1a1208]/5 hover:bg-[#c8783a] hover:text-white hover:shadow-[0_8px_20px_rgba(200,120,58,0.25)] text-[#1a1208] rounded-2xl font-bold text-[15px] transition-all flex items-center justify-center gap-2 group/btn"
                     >
                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform group-hover/btn:scale-110"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>

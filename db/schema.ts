@@ -28,9 +28,9 @@ export const menuItems = pgTable("menu_items", {
   restaurantId: uuid("restaurant_id").notNull().references(() => restaurants.id),
   name: text("name").notNull(),
   description: text("description"),
-  price: integer("price").notNull(), // we will interpret as PHP
+  price: integer("price").notNull(),
   imageUrl: text("image_url"),
-  category: text("category"), // e.g., 'Pizza', 'Burger'
+  category: text("category"),
   rating: numeric("rating", { precision: 2, scale: 1 }),
   isAvailable: boolean("is_available").default(true),
 });
@@ -39,12 +39,22 @@ export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => profiles.id),
   restaurantId: uuid("restaurant_id").references(() => restaurants.id),
-  status: text("status").notNull().default("pending"), // pending, active, completed, cancelled
+  status: text("status").notNull().default("pending"),
   subTotal: integer("sub_total").notNull().default(0),
   discount: integer("discount").default(0),
   totalAmount: integer("total_amount").notNull(),
   deliveryAddress: text("delivery_address"),
   notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// NEW: line-items for each order
+export const orderItems = pgTable("order_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  menuItemId: uuid("menu_item_id").notNull().references(() => menuItems.id),
+  quantity: integer("quantity").notNull().default(1),
+  unitPrice: integer("unit_price").notNull(), // snapshot of price at time of order
   createdAt: timestamp("created_at").defaultNow(),
 });
 
