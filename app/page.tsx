@@ -93,9 +93,9 @@ function DeliveryBadge() {
 // Live order ticker
 function OrderTicker() {
   const items = [
-    { name: "Marcus T.", order: "Tonkotsu Ramen", time: "2 min ago" },
-    { name: "Lia C.", order: "Salmon Sushi Set", time: "4 min ago" },
-    { name: "Ray P.", order: "3× Street Tacos", time: "7 min ago" },
+    { name: "Dagooc A.", order: "Tonkotsu Ramen", time: "2 min ago" },
+    { name: "Cabilla D.", order: "Salmon Sushi Set", time: "4 min ago" },
+    { name: "Riobuya N.", order: "3× Street Tacos", time: "7 min ago" },
   ];
   const [idx, setIdx] = useState(0);
   useEffect(() => {
@@ -191,7 +191,7 @@ export default function HomePage() {
                   </svg>
                 </Link>
               </div>
-              <p className="text-xs text-[#1a1208]/35 mt-3">No signup needed to browse · Free delivery on first order</p>
+              <p className="text-xs text-[#1a1208]/35 mt-3">Sign Up Fast. Satisfy Cravings Faster</p>
             </div>
 
             {/* Trust row */}
@@ -278,381 +278,282 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Category Grid ── */}
+      {/* ── What's Trending ── */}
       <section id="menu" className="px-6 py-24">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
 
-          {/* Header */}
           <ScrollReveal>
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-medium text-[#1a1208]/45 mb-4">
+                <p className="text-[10px] uppercase tracking-[0.26em] font-semibold text-[#c8783a] mb-3">
                   What&apos;s Trending
                 </p>
-                <h2 className="font-playfair text-[clamp(2.4rem,4.5vw,3.6rem)] font-bold leading-[1.05] tracking-tight">
+                <h2 className="font-playfair text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[1.03] tracking-tight">
                   Every craving,{" "}
                   <em className="not-italic text-[#c8783a]">covered.</em>
                 </h2>
               </div>
-              <Link
-                href="/restaurants"
-                className="group inline-flex items-center gap-1.5 text-sm font-medium text-[#1a1208]/50 hover:text-[#c8783a] transition-colors duration-300 md:mb-1 flex-shrink-0"
-              >
-                View all cuisines
-                <svg
-                  className="transition-transform duration-300 group-hover:translate-x-0.5"
-                  width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                >
-                  <path d="M5 12h14m-7-7 7 7-7 7" />
-                </svg>
+              <Link href="/restaurants" className="group inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#1a1208]/40 hover:text-[#c8783a] transition-colors duration-300 self-start sm:self-end">
+                Browse all
+                <span className="w-6 h-6 rounded-full border border-[#1a1208]/12 flex items-center justify-center text-[#1a1208]/30 group-hover:bg-[#c8783a] group-hover:border-[#c8783a] group-hover:text-white transition-all duration-400">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                </span>
               </Link>
             </div>
           </ScrollReveal>
 
-          {/* Category rows — editorial list */}
-          <div className="divide-y divide-[#1a1208]/[0.06]">
-            {CATEGORIES.map((cat, i) => (
-              <ScrollReveal key={cat.label} delay={i * 45}>
-                <a
-                  href="#"
-                  className="group relative flex items-center gap-4 md:gap-6 py-5 px-3 -mx-3 rounded-2xl hover:bg-[#1a1208]/[0.025] transition-all duration-400"
-                >
-                  {/* Left accent bar */}
-                  <span className="absolute left-0 top-4 bottom-4 w-[2.5px] bg-[#c8783a] opacity-0 group-hover:opacity-100 rounded-full transition-all duration-400" />
+          {/* Editorial list + single hero image */}
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
 
-                  {/* Index number */}
-                  <span className="font-playfair text-[1rem] font-bold text-[#c8783a]/30 w-8 flex-shrink-0 leading-none select-none group-hover:text-[#c8783a]/60 transition-colors duration-400">
-                    {String(i + 1).padStart(2, "0")}
+            {/* Category list */}
+            <div className="flex-1 divide-y divide-[#1a1208]/[0.06]">
+              {CATEGORIES.map((cat, i) => (
+                <ScrollReveal key={cat.label} delay={i * 40}>
+                  <a href="#" className="group relative flex items-center gap-4 md:gap-6 py-5 px-3 -mx-3 rounded-2xl hover:bg-[#1a1208]/[0.025] transition-all duration-400">
+                    <span className="absolute left-0 top-4 bottom-4 w-[2px] bg-[#c8783a] opacity-0 group-hover:opacity-100 rounded-full transition-all duration-400" />
+                    <span className="font-playfair text-[0.9rem] font-bold text-[#c8783a]/25 w-8 flex-shrink-0 select-none group-hover:text-[#c8783a]/55 transition-colors duration-400">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="font-playfair text-[1.3rem] md:text-[1.5rem] font-semibold text-[#1a1208] flex-1 leading-snug">
+                      {cat.label}
+                    </h3>
+                    <div className="hidden md:block flex-1 h-px bg-[#1a1208]/[0.06] group-hover:bg-[#c8783a]/20 transition-colors duration-400" />
+                    {/* Thumbnail slides in on hover — desktop only */}
+                    <div className="relative w-14 h-10 rounded-lg overflow-hidden flex-shrink-0 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-400 hidden md:block">
+                      <Image src={cat.img} alt="" fill className="object-cover" sizes="56px" />
+                    </div>
+                    <span className="text-[11px] font-medium text-[#1a1208]/30 flex-shrink-0 hidden sm:block tabular-nums group-hover:text-[#1a1208]/55 transition-colors duration-300">
+                      {cat.count}
+                    </span>
+                    <div className="w-8 h-8 rounded-full border border-[#1a1208]/[0.08] flex items-center justify-center text-[#1a1208]/25 flex-shrink-0 group-hover:bg-[#c8783a] group-hover:border-[#c8783a] group-hover:text-white transition-all duration-400">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                    </div>
+                  </a>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            {/* Single hero image — desktop only */}
+            <ScrollReveal className="hidden md:block flex-shrink-0">
+              <div className="relative w-[260px] rounded-[1.75rem] overflow-hidden h-[480px]">
+                <Image src={CATEGORIES[0].img} alt="" fill className="object-cover" sizes="260px" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/80 via-[#1a1208]/15 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em] font-bold text-white/55 border border-white/15 rounded-full px-2.5 py-1 mb-3 backdrop-blur-sm bg-white/5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
+                    Most ordered
                   </span>
-
-                  {/* Category name */}
-                  <h3 className="font-playfair text-[1.25rem] md:text-[1.45rem] font-semibold text-[#1a1208] leading-snug flex-1 group-hover:text-[#1a1208] transition-colors duration-300">
-                    {cat.label}
-                  </h3>
-
-                  {/* Extending rule */}
-                  <div className="hidden md:block flex-1 h-px bg-[#1a1208]/[0.06] group-hover:bg-[#c8783a]/20 transition-colors duration-400" />
-
-                  {/* Food thumbnail — slides in on hover, desktop only */}
-                  <div className="relative w-[52px] h-[38px] rounded-lg overflow-hidden flex-shrink-0 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-400 hidden md:block">
-                    <Image
-                      src={cat.img}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="52px"
-                    />
-                  </div>
-
-                  {/* Count */}
-                  <span className="text-[11.5px] font-medium text-[#1a1208]/35 flex-shrink-0 hidden sm:block tabular-nums group-hover:text-[#1a1208]/55 transition-colors duration-300">
-                    {cat.count}
-                  </span>
-
-                  {/* Arrow */}
-                  <div className="w-8 h-8 rounded-full border border-[#1a1208]/[0.09] flex items-center justify-center text-[#1a1208]/30 flex-shrink-0 group-hover:bg-[#c8783a] group-hover:border-[#c8783a] group-hover:text-white transition-all duration-400">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14m-7-7 7 7-7 7" />
-                    </svg>
-                  </div>
-                </a>
-              </ScrollReveal>
-            ))}
+                  <p className="font-playfair text-[1.55rem] font-bold text-white leading-tight">{CATEGORIES[0].label}</p>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
-      {/* ── Food Gallery Strip ── */}
-      <section id="about" className="py-20 overflow-hidden">
+      {/* ── Fresh From Our Partners ── */}
+      <section id="about" className="py-24" style={{ background: "#F5EDE0" }}>
+        <div className="max-w-6xl mx-auto px-6">
 
-        {/* Header — full bleed with px */}
-        <ScrollReveal>
-          <div className="px-6 max-w-5xl mx-auto mb-10 flex items-center gap-6">
-            <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 flex-shrink-0">
-              Fresh From Our Partners
-            </p>
-            <div className="flex-1 h-px bg-[#1a1208]/10" />
-            <a
-              href="#"
-              className="text-[9px] uppercase tracking-[0.22em] font-medium text-[#c8783a] hover:text-[#b5692e] transition-colors duration-300 flex-shrink-0"
-            >
-              See all →
-            </a>
-          </div>
-        </ScrollReveal>
+          <ScrollReveal>
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.26em] font-semibold text-[#1a1208]/40 mb-4">
+                  Fresh From Our Partners
+                </p>
+                <h2 className="font-playfair text-[clamp(2.4rem,4.5vw,3.8rem)] font-bold leading-[1.04] tracking-tight text-[#1a1208]">
+                  Handpicked.<br />
+                  <em className="not-italic text-[#c8783a]">Every day.</em>
+                </h2>
+              </div>
+              <p className="text-[13.5px] text-[#1a1208]/45 font-light max-w-[220px] leading-[1.85] self-start sm:self-end sm:mb-1">
+                Locally sourced. Prepared fresh each day by our partner kitchens.
+              </p>
+            </div>
+          </ScrollReveal>
 
-        {/* Scroll strip — bleeds past container */}
-        <div
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-6 md:justify-center"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          {GALLERY.map((g, i) => {
-            // Alternating heights for visual rhythm
-            const heights = ["h-72", "h-56", "h-80", "h-60", "h-72"];
-            return (
-              <ScrollReveal
-                key={i}
-                delay={i * 65}
-                className={`
-                  flex-shrink-0 snap-start relative rounded-2xl overflow-hidden img-shimmer
-                  w-44 md:w-52 ${heights[i % heights.length]}
-                  cursor-pointer
-                `}
-              >
-                <Image
-                  src={g.src}
-                  alt={g.alt}
-                  fill
-                  className="object-cover hover:scale-[1.04] transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                  sizes="224px"
-                />
-                {/* Bottom label overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/70 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <span className="font-playfair text-white text-sm font-semibold leading-snug">
-                    {g.alt}
-                  </span>
+          <div className="grid grid-cols-1 md:grid-cols-[5fr_3fr] gap-8 md:gap-14 items-start">
+
+            {/* Curated dish list */}
+            <div>
+              {[
+                { dish: "Tonkotsu Ramen", partner: "Early Bird", desc: "Slow-cooked 12-hour pork broth, chashu, soft egg, bamboo shoots" },
+                { dish: "Salmon Sashimi Set", partner: "Manam", desc: "Same-day catch from Batangas, yuzu ponzu, microgreens" },
+                { dish: "Chicken Inasal", partner: "Mang Inasal", desc: "Char-grilled over coconut husks, annatto baste, sinangag rice" },
+                { dish: "Truffle Burrata Pizza", partner: "Wildflour", desc: "Wild mushroom, black truffle oil, fresh arugula, aged parmesan" },
+                { dish: "Kare-Kare", partner: "Aristocrat", desc: "Slow-braised oxtail, bagoong, ground peanut sauce, banana blossom" },
+              ].map((item, i) => (
+                <ScrollReveal key={item.dish} delay={i * 55}>
+                  <div className="group flex items-start gap-5 py-5 border-b border-[#1a1208]/[0.07] last:border-b-0 cursor-pointer -mx-3 px-3 rounded-xl hover:bg-[#1a1208]/[0.025] transition-colors duration-300">
+                    <span className="font-playfair text-[0.85rem] font-bold text-[#c8783a]/30 w-6 flex-shrink-0 mt-1 select-none">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-3 mb-1.5 flex-wrap">
+                        <h3 className="font-playfair text-[1.2rem] font-bold text-[#1a1208] leading-tight">{item.dish}</h3>
+                        <span className="text-[9px] uppercase tracking-[0.2em] font-semibold text-[#1a1208]/35">{item.partner}</span>
+                      </div>
+                      <p className="text-[12.5px] text-[#1a1208]/40 font-light leading-[1.7]">{item.desc}</p>
+                    </div>
+                    <div className="w-7 h-7 rounded-full border border-[#1a1208]/[0.07] flex items-center justify-center text-[#1a1208]/20 flex-shrink-0 mt-0.5 group-hover:bg-[#c8783a] group-hover:border-[#c8783a] group-hover:text-white transition-all duration-400">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+              <ScrollReveal delay={310}>
+                <div className="mt-8">
+                  <Link href="/menu" className="group inline-flex items-center gap-2.5 text-[12px] font-bold uppercase tracking-[0.16em] text-[#1a1208] hover:text-[#c8783a] transition-colors duration-300">
+                    View full menu
+                    <svg className="transition-transform duration-300 group-hover:translate-x-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                  </Link>
                 </div>
               </ScrollReveal>
-            );
-          })}
-          {/* Trailing spacer so last card doesn't touch viewport edge */}
-          <div className="flex-shrink-0 w-6" aria-hidden="true" />
+            </div>
+
+            {/* Single accent image — desktop only */}
+            <ScrollReveal className="hidden md:block">
+              <div className="relative rounded-[1.75rem] overflow-hidden h-[500px]">
+                <Image src={GALLERY[0].src} alt="" fill className="object-cover" sizes="35vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/55 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6">
+                  <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-white/50 mb-1.5">Featured today</p>
+                  <p className="font-playfair text-white text-[1.2rem] font-bold leading-tight">{GALLERY[0].alt}</p>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
         </div>
       </section>
 
       {/* ── How It Works ── */}
       <section id="deals" className="px-6 py-28" style={{ background: "#F2E8D9" }}>
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
 
-          {/* ── Header ── */}
           <ScrollReveal>
-            <div className="mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-20">
               <div>
-                <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/35 mb-4">
+                <p className="text-[9px] uppercase tracking-[0.26em] font-semibold text-[#1a1208]/35 mb-4">
                   How It Works
                 </p>
-                <h2 className="font-playfair text-[clamp(2.2rem,4.5vw,3.6rem)] font-bold leading-[1.05] text-[#1a1208]">
+                <h2 className="font-playfair text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[1.03] text-[#1a1208]">
                   Three steps to<br />
                   <em className="not-italic text-[#c8783a]">your front door.</em>
                 </h2>
               </div>
-              <p className="text-sm text-[#1a1208]/45 font-light max-w-xs leading-7">
+              <p className="text-[13.5px] text-[#1a1208]/45 font-light max-w-[260px] leading-[1.9]">
                 From browsing to biting — the whole experience takes less than two minutes.
               </p>
             </div>
           </ScrollReveal>
 
-          {/* ── Steps — stacked layout with alternating image side ── */}
-          <div className="flex flex-col gap-5">
+          {/* Vertical timeline — no images */}
+          <div className="relative max-w-2xl">
+            {/* Vertical connector */}
+            <div className="absolute left-7 top-7 bottom-16 w-px bg-[#1a1208]/10 hidden md:block pointer-events-none" />
+
             {HOW_IT_WORKS.map((step, i) => (
               <ScrollReveal key={step.n} delay={i * 100}>
-                <div
-                  className={`
-                    group relative flex flex-col md:flex-row gap-0 rounded-[1.5rem] overflow-hidden
-                    border border-[#1a1208]/[0.08]
-                    hover:border-[#1a1208]/[0.15] hover:shadow-[0_16px_48px_rgba(26,18,8,0.08)]
-                    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                    ${i % 2 === 1 ? "md:flex-row-reverse" : ""}
-                  `}
-                  style={{ background: "#FDFBF7" }}
-                >
-
-                  {/* ── Image panel — 45% width on desktop ── */}
-                  <div className="relative md:w-[45%] h-56 md:h-auto flex-shrink-0 overflow-hidden">
-                    <Image
-                      src={step.img}
-                      alt={step.title}
-                      fill
-                      className="object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                      sizes="(max-width: 768px) 100vw, 450px"
-                    />
-                    {/* Warm tint overlay */}
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background: i === 0
-                          ? "linear-gradient(135deg, rgba(200,120,58,0.22) 0%, transparent 65%)"
-                          : i === 1
-                            ? "linear-gradient(225deg, rgba(200,120,58,0.18) 0%, transparent 65%)"
-                            : "linear-gradient(135deg, rgba(200,120,58,0.20) 0%, transparent 65%)",
-                      }}
-                    />
-                    {/* Large step number — bottom corner of image */}
-                    <div
-                      className={`absolute bottom-4 font-playfair text-[6rem] font-bold leading-none select-none pointer-events-none text-white/25 ${i % 2 === 1 ? "left-5" : "right-5"}`}
-                    >
-                      {step.n}
-                    </div>
+                <div className="flex gap-6 md:gap-10 pb-14 last:pb-0">
+                  {/* Numbered circle */}
+                  <div
+                    className="relative z-10 w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500"
+                    style={{
+                      background: i === 0 ? "#c8783a" : "rgba(26,18,8,0.06)",
+                      boxShadow: i === 0 ? "0 8px 24px rgba(200,120,58,0.28)" : "none",
+                    }}
+                  >
+                    <span className={`font-playfair text-[1.05rem] font-bold ${i === 0 ? "text-white" : "text-[#1a1208]/35"}`}>{step.n}</span>
                   </div>
-
-                  {/* ── Content panel ── */}
-                  <div className="flex flex-col justify-center px-9 py-10 md:py-12 flex-1">
-
-                    {/* Step pill */}
-                    <div className="inline-flex items-center gap-2.5 mb-6 w-fit">
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold"
-                        style={{ background: "#c8783a" }}
-                      >
-                        {parseInt(step.n)}
-                      </div>
-                      <span className="text-[9px] uppercase tracking-[0.22em] font-semibold text-[#1a1208]/40">
-                        Step {step.n}
-                      </span>
-                      {/* Thin rule to the right of pill */}
-                      <div className="w-10 h-px bg-[#1a1208]/12 hidden sm:block" />
+                  {/* Content */}
+                  <div className="flex-1 pt-2">
+                    <div className="flex items-center gap-3 mb-3 flex-wrap">
+                      <h3 className="font-playfair text-[1.7rem] font-bold text-[#1a1208] leading-tight">{step.title}</h3>
+                      {i === 0 && (
+                        <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#c8783a] border border-[#c8783a]/25 rounded-full px-2.5 py-1">
+                          Start here
+                        </span>
+                      )}
                     </div>
-
-                    <h3 className="font-playfair text-[1.55rem] font-bold mb-3 leading-snug text-[#1a1208]">
-                      {step.title}
-                    </h3>
-                    <p className="text-sm leading-[1.85] text-[#1a1208]/50 font-light max-w-xs">
-                      {step.body}
-                    </p>
-
-                    {/* Bottom action hint */}
-                    <div className="mt-8 flex items-center gap-2 text-[#c8783a]">
-                      <div
-                        className="w-7 h-7 rounded-full border border-[#c8783a]/30 bg-[#c8783a]/8
-                          flex items-center justify-center
-                          group-hover:bg-[#c8783a] group-hover:border-[#c8783a]
-                          transition-all duration-400"
-                      >
-                        <svg
-                          className="group-hover:text-white transition-colors duration-300 text-[#c8783a]"
-                          width="11" height="11" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" strokeWidth="2.5"
-                          strokeLinecap="round" strokeLinejoin="round"
-                        >
-                          <path d="M5 12h14m-7-7 7 7-7 7" />
-                        </svg>
-                      </div>
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c8783a]/60 group-hover:text-[#c8783a] transition-colors duration-300">
-                        {i === 0 ? "Browse Restaurants" : i === 1 ? "Start Ordering" : "Track Your Rider"}
-                      </span>
-                    </div>
+                    <p className="text-[14px] text-[#1a1208]/45 font-light leading-[1.9] max-w-[380px]">{step.body}</p>
                   </div>
-
-                  {/* Connecting thread between steps — only between cards, desktop only */}
-                  {i < 2 && (
-                    <div
-                      className="hidden md:flex absolute -bottom-[10px] left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-0.5 pointer-events-none"
-                      aria-hidden="true"
-                    >
-                      <div className="w-px h-3 bg-[#1a1208]/12" />
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#c8783a]/40" />
-                    </div>
-                  )}
                 </div>
               </ScrollReveal>
             ))}
           </div>
+
+          {/* Feature tags */}
+          <ScrollReveal delay={320}>
+            <div className="mt-16 pt-12 border-t border-[#1a1208]/10 flex flex-wrap gap-2.5">
+              {["Fast checkout", "Live order tracking", "Multiple payment methods", "Corporate billing", "Free first delivery"].map((tag) => (
+                <span key={tag} className="text-[11px] font-medium text-[#1a1208]/45 border border-[#1a1208]/12 rounded-full px-4 py-2 hover:border-[#c8783a]/40 hover:text-[#c8783a] transition-all duration-300 cursor-default">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* ── CTA Banner ── */}
+      {/* ── Start Ordering ── */}
       <section className="px-6 py-24">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <ScrollReveal>
+            <div className="relative rounded-[2rem] overflow-hidden bg-[#1a1208]">
+              <div
+                className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }}
+              />
+              <div className="relative grid grid-cols-1 lg:grid-cols-[3fr_2fr]">
 
-            {/* Outer frame */}
-            <div className="rounded-[2rem] overflow-hidden ring-1 ring-[#1a1208]/[0.09] bg-[#1a1208]/[0.03]">
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr]">
-
-                {/* ── Left — Headline ── */}
-                <div className="px-10 py-14 md:px-14 flex flex-col justify-between gap-10">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/38 mb-6">
-                      Start Ordering
-                    </p>
-                    <h2 className="font-playfair text-[clamp(2.2rem,4vw,3.4rem)] font-bold leading-[1.08] tracking-tight mb-5">
-                      Hungry right now?<br />
-                      <em className="not-italic text-[#c8783a]">We&apos;ve got you.</em>
-                    </h2>
-                    <p className="text-[#1a1208]/50 text-base font-light leading-[1.8] max-w-[320px]">
-                      Join thousands of food lovers across Metro Manila and Cebu getting fresh meals delivered daily.
-                    </p>
+                {/* Left: headline + CTA */}
+                <div className="px-10 py-16 md:px-16 md:py-20 border-b lg:border-b-0 lg:border-r border-white/[0.06]">
+                  <p className="text-[9px] uppercase tracking-[0.26em] font-semibold text-[#c8783a] mb-6">Start Ordering</p>
+                  <h2 className="font-playfair text-[clamp(2.6rem,5vw,4.4rem)] font-bold leading-[1.04] tracking-tight text-white mb-6">
+                    Hungry right now?<br />
+                    <em className="not-italic text-[#c8783a]">We&apos;ve got you.</em>
+                  </h2>
+                  <p className="text-white/40 text-[14px] font-light leading-[1.9] mb-10 max-w-[340px]">
+                    Join thousands of food lovers across Metro Manila and Cebu getting fresh meals delivered daily.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-10">
+                    <Link
+                      href="/auth?tab=signup"
+                      className="group inline-flex items-center gap-3 rounded-full bg-[#c8783a] text-white px-7 py-3.5 text-[13px] font-bold uppercase tracking-[0.12em] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#b5692e] active:scale-[0.98] shadow-[0_8px_28px_rgba(200,120,58,0.32)]"
+                    >
+                      Get Started Free
+                      <svg className="transition-transform duration-300 group-hover:translate-x-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                    </Link>
+                    <Link href="/auth" className="text-white/35 text-[13px] font-medium hover:text-white/65 transition-colors duration-300 underline underline-offset-4">
+                      Sign in instead
+                    </Link>
                   </div>
-
-                  {/* Bottom trust bar */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex -space-x-2">
-                      {["11", "12", "14", "19"].map((seed) => (
-                        <div key={seed} className="w-7 h-7 rounded-full ring-2 ring-[#FDFBF7] overflow-hidden relative">
-                          <Image src={`https://i.pravatar.cc/64?img=${seed}`} alt="" fill className="object-cover" sizes="28px" />
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-[#1a1208]/45 font-light leading-tight">
-                      <span className="font-semibold text-[#1a1208]">50,000+</span> orders this month
-                    </p>
-                  </div>
-                </div>
-
-                {/* ── Right — Action ── */}
-                <div className="relative px-10 py-14 md:px-14 bg-gradient-to-br from-[#c8783a] to-[#a85e28] flex flex-col justify-center gap-8 overflow-hidden">
-
-                  {/* Soft noise overlay — reuses the existing grain from globals.css */}
-                  <div
-                    className="absolute inset-0 opacity-[0.06] pointer-events-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                    }}
-                  />
-
-                  {/* Decorative circle blob */}
-                  <div
-                    className="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
-                    style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)" }}
-                  />
-
-                  <div className="relative">
-                    <p className="font-playfair text-white/70 text-sm font-light mb-6 leading-relaxed">
-                      Free delivery on your first order. No commitment, cancel any time.
-                    </p>
-
-                    {/* CTA buttons */}
-                    <div className="flex flex-col gap-3">
-                      <a
-                        href="/auth?tab=signup"
-                        className="group inline-flex items-center justify-center gap-3 rounded-full bg-white text-[#1a1208] px-7 py-3.5 text-sm font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#FDFBF7] hover:-translate-y-px active:scale-[0.98] shadow-[0_2px_20px_rgba(0,0,0,0.18)]"
-                      >
-                        Get Started — It&apos;s Free
-                        <span className="w-6 h-6 rounded-full bg-[#1a1208]/8 flex items-center justify-center transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px">
-                          ↗
-                        </span>
-                      </a>
-
-                      <a
-                        href="/auth"
-                        className="inline-flex items-center justify-center text-white/60 text-sm font-medium hover:text-white transition-colors duration-300 underline underline-offset-4 py-1"
-                      >
-                        Already have an account?
-                      </a>
-                    </div>
-
-                    {/* Feature pills */}
-                    <div className="flex flex-wrap gap-2 mt-8">
-                      {["100+ Restaurants", "30-min delivery", "Eat now, pay later"].map((feat) => (
-                        <span
-                          key={feat}
-                          className="text-[10px] font-medium text-white/70 border border-white/20 rounded-full px-3 py-1"
-                        >
-                          {feat}
-                        </span>
-                      ))}
-                    </div>
+                  {/* Feature pills */}
+                  <div className="flex flex-wrap gap-2">
+                    {["100+ Restaurants", "30-min delivery", "Corporate billing"].map((feat) => (
+                      <span key={feat} className="text-[10px] font-medium text-white/40 border border-white/12 rounded-full px-3 py-1.5">{feat}</span>
+                    ))}
                   </div>
                 </div>
 
+                {/* Right: proof stats */}
+                <div className="px-10 py-16 md:px-12 md:py-20 flex flex-col justify-center">
+                  <div className="divide-y divide-white/[0.06]">
+                    {[
+                      { stat: "100+", label: "Restaurant partners across PH" },
+                      { stat: "30 min", label: "Average delivery time" },
+                      { stat: "50k+", label: "Orders placed this month" },
+                      { stat: "4.8", label: "Average customer rating" },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-5 py-5 first:pt-0 last:pb-0">
+                        <span className="font-playfair text-[1.9rem] font-bold text-[#c8783a] leading-none w-24 flex-shrink-0 tabular-nums">{item.stat}</span>
+                        <span className="text-[13px] text-white/38 font-light leading-snug">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-
           </ScrollReveal>
         </div>
       </section>
