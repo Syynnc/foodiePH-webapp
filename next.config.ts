@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ui-avatars.com" },
       { protocol: "https", hostname: "i.pravatar.cc" },
       { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "layfnqzafemhdstizcke.supabase.co" },
     ],
   },
 };

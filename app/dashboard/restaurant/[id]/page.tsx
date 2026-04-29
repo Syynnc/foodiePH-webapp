@@ -106,7 +106,8 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
     const el = sectionRefs.current[cat];
     const container = scrollRef.current;
     if (!el || !container) return;
-    container.scrollTo({ top: el.offsetTop - 56, behavior: "smooth" });
+    const offset = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 64;
+    container.scrollTo({ top: offset, behavior: "smooth" });
     setActiveCategory(cat);
   }
 

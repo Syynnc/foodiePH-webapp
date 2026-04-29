@@ -8,6 +8,19 @@ export const profiles = pgTable("profiles", {
   phone: text("phone"),
   creditLine: integer("credit_line").default(0),
   isCorporate: boolean("is_corporate").default(false),
+  role: text("role").notNull().default("customer"), // 'customer' | 'driver' | 'admin'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const drivers = pgTable("drivers", {
+  id: uuid("id").primaryKey().references(() => profiles.id),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  licenseNumber: text("license_number"),
+  vehicleType: text("vehicle_type").default("motorcycle"),
+  plateNumber: text("plate_number"),
+  isAvailable: boolean("is_available").default(true),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -39,22 +52,25 @@ export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => profiles.id),
   restaurantId: uuid("restaurant_id").references(() => restaurants.id),
-  status: text("status").notNull().default("pending"),
+  driverId: uuid("driver_id").references(() => drivers.id),
+  status: text("status").notNull().default("preparing"),
   subTotal: integer("sub_total").notNull().default(0),
   discount: integer("discount").default(0),
   totalAmount: integer("total_amount").notNull(),
   deliveryAddress: text("delivery_address"),
+  paymentMethod: text("payment_method"),
   notes: text("notes"),
+  deliveryPhotoUrl: text("delivery_photo_url"),
+  deliveredAt: timestamp("delivered_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// NEW: line-items for each order
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
   menuItemId: uuid("menu_item_id").notNull().references(() => menuItems.id),
   quantity: integer("quantity").notNull().default(1),
-  unitPrice: integer("unit_price").notNull(), // snapshot of price at time of order
+  unitPrice: integer("unit_price").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

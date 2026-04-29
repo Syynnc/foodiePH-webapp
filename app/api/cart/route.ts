@@ -1,27 +1,31 @@
 import { NextResponse } from "next/server";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { cartItems } from "@/db/schema";
+import { cartItems, profiles } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
+import { db } from "@/db";
 
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
-const db = drizzle(client);
-
-async function getUserId() {
+async function getUser() {
     const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-    return user?.id ?? null;
+    const { data: { user } } = await supabase.auth.getUser();
+    return user ?? null;
+}
+
+// Ensure a profiles row exists for this Supabase auth user.
+// The FK on cart_items and orders requires the user_id to exist in profiles.
+async function ensureProfile(userId: string, email: string) {
+    await db
+        .insert(profiles)
+        .values({ id: userId, email })
+        .onConflictDoNothing();
 }
 
 // POST — upsert a cart item (add or update qty)
 export async function POST(req: Request) {
     try {
-        const userId = await getUserId();
-        if (!userId)
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = user.id;
+        await ensureProfile(userId, user.email ?? "");
 
         const { menuItemId, quantity } = await req.json();
         if (!menuItemId || typeof quantity !== "number") {
@@ -62,9 +66,9 @@ export async function POST(req: Request) {
 // DELETE — remove a single item from cart
 export async function DELETE(req: Request) {
     try {
-        const userId = await getUserId();
-        if (!userId)
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = user.id;
 
         const { searchParams } = new URL(req.url);
         const menuItemId = searchParams.get("menuItemId");

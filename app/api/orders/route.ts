@@ -1,49 +1,98 @@
 import { NextResponse } from "next/server";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { orders, orderItems } from "@/db/schema";
+import { orders, orderItems, profiles, restaurants, menuItems } from "@/db/schema";
+import { eq, desc, inArray } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
+import { db } from "@/db";
 
-// Singleton client — avoids connection exhaustion in serverless/edge environments.
-let _client: ReturnType<typeof postgres> | null = null;
-function getDb() {
-    if (!_client) {
-        _client = postgres(process.env.DATABASE_URL!, {
-            prepare: false,
-            max: 5, // cap pool size; Supabase's free tier allows ~15 total connections
-        });
-    }
-    return drizzle(_client);
+async function getUser() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user ?? null;
 }
 
-async function getUserId() {
-    const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-    return user?.id ?? null;
+async function ensureProfile(userId: string, email: string) {
+    await db.insert(profiles).values({ id: userId, email }).onConflictDoNothing();
+}
+
+// GET — fetch the current user's orders with line items
+export async function GET() {
+    try {
+        const user = await getUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        // Fetch orders newest-first, joined with restaurant name/image
+        const userOrders = await db
+            .select({
+                id: orders.id,
+                status: orders.status,
+                subTotal: orders.subTotal,
+                totalAmount: orders.totalAmount,
+                deliveryAddress: orders.deliveryAddress,
+                paymentMethod: orders.paymentMethod,
+                createdAt: orders.createdAt,
+                restaurantName: restaurants.name,
+                restaurantImage: restaurants.imageUrl,
+            })
+            .from(orders)
+            .leftJoin(restaurants, eq(orders.restaurantId, restaurants.id))
+            .where(eq(orders.userId, user.id))
+            .orderBy(desc(orders.createdAt));
+
+        if (userOrders.length === 0) return NextResponse.json([]);
+
+        // Fetch all line items for these orders in a single query
+        const orderIds = userOrders.map((o) => o.id);
+        const lineItems = await db
+            .select({
+                orderId: orderItems.orderId,
+                quantity: orderItems.quantity,
+                unitPrice: orderItems.unitPrice,
+                name: menuItems.name,
+                imageUrl: menuItems.imageUrl,
+            })
+            .from(orderItems)
+            .leftJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))
+            .where(inArray(orderItems.orderId, orderIds));
+
+        // Group line items by orderId
+        const itemsByOrder = lineItems.reduce<Record<string, typeof lineItems>>((acc, item) => {
+            if (!acc[item.orderId]) acc[item.orderId] = [];
+            acc[item.orderId].push(item);
+            return acc;
+        }, {});
+
+        return NextResponse.json(
+            userOrders.map((o) => ({ ...o, items: itemsByOrder[o.id] ?? [] }))
+        );
+    } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[GET /api/orders]", message);
+        return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
+    }
 }
 
 // POST — place an order
 // Body: { restaurantId, items: [{ menuItemId, quantity, unitPrice }], subTotal, totalAmount }
 export async function POST(req: Request) {
     try {
-        const userId = await getUserId();
-        if (!userId)
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = user.id;
 
-        const { restaurantId, items, subTotal, totalAmount } = await req.json();
+        const { restaurantId, items, subTotal, totalAmount, deliveryAddress, paymentMethod } = await req.json();
 
         if (
             !Array.isArray(items) ||
             items.length === 0 ||
             typeof subTotal !== "number" ||
-            typeof totalAmount !== "number"
+            typeof totalAmount !== "number" ||
+            !deliveryAddress ||
+            !paymentMethod
         ) {
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        const db = getDb();
+        await ensureProfile(userId, user.email ?? "");
 
         // Create the order
         const [order] = await db
@@ -51,10 +100,12 @@ export async function POST(req: Request) {
             .values({
                 userId,
                 restaurantId: restaurantId ?? null,
-                status: "pending",
+                status: "preparing",
                 subTotal,
                 discount: 0,
                 totalAmount,
+                deliveryAddress,
+                paymentMethod,
             })
             .returning();
 

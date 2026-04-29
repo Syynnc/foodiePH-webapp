@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { restaurants, menuItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
-
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
-const db = drizzle(client);
+import { db } from "@/db";
 
 const CUISINE_CONFIG: Record<string, { color: string; accent: string }> = {
   "Pizza & Italian":      { color: "#f5ede0", accent: "#c8783a" },
