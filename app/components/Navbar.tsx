@@ -126,19 +126,6 @@ export function Navbar() {
                       <p className="text-xs font-semibold text-[#1a1208] truncate">{profile?.full_name ?? "My Account"}</p>
                       <p className="text-[10px] text-[#1a1208]/40 truncate mt-0.5">{profile?.email ?? user.email}</p>
                     </div>
-                    <div className="py-1.5">
-                      <Link
-                        href="/dashboard/orders"
-                        onClick={() => setDropOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#1a1208] hover:bg-[#1a1208]/[0.03] transition-colors duration-200"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                          <line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
-                        </svg>
-                        My Orders
-                      </Link>
-                    </div>
                     <div className="border-t border-[#1a1208]/[0.05] py-1.5">
                       <button
                         onClick={handleSignOut}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 type User = {
     id: string;
@@ -10,6 +10,42 @@ type User = {
     company: string | null;
     createdAt: string | null;
 };
+
+function CopyUUID({ id }: { id: string }) {
+    const [copied, setCopied] = useState(false);
+    const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    function handleCopy() {
+        navigator.clipboard.writeText(id).then(() => {
+            setCopied(true);
+            if (timer.current) clearTimeout(timer.current);
+            timer.current = setTimeout(() => setCopied(false), 2000);
+        });
+    }
+
+    return (
+        <button
+            onClick={handleCopy}
+            title="Copy User ID"
+            className={`group flex items-center gap-1.5 font-mono text-[10px] rounded-lg px-2.5 py-1.5 border transition-all duration-200 max-w-[168px] ${
+                copied
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+                    : "border-[#1a1208]/10 bg-[#1a1208]/[0.02] text-[#1a1208]/35 hover:border-[#c8783a]/30 hover:text-[#c8783a] hover:bg-[#c8783a]/5"
+            }`}
+        >
+            <span className="truncate">{id.slice(0, 8)}…</span>
+            {copied ? (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+            ) : (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+            )}
+        </button>
+    );
+}
 
 const ROLE_COLORS: Record<string, string> = {
     admin: "bg-[#c8783a]/10 text-[#c8783a]",
@@ -121,14 +157,15 @@ export default function AdminUsersPage() {
                 ) : (
                     <div className="divide-y divide-[#1a1208]/[0.05]">
                         {/* Header row */}
-                        <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-2.5 bg-[#1a1208]/[0.015]">
+                        <div className="hidden sm:grid grid-cols-[1fr_168px_auto_auto_auto] gap-4 px-5 py-2.5 bg-[#1a1208]/[0.015]">
                             <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1a1208]/30">User</span>
+                            <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1a1208]/30">User ID</span>
                             <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1a1208]/30 text-center w-28">Role</span>
                             <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1a1208]/30 w-20">Joined</span>
                             <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1a1208]/30 w-32">Change Role</span>
                         </div>
                         {filtered.map((user) => (
-                            <div key={user.id} className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto] gap-2 sm:gap-4 items-start sm:items-center px-5 py-4 hover:bg-[#1a1208]/[0.015] transition-colors duration-200">
+                            <div key={user.id} className="flex flex-col sm:grid sm:grid-cols-[1fr_168px_auto_auto_auto] gap-2 sm:gap-4 items-start sm:items-center px-5 py-4 hover:bg-[#1a1208]/[0.015] transition-colors duration-200">
                                 {/* User info */}
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-8 h-8 rounded-full bg-[#1a1208]/[0.06] flex items-center justify-center flex-shrink-0">
@@ -141,6 +178,9 @@ export default function AdminUsersPage() {
                                         <p className="text-[11px] text-[#1a1208]/35 truncate">{user.email}</p>
                                     </div>
                                 </div>
+
+                                {/* UUID copy */}
+                                <CopyUUID id={user.id} />
 
                                 {/* Role badge */}
                                 <span className={`text-[10px] font-bold uppercase tracking-[0.15em] rounded-full px-2.5 py-1 w-28 text-center ${ROLE_COLORS[user.role] ?? "bg-gray-100 text-gray-600"}`}>
