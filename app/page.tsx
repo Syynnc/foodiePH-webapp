@@ -8,12 +8,12 @@ import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 
 const CATEGORIES = [
-  { label: "Ramen & Noodles", count: "38 spots", img: "https://picsum.photos/seed/ramen-bowl-ph/900/700", tint: "rgba(180,90,30,0.15)" },
-  { label: "Sushi & Japanese", count: "24 spots", img: "https://picsum.photos/seed/sushi-platter/600/500", tint: "rgba(80,130,100,0.12)" },
-  { label: "Tacos & Mexican", count: "19 spots", img: "https://picsum.photos/seed/taco-street/600/500", tint: "rgba(200,140,40,0.12)" },
-  { label: "Pizza & Italian", count: "31 spots", img: "https://picsum.photos/seed/pizza-wood-fire/600/500", tint: "rgba(180,60,40,0.12)" },
-  { label: "Healthy Bowls", count: "27 spots", img: "https://picsum.photos/seed/poke-greens/600/500", tint: "rgba(60,140,80,0.12)" },
-  { label: "Burgers", count: "42 spots", img: "https://picsum.photos/seed/smash-burger/600/500", tint: "rgba(160,100,40,0.12)" },
+  { label: "Ramen & Noodles", count: "38 spots", img: "https://images.unsplash.com/photo-1638866281450-3933540af86a?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tint: "rgba(180,90,30,0.15)" },
+  { label: "Sushi & Japanese", count: "24 spots", img: "https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tint: "rgba(80,130,100,0.12)" },
+  { label: "Tacos & Mexican", count: "19 spots", img: "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?q=80&w=1194&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tint: "rgba(200,140,40,0.12)" },
+  { label: "Pizza & Italian", count: "31 spots", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tint: "rgba(180,60,40,0.12)" },
+  { label: "Healthy Bowls", count: "27 spots", img: "https://images.unsplash.com/photo-1602881917445-0b1ba001addf?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tint: "rgba(60,140,80,0.12)" },
+  { label: "Burgers", count: "42 spots", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=999&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tint: "rgba(160,100,40,0.12)" },
 ];
 
 const PARTNERS = [
@@ -170,29 +170,32 @@ export default function HomePage() {
               From ramen to sushi, tacos to pizza — order from 100+ local restaurants and get fresh food delivered fast.
             </p>
 
-            {/* Search bar CTA */}
-            <div className="animate-fade-up delay-300 w-full max-w-lg">
-              <div className="flex flex-col sm:flex-row gap-3 bg-white/80 backdrop-blur-xl border border-[#1a1208]/8 rounded-2xl p-3 shadow-[0_8px_40px_rgba(0,0,0,0.08)]">
-                <div className="flex items-center gap-3 flex-1 px-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Enter your delivery address"
-                    className="flex-1 text-sm bg-transparent outline-none text-[#1a1208] placeholder:text-[#1a1208]/35 py-1.5 font-medium min-w-0"
-                  />
-                </div>
-                <Link href="/auth?tab=signup"
-                  className="group flex items-center justify-center gap-2 rounded-xl bg-[#c8783a] text-white px-6 py-3 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#b5692e] active:scale-[0.98] flex-shrink-0">
-                  Find Food
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                    <path d="M5 12h14m-7-7 7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-              <p className="text-xs text-[#1a1208]/35 mt-3">Sign Up Fast. Satisfy Cravings Faster</p>
+            {/* CTA buttons */}
+            <div className="animate-fade-up delay-300 flex flex-col sm:flex-row items-center gap-3 w-full max-w-lg">
+              <Link
+                href="/auth?tab=signup"
+                className="group w-full sm:w-auto flex-1 flex items-center justify-center gap-2.5 rounded-2xl bg-[#1a1208] text-[#FDFBF7] px-8 py-4 text-[13px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#c8783a] active:scale-[0.98] shadow-[0_8px_28px_rgba(26,18,8,0.22)]"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+                Order Now
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-0.5">
+                  <path d="M5 12h14m-7-7 7 7-7 7" />
+                </svg>
+              </Link>
+
+              <Link
+                href="/restaurants"
+                className="group w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-[#1a1208]/10 text-[#1a1208]/70 px-7 py-4 text-[13px] font-semibold transition-all duration-300 hover:border-[#1a1208]/25 hover:text-[#1a1208] hover:bg-white active:scale-[0.98] shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                </svg>
+                Browse Restaurants
+              </Link>
             </div>
+            <p className="animate-fade-up delay-400 text-xs text-[#1a1208]/35 mt-3">Free to join · No subscription required</p>
 
             {/* Trust row */}
             <div className="animate-fade-up delay-500 flex items-center justify-center gap-6 mt-10 flex-wrap">
@@ -336,14 +339,14 @@ export default function HomePage() {
             {/* Single hero image — desktop only */}
             <ScrollReveal className="hidden md:block flex-shrink-0">
               <div className="relative w-[260px] rounded-[1.75rem] overflow-hidden h-[480px]">
-                <Image src={CATEGORIES[0].img} alt="" fill className="object-cover" sizes="260px" />
+                <Image src={CATEGORIES[2].img} alt="" fill className="object-cover" sizes="260px" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1a1208]/80 via-[#1a1208]/15 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">
                   <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em] font-bold text-white/55 border border-white/15 rounded-full px-2.5 py-1 mb-3 backdrop-blur-sm bg-white/5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
                     Most ordered
                   </span>
-                  <p className="font-playfair text-[1.55rem] font-bold text-white leading-tight">{CATEGORIES[0].label}</p>
+                  <p className="font-playfair text-[1.55rem] font-bold text-white leading-tight">{CATEGORIES[2].label}</p>
                 </div>
               </div>
             </ScrollReveal>

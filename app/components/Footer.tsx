@@ -44,7 +44,7 @@ export function Footer() {
             </span>
           </Link>
           <p className="text-[13.5px] text-[#1a1208]/45 font-light leading-[1.85] max-w-[240px] mb-7">
-            Premium corporate food delivery across Metro Manila and Metro Cebu. 100+ partner restaurants, built for teams.
+            Premium corporate food delivery across Metro Manila and Cebu City. 100+ partner restaurants, built for teams.
           </p>
 
           {/* Locations */}
@@ -61,7 +61,7 @@ export function Footer() {
                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <span className="text-[12px] text-[#1a1208]/45 font-light leading-snug">Metro Cebu, Philippines</span>
+              <span className="text-[12px] text-[#1a1208]/45 font-light leading-snug">Cebu City, Philippines</span>
             </div>
           </div>
 
@@ -196,7 +196,7 @@ export function Footer() {
 
           <div className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-            <span className="text-[11px] text-[#1a1208]/30 font-light">Operating in Metro Manila &amp; Metro Cebu</span>
+            <span className="text-[11px] text-[#1a1208]/30 font-light">Operating in Metro Manila &amp; Cebu City</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 justify-center sm:justify-end">
