@@ -26,30 +26,39 @@ function InputField({
   type = "text",
   placeholder,
   required = false,
+  error,
+  onBlur,
+  onChange,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  error?: string;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+  const hasError = !!error;
 
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium uppercase tracking-[0.12em] text-[#1a1208]/50">
-        {label}
+        {label}{required && <span className="text-[#c8783a] ml-0.5">*</span>}
       </label>
-      <div className="relative p-[1.5px] rounded-2xl bg-[#1a1208]/6 ring-1 ring-[#1a1208]/8">
+      <div className={`relative p-[1.5px] rounded-2xl ring-1 transition-all duration-200 ${hasError ? "bg-red-100 ring-red-300" : "bg-[#1a1208]/6 ring-[#1a1208]/8"}`}>
         <div className="relative rounded-[calc(1rem-1.5px)] bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
           <input
             name={name}
             type={inputType}
             placeholder={placeholder}
             required={required}
-            className="w-full px-4 py-3.5 text-sm bg-transparent text-[#1a1208] placeholder:text-[#1a1208]/30 outline-none rounded-[calc(1rem-1.5px)] focus:ring-2 focus:ring-[#c8783a]/30 transition-all duration-300"
+            onBlur={onBlur}
+            onChange={onChange}
+            className={`w-full px-4 py-3.5 text-sm bg-transparent text-[#1a1208] placeholder:text-[#1a1208]/30 outline-none rounded-[calc(1rem-1.5px)] transition-all duration-300 ${hasError ? "focus:ring-2 focus:ring-red-300/50" : "focus:ring-2 focus:ring-[#c8783a]/30"}`}
           />
           {isPassword && (
             <button
@@ -63,8 +72,35 @@ function InputField({
           )}
         </div>
       </div>
+      {hasError && (
+        <p className="flex items-center gap-1.5 text-[11px] text-red-500 font-medium">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {error}
+        </p>
+      )}
     </div>
   );
+}
+
+type SignInErrors = { email?: string; password?: string };
+type SignUpErrors = { full_name?: string; email?: string; password?: string };
+
+function validateEmail(v: string) {
+  if (!v.trim()) return "Email is required";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())) return "Enter a valid email address";
+  return "";
+}
+function validatePassword(v: string) {
+  if (!v) return "Password is required";
+  if (v.length < 8) return "Password must be at least 8 characters";
+  return "";
+}
+function validateFullName(v: string) {
+  if (!v.trim()) return "Full name is required";
+  if (v.trim().length < 2) return "Full name must be at least 2 characters";
+  return "";
 }
 
 function AuthContent() {
@@ -76,7 +112,40 @@ function AuthContent() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [siErrors, setSiErrors] = useState<SignInErrors>({});
+  const [siTouched, setSiTouched] = useState<Record<string, boolean>>({});
+  const [suErrors, setSuErrors] = useState<SignUpErrors>({});
+  const [suTouched, setSuTouched] = useState<Record<string, boolean>>({});
+
+  function siBlur(name: keyof SignInErrors, value: string) {
+    setSiTouched(t => ({ ...t, [name]: true }));
+    const err = name === "email" ? validateEmail(value) : validatePassword(value);
+    setSiErrors(e => ({ ...e, [name]: err }));
+  }
+  function siChange(name: keyof SignInErrors, value: string) {
+    if (!siTouched[name]) return;
+    const err = name === "email" ? validateEmail(value) : validatePassword(value);
+    setSiErrors(e => ({ ...e, [name]: err }));
+  }
+
+  function suBlur(name: keyof SignUpErrors, value: string) {
+    setSuTouched(t => ({ ...t, [name]: true }));
+    const err = name === "full_name" ? validateFullName(value) : name === "email" ? validateEmail(value) : validatePassword(value);
+    setSuErrors(e => ({ ...e, [name]: err }));
+  }
+  function suChange(name: keyof SignUpErrors, value: string) {
+    if (!suTouched[name]) return;
+    const err = name === "full_name" ? validateFullName(value) : name === "email" ? validateEmail(value) : validatePassword(value);
+    setSuErrors(e => ({ ...e, [name]: err }));
+  }
+
   function handleSignIn(formData: FormData) {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const errs: SignInErrors = { email: validateEmail(email), password: validatePassword(password) };
+    setSiErrors(errs);
+    setSiTouched({ email: true, password: true });
+    if (errs.email || errs.password) return;
     setError(null);
     startTransition(async () => {
       const result = await signIn(formData);
@@ -85,6 +154,13 @@ function AuthContent() {
   }
 
   function handleSignUp(formData: FormData) {
+    const full_name = formData.get("full_name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const errs: SignUpErrors = { full_name: validateFullName(full_name), email: validateEmail(email), password: validatePassword(password) };
+    setSuErrors(errs);
+    setSuTouched({ full_name: true, email: true, password: true });
+    if (errs.full_name || errs.email || errs.password) return;
     setError(null);
     startTransition(async () => {
       const result = await signUp(formData);
@@ -127,7 +203,7 @@ function AuthContent() {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => { setTab(t); setError(null); }}
+                  onClick={() => { setTab(t); setError(null); setSiErrors({}); setSuErrors({}); setSiTouched({}); setSuTouched({}); }}
                   className={`flex-1 rounded-full py-2.5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                     tab === t
                       ? "bg-[#1a1208] text-[#FDFBF7] shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
@@ -146,7 +222,7 @@ function AuthContent() {
               </div>
             )}
 
-            {/* Error */}
+            {/* Server error */}
             {error && (
               <div className="mb-6 p-3 rounded-xl bg-[#f5ebe8] border border-red-200 text-sm text-red-700 text-center">
                 {error}
@@ -156,8 +232,18 @@ function AuthContent() {
             {/* Sign In Form */}
             {tab === "signin" && (
               <form action={handleSignIn} className="flex flex-col gap-4">
-                <InputField label="Email" name="email" type="email" placeholder="you@company.com" required />
-                <InputField label="Password" name="password" type="password" placeholder="••••••••" required />
+                <InputField
+                  label="Email" name="email" type="email" placeholder="you@company.com" required
+                  error={siErrors.email}
+                  onBlur={e => siBlur("email", e.target.value)}
+                  onChange={e => siChange("email", e.target.value)}
+                />
+                <InputField
+                  label="Password" name="password" type="password" placeholder="••••••••" required
+                  error={siErrors.password}
+                  onBlur={e => siBlur("password", e.target.value)}
+                  onChange={e => siChange("password", e.target.value)}
+                />
                 <div className="text-right">
                   <Link href="#" className="text-xs text-[#c8783a] hover:underline">
                     Forgot password?
@@ -181,10 +267,25 @@ function AuthContent() {
             {/* Sign Up Form */}
             {tab === "signup" && (
               <form action={handleSignUp} className="flex flex-col gap-4">
-                <InputField label="Full Name" name="full_name" placeholder="Juan dela Cruz" required />
+                <InputField
+                  label="Full Name" name="full_name" placeholder="Juan dela Cruz" required
+                  error={suErrors.full_name}
+                  onBlur={e => suBlur("full_name", e.target.value)}
+                  onChange={e => suChange("full_name", e.target.value)}
+                />
                 <InputField label="Company" name="company" placeholder="Acme Corp" />
-                <InputField label="Email" name="email" type="email" placeholder="you@company.com" required />
-                <InputField label="Password" name="password" type="password" placeholder="Min. 8 characters" required />
+                <InputField
+                  label="Email" name="email" type="email" placeholder="you@company.com" required
+                  error={suErrors.email}
+                  onBlur={e => suBlur("email", e.target.value)}
+                  onChange={e => suChange("email", e.target.value)}
+                />
+                <InputField
+                  label="Password" name="password" type="password" placeholder="Min. 8 characters" required
+                  error={suErrors.password}
+                  onBlur={e => suBlur("password", e.target.value)}
+                  onChange={e => suChange("password", e.target.value)}
+                />
                 <button
                   type="submit"
                   disabled={isPending}

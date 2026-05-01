@@ -8,7 +8,7 @@ export const profiles = pgTable("profiles", {
   phone: text("phone"),
   creditLine: integer("credit_line").default(0),
   isCorporate: boolean("is_corporate").default(false),
-  role: text("role").notNull().default("customer"), // 'customer' | 'driver' | 'admin'
+  role: text("role").notNull().default("customer"), // 'customer' | 'driver' | 'admin' | 'restaurant'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -26,8 +26,12 @@ export const drivers = pgTable("drivers", {
 
 export const restaurants = pgTable("restaurants", {
   id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id").references(() => profiles.id),
   name: text("name").notNull(),
   cuisine: text("cuisine"),
+  description: text("description"),
+  address: text("address"),
+  phone: text("phone"),
   imageUrl: text("image_url"),
   rating: numeric("rating", { precision: 2, scale: 1 }),
   minOrder: integer("min_order").default(500),
