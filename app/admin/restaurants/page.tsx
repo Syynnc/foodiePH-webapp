@@ -152,15 +152,15 @@ function RestaurantForm({
                     />
                 </Field>
 
-                <Field label="Phone" error={errors.phone}>
+                <Field label="Phone" error={errors.phone} hint="+63 followed by 10 digits">
                     <input
                         className={iCls(errors.phone)}
                         value={form.phone}
-                        onChange={set("phone")}
+                        onChange={e => { const v = e.target.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, ""); set("phone")({ ...e, target: { ...e.target, value: v } }); }}
                         onBlur={blur("phone")}
-                        placeholder="+63 912 345 6789"
+                        placeholder="+639312345678"
                         type="tel"
-                        maxLength={20}
+                        maxLength={16}
                     />
                 </Field>
 

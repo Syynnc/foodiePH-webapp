@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { sanitize } from "@/lib/sanitize";
 
 async function getAuthedUser() {
   const supabase = await createClient();
@@ -30,9 +31,9 @@ export async function PATCH(req: Request) {
   const [updated] = await db
     .update(profiles)
     .set({
-      fullName: fullName?.trim() || null,
+      fullName: sanitize(fullName) || null,
       phone: phone?.trim() || null,
-      company: company?.trim() || null,
+      company: sanitize(company) || null,
     })
     .where(eq(profiles.id, user.id))
     .returning();

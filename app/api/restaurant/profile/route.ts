@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { profiles, restaurants } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { sanitize } from "@/lib/sanitize";
 
 async function assertOwner() {
     const supabase = await createClient();
@@ -40,14 +41,14 @@ export async function PUT(req: Request) {
     if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
     const [updated] = await db.update(restaurants).set({
-        name: name.trim(),
-        cuisine: cuisine || null,
-        description: description || null,
-        address: address || null,
-        phone: phone || null,
-        imageUrl: imageUrl || null,
+        name: sanitize(name),
+        cuisine: sanitize(cuisine) || null,
+        description: sanitize(description) || null,
+        address: sanitize(address) || null,
+        phone: phone?.trim() || null,
+        imageUrl: imageUrl?.trim() || null,
         minOrder: minOrder ? parseInt(minOrder) : undefined,
-        deliveryTime: deliveryTime || null,
+        deliveryTime: sanitize(deliveryTime) || null,
     }).where(eq(restaurants.id, existing.id)).returning();
 
     return NextResponse.json(updated);

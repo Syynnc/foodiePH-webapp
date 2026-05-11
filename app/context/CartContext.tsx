@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { toast } from "sonner";
 
 export type CartItem = {
   id: string;        // menuItemId
@@ -80,6 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       syncUpsert(item.id, 1);
       return [...prev, { ...item, qty: 1 }];
     });
+    toast.success(`${item.name} added to cart`);
     setIsCartOpen(true);
   };
 

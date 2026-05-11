@@ -401,8 +401,8 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
                             <input className={iCls(restErrors.minOrder)} type="number" value={editForm.minOrder} onChange={setRestField("minOrder")} onBlur={blurRestField("minOrder")} min="0" step="1" />
                         </Field>
 
-                        <Field label="Phone" error={restErrors.phone}>
-                            <input className={iCls(restErrors.phone)} value={editForm.phone} onChange={setRestField("phone")} onBlur={blurRestField("phone")} type="tel" maxLength={20} />
+                        <Field label="Phone" error={restErrors.phone} hint="+63 followed by 10 digits">
+                            <input className={iCls(restErrors.phone)} value={editForm.phone} onChange={e => { const v = e.target.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, ""); setRestField("phone")({ ...e, target: { ...e.target, value: v } }); }} onBlur={blurRestField("phone")} type="tel" maxLength={16} placeholder="+639312345678" />
                         </Field>
 
                         <Field label="Status">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { signOut } from "@/app/auth/actions";
 import { Field, iCls, V } from "@/app/components/FormField";
+import { toast } from "sonner";
 
 type Profile = {
   id: string;
@@ -21,7 +22,7 @@ type Errors = Partial<Record<keyof FormState, string>>;
 
 function validate(f: FormState): Errors {
   const e: Errors = {};
-  const name = V.first(V.required(f.fullName, "Full name"), V.minLen(f.fullName, 2, "Full name"), V.maxLen(f.fullName, 100, "Full name"));
+  const name = V.first(V.required(f.fullName, "Full name"), V.minLen(f.fullName, 2, "Full name"), V.maxLen(f.fullName, 100, "Full name"), V.name(f.fullName, "Full name"));
   if (name) e.fullName = name;
   if (f.phone)   { const err = V.phone(f.phone);             if (err) e.phone   = err; }
   if (f.company) { const err = V.maxLen(f.company, 100, "Company"); if (err) e.company = err; }
@@ -100,10 +101,16 @@ export default function AccountPage() {
       body: JSON.stringify(form),
     });
     setSaving(false);
-    if (!res.ok) { setServerError((await res.json()).error ?? "Failed to save."); return; }
+    if (!res.ok) {
+      const msg = (await res.json()).error ?? "Failed to save.";
+      setServerError(msg);
+      toast.error(msg);
+      return;
+    }
     const updated: Profile = await res.json();
     setProfile(updated);
     setSaved(true);
+    toast.success("Profile saved successfully.");
     setTimeout(() => setSaved(false), 3000);
   }
 
@@ -182,13 +189,13 @@ export default function AccountPage() {
               />
             </Field>
 
-            <Field label="Phone" error={errors.phone} hint="Used for delivery notifications">
+            <Field label="Phone" error={errors.phone} hint="+63 followed by 10 digits, e.g. +639312345678">
               <input
                 className={iCls(errors.phone)}
                 value={form.phone}
-                onChange={set("phone")}
+                onChange={e => { const v = e.target.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, ""); set("phone")({ ...e, target: { ...e.target, value: v } }); }}
                 onBlur={blur("phone")}
-                placeholder="+63 912 345 6789"
+                placeholder="+639312345678"
                 type="tel"
                 maxLength={20}
               />

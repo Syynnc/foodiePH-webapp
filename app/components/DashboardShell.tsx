@@ -485,19 +485,20 @@ export default function DashboardShell({
 
                 {/* Step indicator */}
                 {step !== "cart" && (
-                  <div className="flex items-center gap-1.5 mr-10">
-                    {(["delivery", "payment", "confirm"] as const).map((s) => (
-                      <div
-                        key={s}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          s === step
-                            ? "w-5 bg-[#c8783a]"
-                            : (["delivery", "payment", "confirm"].indexOf(s) < ["delivery", "payment", "confirm"].indexOf(step))
-                              ? "w-3 bg-[#1a1208]/30"
-                              : "w-3 bg-[#1a1208]/10"
-                        }`}
-                      />
-                    ))}
+                  <div className="flex items-center gap-2 mr-10">
+                    {(["delivery", "payment", "confirm"] as CheckoutStep[]).map((s) => {
+                      const stepOrder: CheckoutStep[] = ["delivery", "payment", "confirm"];
+                      const current = stepOrder.indexOf(step);
+                      const idx = stepOrder.indexOf(s);
+                      const isActive = s === step;
+                      const isDone = idx < current;
+                      return (
+                        <div
+                          key={s}
+                          className={`h-2 rounded-full transition-all duration-300 ${isActive ? "w-6 bg-[#c8783a]" : isDone ? "w-2 bg-[#c8783a]/50" : "w-2 bg-[#1a1208]/15"}`}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
