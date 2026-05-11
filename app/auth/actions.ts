@@ -4,6 +4,21 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+// In-memory rate limiter: max 5 sign-in attempts per email per 15 minutes
+const attempts = new Map<string, { count: number; reset: number }>();
+function checkRateLimit(email: string): boolean {
+  const now = Date.now();
+  const key = email.toLowerCase();
+  const entry = attempts.get(key);
+  if (!entry || now > entry.reset) {
+    attempts.set(key, { count: 1, reset: now + 15 * 60 * 1000 });
+    return true;
+  }
+  if (entry.count >= 5) return false;
+  entry.count++;
+  return true;
+}
+
 function networkError(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e);
   if (
@@ -19,12 +34,17 @@ function networkError(e: unknown): string {
 }
 
 export async function signIn(formData: FormData) {
+  const email = (formData.get("email") as string).trim().toLowerCase();
+  if (!checkRateLimit(email)) {
+    return { error: "Too many sign-in attempts. Please wait 15 minutes before trying again." };
+  }
+
   const supabase = await createClient();
 
   let error;
   try {
     ({ error } = await supabase.auth.signInWithPassword({
-      email: (formData.get("email") as string).trim().toLowerCase(),
+      email,
       password: formData.get("password") as string,
     }));
   } catch (e) {

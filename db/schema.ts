@@ -78,6 +78,16 @@ export const orderItems = pgTable("order_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const reviews = pgTable("reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orderId: uuid("order_id").notNull().references(() => orders.id),
+  userId: uuid("user_id").notNull().references(() => profiles.id),
+  restaurantId: uuid("restaurant_id").notNull().references(() => restaurants.id),
+  rating: integer("rating").notNull(), // 1–5
+  comment: text("comment"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const cartItems = pgTable("cart_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => profiles.id),

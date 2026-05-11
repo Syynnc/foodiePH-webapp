@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { profiles, restaurants, menuItems } from "@/db/schema";
+import { restaurants, menuItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-
-async function assertOwner() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const [p] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-    if (!p || (p.role !== "restaurant" && p.role !== "admin")) return null;
-    return user;
-}
+import { assertOwner } from "@/lib/auth";
+import { sanitize } from "@/lib/sanitize";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     const user = await assertOwner();
@@ -29,13 +21,35 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (!name || !price) return NextResponse.json({ error: "name and price are required" }, { status: 400 });
 
     const [updated] = await db.update(menuItems).set({
-        name: String(name).trim(),
-        description: description ? String(description) : null,
+        name: sanitize(String(name)),
+        description: sanitize(String(description)) || null,
         price: parseInt(String(price)),
-        imageUrl: imageUrl ? String(imageUrl) : null,
-        category: category ? String(category) : null,
+        imageUrl: String(imageUrl).trim() || null,
+        category: sanitize(String(category)) || null,
         isAvailable: isAvailable !== false && isAvailable !== "false",
     }).where(and(eq(menuItems.id, id), eq(menuItems.restaurantId, rest.id))).returning();
+
+    if (!updated) return NextResponse.json({ error: "Not found or not yours" }, { status: 404 });
+    return NextResponse.json(updated);
+}
+
+// PATCH — toggle availability only (no other fields required)
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const user = await assertOwner();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+    const { id } = await params;
+
+    const [rest] = await db.select({ id: restaurants.id }).from(restaurants).where(eq(restaurants.ownerId, user.id)).limit(1);
+    if (!rest) return NextResponse.json({ error: "No restaurant linked" }, { status: 404 });
+
+    const { isAvailable } = await req.json() as { isAvailable: boolean };
+
+    const [updated] = await db
+        .update(menuItems)
+        .set({ isAvailable })
+        .where(and(eq(menuItems.id, id), eq(menuItems.restaurantId, rest.id)))
+        .returning();
 
     if (!updated) return NextResponse.json({ error: "Not found or not yours" }, { status: 404 });
     return NextResponse.json(updated);

@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { assertAdmin } from "@/lib/auth";
 import { db } from "@/db";
 import { profiles, restaurants, menuItems } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
-async function assertAdmin() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const [p] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-    if (!p || p.role !== "admin") return null;
-    return user;
+function parseIntOrNull(val: unknown): number | null {
+    const n = parseInt(String(val ?? ""), 10);
+    return isNaN(n) ? null : n;
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -58,35 +54,44 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
     const { id } = await params;
-    const body = await req.json();
-    const { name, cuisine, description, address, phone, imageUrl, minOrder, deliveryTime, isActive, ownerId } = body as Record<string, string>;
+    const body = await req.json() as Record<string, unknown>;
+    const { name, cuisine, description, address, phone, imageUrl, minOrder, deliveryTime, isActive, ownerId } = body;
 
-    if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    if (typeof name !== "string" || !name.trim()) {
+        return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
 
     const oldRow = await db.select({ ownerId: restaurants.ownerId }).from(restaurants).where(eq(restaurants.id, id)).limit(1);
     const prevOwnerId = oldRow[0]?.ownerId;
 
+    const parsedMinOrder = parseIntOrNull(minOrder) ?? 500;
+
+    // Accept both boolean and string "true"/"false" from clients
+    let parsedIsActive: boolean | undefined;
+    if (isActive !== undefined) {
+        parsedIsActive = isActive === true || isActive === "true";
+    }
+
     const [updated] = await db.update(restaurants).set({
         name: name.trim(),
-        cuisine: cuisine || null,
-        description: description || null,
-        address: address || null,
-        phone: phone || null,
-        imageUrl: imageUrl || null,
-        minOrder: minOrder ? parseInt(minOrder) : 500,
-        deliveryTime: deliveryTime || null,
-        isActive: isActive !== undefined ? isActive === "true" : undefined,
-        ownerId: ownerId || null,
+        cuisine: (cuisine as string) || null,
+        description: (description as string) || null,
+        address: (address as string) || null,
+        phone: (phone as string) || null,
+        imageUrl: (imageUrl as string) || null,
+        minOrder: parsedMinOrder,
+        deliveryTime: (deliveryTime as string) || null,
+        isActive: parsedIsActive,
+        ownerId: (ownerId as string) || null,
     }).where(eq(restaurants.id, id)).returning();
 
     if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    // Update roles when owner changes
-    if (ownerId && ownerId !== prevOwnerId) {
-        await db.update(profiles).set({ role: "restaurant" }).where(eq(profiles.id, ownerId));
+    const newOwnerId = ownerId as string | undefined;
+    if (newOwnerId && newOwnerId !== prevOwnerId) {
+        await db.update(profiles).set({ role: "restaurant" }).where(eq(profiles.id, newOwnerId));
     }
-    if (prevOwnerId && prevOwnerId !== ownerId) {
-        // Check if former owner still owns another restaurant
+    if (prevOwnerId && prevOwnerId !== newOwnerId) {
         const still = await db.select({ id: restaurants.id }).from(restaurants).where(eq(restaurants.ownerId, prevOwnerId)).limit(1);
         if (still.length === 0) {
             await db.update(profiles).set({ role: "customer" }).where(eq(profiles.id, prevOwnerId));

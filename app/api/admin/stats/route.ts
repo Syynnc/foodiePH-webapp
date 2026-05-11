@@ -1,17 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { assertAdmin } from "@/lib/auth";
 import { db } from "@/db";
 import { profiles, restaurants, menuItems, orders } from "@/db/schema";
-import { eq, count, sql } from "drizzle-orm";
-
-async function assertAdmin() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const [p] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-    if (!p || p.role !== "admin") return null;
-    return user;
-}
+import { count, sql } from "drizzle-orm";
 
 export async function GET() {
     const user = await assertAdmin();

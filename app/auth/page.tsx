@@ -100,6 +100,7 @@ function validatePassword(v: string) {
 function validateFullName(v: string) {
   if (!v.trim()) return "Full name is required";
   if (v.trim().length < 2) return "Full name must be at least 2 characters";
+  if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ '\-]+$/.test(v.trim())) return "Full name must contain letters only";
   return "";
 }
 

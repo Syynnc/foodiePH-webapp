@@ -1,21 +1,32 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { assertAdmin } from "@/lib/auth";
 import { db } from "@/db";
 import { profiles, restaurants, menuItems } from "@/db/schema";
-import { eq, count, sql } from "drizzle-orm";
+import { eq, count, sql, ilike, or } from "drizzle-orm";
 
-async function assertAdmin() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const [p] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-    if (!p || p.role !== "admin") return null;
-    return user;
+function parseIntOrNull(val: unknown): number | null {
+    const n = parseInt(String(val ?? ""), 10);
+    return isNaN(n) ? null : n;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
     const user = await assertAdmin();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+    const url    = new URL(req.url);
+    const page   = Math.max(1, parseInt(url.searchParams.get("page")  ?? "1",  10));
+    const limit  = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") ?? "15", 10)));
+    const search = url.searchParams.get("search")?.trim() ?? "";
+    const offset = (page - 1) * limit;
+
+    const where = search
+        ? or(ilike(restaurants.name, `%${search}%`), ilike(restaurants.cuisine, `%${search}%`))
+        : undefined;
+
+    const [{ total }] = await db
+        .select({ total: count() })
+        .from(restaurants)
+        .where(where);
 
     const rows = await db
         .select({
@@ -37,9 +48,11 @@ export async function GET() {
         })
         .from(restaurants)
         .leftJoin(profiles, eq(restaurants.ownerId, profiles.id))
-        .orderBy(sql`${restaurants.createdAt} desc`);
+        .where(where)
+        .orderBy(sql`${restaurants.createdAt} desc`)
+        .limit(limit)
+        .offset(offset);
 
-    // Count menu items per restaurant
     const counts = await db
         .select({ restaurantId: menuItems.restaurantId, count: count() })
         .from(menuItems)
@@ -47,7 +60,12 @@ export async function GET() {
 
     const countMap = Object.fromEntries(counts.map(c => [c.restaurantId, c.count]));
 
-    return NextResponse.json(rows.map(r => ({ ...r, menuItemCount: countMap[r.id] ?? 0 })));
+    return NextResponse.json({
+        data: rows.map(r => ({ ...r, menuItemCount: countMap[r.id] ?? 0 })),
+        total,
+        page,
+        limit,
+    });
 }
 
 export async function POST(req: Request) {
@@ -59,6 +77,8 @@ export async function POST(req: Request) {
 
     if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
+    const parsedMinOrder = parseIntOrNull(minOrder) ?? 500;
+
     const [row] = await db.insert(restaurants).values({
         name: name.trim(),
         cuisine: cuisine || null,
@@ -66,13 +86,12 @@ export async function POST(req: Request) {
         address: address || null,
         phone: phone || null,
         imageUrl: imageUrl || null,
-        minOrder: minOrder ? parseInt(minOrder) : 500,
+        minOrder: parsedMinOrder,
         deliveryTime: deliveryTime || null,
         ownerId: ownerId || null,
         isActive: true,
     }).returning();
 
-    // If ownerId provided, set that user's role to 'restaurant'
     if (ownerId) {
         await db.update(profiles).set({ role: "restaurant" }).where(eq(profiles.id, ownerId));
     }

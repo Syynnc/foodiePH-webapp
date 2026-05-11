@@ -43,7 +43,9 @@ export async function GET(
             items,
         }));
 
-        return NextResponse.json({ restaurant, menu });
+        return NextResponse.json({ restaurant, menu }, {
+            headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" },
+        });
     } catch (err) {
         console.error("[GET /api/restaurants/[id]]", err);
         return NextResponse.json({ error: "Failed to fetch restaurant" }, { status: 500 });

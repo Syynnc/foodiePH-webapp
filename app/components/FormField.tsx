@@ -81,15 +81,38 @@ export const V = {
             ? `${label} must be 0 or more`
             : "",
 
-    url: (v: string) =>
-        v.trim() && !/^https?:\/\/.{3,}/.test(v.trim())
-            ? "Must be a valid URL starting with https://"
-            : "",
+    url: (v: string) => {
+        const s = v.trim();
+        if (!s) return "";
+        try {
+            const u = new URL(s);
+            if (u.protocol !== "https:" && u.protocol !== "http:") {
+                return "Must be a valid URL starting with https://";
+            }
+            return "";
+        } catch {
+            return "Must be a valid URL starting with https://";
+        }
+    },
 
-    phone: (v: string) =>
-        v.trim() && !/^[+\d][\d\s\-().]{5,19}$/.test(v.trim())
-            ? "Enter a valid phone number (e.g. +63 912 345 6789)"
-            : "",
+    // Accepts optional leading +, then digits only. Total digits must be 7–15 (ITU-T E.164).
+    phone: (v: string) => {
+        const s = v.trim();
+        if (!s) return "";
+        if (!/^\+?[0-9]+$/.test(s)) return "Phone number must contain digits only (+ allowed at start)";
+        const digits = s.replace(/^\+/, "");
+        if (digits.length < 7)  return "Phone number is too short (minimum 7 digits)";
+        if (digits.length > 15) return "Phone number is too long (maximum 15 digits)";
+        return "";
+    },
+
+    // Letters, spaces, hyphens, and apostrophes only (covers names like O'Brien, Anne-Marie)
+    name: (v: string, label = "Name") => {
+        const s = v.trim();
+        if (!s) return "";
+        if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ '\-]+$/.test(s)) return `${label} must contain letters only`;
+        return "";
+    },
 
     uuid: (v: string) =>
         v.trim() && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim())
