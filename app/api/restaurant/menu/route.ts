@@ -14,7 +14,7 @@ async function assertOwner() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
     const [p] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-    if (!p || (p.role !== "restaurant" && p.role !== "admin")) return null;
+    if (!p || p.role !== "restaurant") return null;
     return user;
 }
 

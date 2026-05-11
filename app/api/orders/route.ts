@@ -82,6 +82,7 @@ export async function POST(req: Request) {
         const { restaurantId, items, subTotal, totalAmount, deliveryAddress, paymentMethod } = await req.json();
 
         if (
+            !restaurantId ||
             !Array.isArray(items) ||
             items.length === 0 ||
             typeof subTotal !== "number" ||
@@ -124,11 +125,7 @@ export async function POST(req: Request) {
         // Log the real error server-side and surface the message to the client
         // so you can see exactly what Postgres is rejecting during development.
         // Remove the `detail` field before going to production.
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("[POST /api/orders]", message);
-        return NextResponse.json(
-            { error: "Failed to place order", detail: message },
-            { status: 500 }
-        );
+        console.error("[POST /api/orders]", err);
+        return NextResponse.json({ error: "Failed to place order" }, { status: 500 });
     }
 }

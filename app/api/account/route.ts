@@ -37,5 +37,6 @@ export async function PATCH(req: Request) {
     .where(eq(profiles.id, user.id))
     .returning();
 
+  if (!updated) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   return NextResponse.json(updated);
 }

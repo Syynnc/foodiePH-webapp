@@ -6,8 +6,12 @@ import * as schema from "./schema";
 // Supabase free tier allows ~15 connections total; cap at 4 to leave room for migrations/studio.
 const globalForDb = globalThis as unknown as { _pgClient?: ReturnType<typeof postgres> };
 
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is not set. Add it to your .env.local file.");
+}
+
 if (!globalForDb._pgClient) {
-  globalForDb._pgClient = postgres(process.env.DATABASE_URL!, {
+  globalForDb._pgClient = postgres(process.env.DATABASE_URL, {
     prepare: false,
     max: 4,
   });

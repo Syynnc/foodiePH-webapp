@@ -145,44 +145,56 @@ function ItemDrawer({ initial, title, onSave, onCancel, saving, error }: {
                 </button>
             </div>
 
-            {/* Image preview */}
-            {form.imageUrl && !errors.imageUrl && (
-                <div className="mx-6 mt-4 h-32 rounded-xl overflow-hidden flex-shrink-0 bg-[#F4F0EB]">
-                    <Image src={form.imageUrl} alt="" fill className="object-cover" />
+            <form onSubmit={handleSubmit} noValidate className="flex-1 overflow-y-auto px-6 py-5">
+                {/* 2-column grid: left = details, right = image + description */}
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    {/* LEFT column */}
+                    <div className="space-y-4">
+                        <Field label="Item Name" required error={errors.name}>
+                            <input className={iCls(errors.name)} value={form.name} onChange={set("name")} onBlur={blur("name")} placeholder="e.g. Tonkotsu Ramen" maxLength={101} />
+                        </Field>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <Field label="Price (₱)" required error={errors.price}>
+                                <input className={iCls(errors.price)} type="number" value={form.price} onChange={set("price")} onBlur={blur("price")} min="1" placeholder="0" />
+                            </Field>
+                            <Field label="Category" error={errors.category}>
+                                <input className={iCls(errors.category)} value={form.category} onChange={set("category")} onBlur={blur("category")} placeholder="e.g. Mains" maxLength={61} />
+                            </Field>
+                        </div>
+
+                        <Field label="Availability">
+                            <select className={iCls()} value={form.isAvailable} onChange={set("isAvailable")}>
+                                <option value="true">Available</option>
+                                <option value="false">Unavailable</option>
+                            </select>
+                        </Field>
+                    </div>
+
+                    {/* RIGHT column */}
+                    <div className="space-y-4">
+                        <Field label="Image URL" error={errors.imageUrl} hint="Must start with https://">
+                            <div className="flex gap-2 items-start">
+                                <input className={iCls(errors.imageUrl) + " flex-1"} value={form.imageUrl} onChange={set("imageUrl")} onBlur={blur("imageUrl")} placeholder="https://..." />
+                                {(() => {
+                                    try { new URL(form.imageUrl); } catch { return null; }
+                                    return form.imageUrl && !errors.imageUrl ? (
+                                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[#F4F0EB] relative border border-[#1a1208]/[0.08]">
+                                            <Image src={form.imageUrl} alt="" fill className="object-cover" sizes="40px" />
+                                        </div>
+                                    ) : null;
+                                })()}
+                            </div>
+                        </Field>
+
+                        <Field label="Description">
+                            <textarea className={iCls(undefined, "resize-none h-[90px]")} value={form.description} onChange={set("description")} placeholder="Brief description of the item" />
+                        </Field>
+                    </div>
                 </div>
-            )}
-
-            <form onSubmit={handleSubmit} noValidate className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                <Field label="Item Name" required error={errors.name}>
-                    <input className={iCls(errors.name)} value={form.name} onChange={set("name")} onBlur={blur("name")} placeholder="e.g. Tonkotsu Ramen" maxLength={101} />
-                </Field>
-
-                <div className="grid grid-cols-2 gap-3">
-                    <Field label="Price (₱)" required error={errors.price}>
-                        <input className={iCls(errors.price)} type="number" value={form.price} onChange={set("price")} onBlur={blur("price")} min="1" placeholder="0" />
-                    </Field>
-                    <Field label="Category" error={errors.category}>
-                        <input className={iCls(errors.category)} value={form.category} onChange={set("category")} onBlur={blur("category")} placeholder="e.g. Mains" maxLength={61} />
-                    </Field>
-                </div>
-
-                <Field label="Image URL" error={errors.imageUrl} hint="Must start with https://">
-                    <input className={iCls(errors.imageUrl)} value={form.imageUrl} onChange={set("imageUrl")} onBlur={blur("imageUrl")} placeholder="https://..." />
-                </Field>
-
-                <Field label="Description">
-                    <textarea className={iCls(undefined, "resize-none h-20")} value={form.description} onChange={set("description")} placeholder="Brief description of the item" />
-                </Field>
-
-                <Field label="Availability">
-                    <select className={iCls()} value={form.isAvailable} onChange={set("isAvailable")}>
-                        <option value="true">Available</option>
-                        <option value="false">Unavailable</option>
-                    </select>
-                </Field>
 
                 {error && (
-                    <div className="flex items-center gap-2 text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                    <div className="flex items-center gap-2 text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 mt-4">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
@@ -396,8 +408,8 @@ export default function RestaurantPortal() {
     async function toggleAvailability(item: MenuItem) {
         setTogglingId(item.id);
         await fetch(`/api/restaurant/menu/${item.id}`, {
-            method: "PUT", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ isAvailable: String(!item.isAvailable) }),
+            method: "PATCH", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isAvailable: !item.isAvailable }),
         });
         setTogglingId(null); loadAll();
     }
@@ -764,8 +776,8 @@ export default function RestaurantPortal() {
                 onClick={() => setDrawer(null)}
             />
 
-            {/* Drawer panel */}
-            <div className={`fixed right-0 top-0 h-full w-[380px] bg-white shadow-[−20px_0_60px_rgba(0,0,0,0.12)] z-40 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${drawerOpen ? "translate-x-0" : "translate-x-full"}`}>
+            {/* Drawer panel — bottom sheet */}
+            <div className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl max-h-[58dvh] bg-white rounded-t-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.14)] z-40 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${drawerOpen ? "translate-y-0" : "translate-y-full"}`}>
                 {drawerOpen && (
                     drawer === "add" ? (
                         <ItemDrawer

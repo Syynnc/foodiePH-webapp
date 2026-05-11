@@ -194,7 +194,7 @@ export function Navbar() {
               <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-full bg-[#c8783a] text-white px-8 py-3 text-base font-medium">
                 Go to Dashboard
               </Link>
-              <button onClick={() => { handleSignOut(); setMenuOpen(false); }} className="text-sm font-medium text-[#1a1208]/45 underline underline-offset-4">
+              <button onClick={handleSignOut} className="text-sm font-medium text-[#1a1208]/45 underline underline-offset-4">
                 Sign out
               </button>
             </div>

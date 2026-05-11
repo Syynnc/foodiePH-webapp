@@ -51,7 +51,6 @@ export async function createClient() {
     {
       global: { fetch: resilientFetch() },
       auth: {
-        persistSession: false,
         autoRefreshToken: false,
       },
       cookies: {

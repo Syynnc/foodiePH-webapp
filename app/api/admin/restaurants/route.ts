@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { assertAdmin } from "@/lib/auth";
 import { db } from "@/db";
 import { profiles, restaurants, menuItems } from "@/db/schema";
 import { eq, count, sql } from "drizzle-orm";
 
-async function assertAdmin() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const [p] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-    if (!p || p.role !== "admin") return null;
-    return user;
+function parseIntOrNull(val: unknown): number | null {
+    const n = parseInt(String(val ?? ""), 10);
+    return isNaN(n) ? null : n;
 }
 
 export async function GET() {
@@ -39,7 +35,6 @@ export async function GET() {
         .leftJoin(profiles, eq(restaurants.ownerId, profiles.id))
         .orderBy(sql`${restaurants.createdAt} desc`);
 
-    // Count menu items per restaurant
     const counts = await db
         .select({ restaurantId: menuItems.restaurantId, count: count() })
         .from(menuItems)
@@ -59,6 +54,8 @@ export async function POST(req: Request) {
 
     if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
+    const parsedMinOrder = parseIntOrNull(minOrder) ?? 500;
+
     const [row] = await db.insert(restaurants).values({
         name: name.trim(),
         cuisine: cuisine || null,
@@ -66,13 +63,12 @@ export async function POST(req: Request) {
         address: address || null,
         phone: phone || null,
         imageUrl: imageUrl || null,
-        minOrder: minOrder ? parseInt(minOrder) : 500,
+        minOrder: parsedMinOrder,
         deliveryTime: deliveryTime || null,
         ownerId: ownerId || null,
         isActive: true,
     }).returning();
 
-    // If ownerId provided, set that user's role to 'restaurant'
     if (ownerId) {
         await db.update(profiles).set({ role: "restaurant" }).where(eq(profiles.id, ownerId));
     }

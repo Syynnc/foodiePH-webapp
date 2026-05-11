@@ -81,10 +81,19 @@ export const V = {
             ? `${label} must be 0 or more`
             : "",
 
-    url: (v: string) =>
-        v.trim() && !/^https?:\/\/.{3,}/.test(v.trim())
-            ? "Must be a valid URL starting with https://"
-            : "",
+    url: (v: string) => {
+        const s = v.trim();
+        if (!s) return "";
+        try {
+            const u = new URL(s);
+            if (u.protocol !== "https:" && u.protocol !== "http:") {
+                return "Must be a valid URL starting with https://";
+            }
+            return "";
+        } catch {
+            return "Must be a valid URL starting with https://";
+        }
+    },
 
     phone: (v: string) =>
         v.trim() && !/^[+\d][\d\s\-().]{5,19}$/.test(v.trim())

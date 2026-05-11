@@ -41,6 +41,28 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json(updated);
 }
 
+// PATCH — toggle availability only (no other fields required)
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const user = await assertOwner();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+    const { id } = await params;
+
+    const [rest] = await db.select({ id: restaurants.id }).from(restaurants).where(eq(restaurants.ownerId, user.id)).limit(1);
+    if (!rest) return NextResponse.json({ error: "No restaurant linked" }, { status: 404 });
+
+    const { isAvailable } = await req.json() as { isAvailable: boolean };
+
+    const [updated] = await db
+        .update(menuItems)
+        .set({ isAvailable })
+        .where(and(eq(menuItems.id, id), eq(menuItems.restaurantId, rest.id)))
+        .returning();
+
+    if (!updated) return NextResponse.json({ error: "Not found or not yours" }, { status: 404 });
+    return NextResponse.json(updated);
+}
+
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     const user = await assertOwner();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
