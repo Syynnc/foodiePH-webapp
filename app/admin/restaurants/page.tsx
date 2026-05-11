@@ -267,25 +267,47 @@ function RestaurantForm({
     );
 }
 
+const PAGE_LIMIT = 15;
+
 export default function AdminRestaurantsPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(searchParams.get("new") === "1");
     const [saving, setSaving] = useState(false);
     const [serverError, setServerError] = useState("");
     const [search, setSearch] = useState("");
+    const [searchInput, setSearchInput] = useState("");
 
-    const load = useCallback(() => {
+    const load = useCallback((p = page, q = search) => {
         setLoading(true);
-        fetch("/api/admin/restaurants")
+        const qs = new URLSearchParams({ page: String(p), limit: String(PAGE_LIMIT), ...(q ? { search: q } : {}) });
+        fetch(`/api/admin/restaurants?${qs}`)
             .then(r => r.json())
-            .then(d => { setRestaurants(Array.isArray(d) ? d : []); setLoading(false); })
+            .then(d => {
+                setRestaurants(Array.isArray(d.data) ? d.data : []);
+                setTotal(d.total ?? 0);
+                setLoading(false);
+            })
             .catch(() => setLoading(false));
-    }, []);
+    }, [page, search]);
 
     useEffect(() => { load(); }, [load]);
+
+    function handleSearch(e: React.FormEvent) {
+        e.preventDefault();
+        setSearch(searchInput);
+        setPage(1);
+    }
+
+    function clearSearch() {
+        setSearchInput("");
+        setSearch("");
+        setPage(1);
+    }
 
     async function handleCreate(form: FormData) {
         setSaving(true); setServerError("");
@@ -298,7 +320,7 @@ export default function AdminRestaurantsPage() {
         if (!res.ok) { setServerError((await res.json()).error ?? "Failed to save. Try again."); return; }
         setShowForm(false);
         router.replace("/admin/restaurants");
-        load();
+        load(1, search);
     }
 
     async function handleToggle(id: string, isActive: boolean) {
@@ -318,10 +340,8 @@ export default function AdminRestaurantsPage() {
         load();
     }
 
-    const filtered = restaurants.filter(r =>
-        r.name.toLowerCase().includes(search.toLowerCase()) ||
-        (r.cuisine ?? "").toLowerCase().includes(search.toLowerCase())
-    );
+    const totalPages = Math.ceil(total / PAGE_LIMIT);
+    const filtered = restaurants; // filtering is now server-side
 
     return (
         <div className="space-y-8">
@@ -331,7 +351,7 @@ export default function AdminRestaurantsPage() {
                 <div>
                     <p className="text-[9px] uppercase tracking-[0.26em] font-semibold text-[#c8783a] mb-2">Admin · Restaurants</p>
                     <h1 className="font-playfair text-[2.2rem] font-bold text-[#1a1208] leading-tight">Restaurants</h1>
-                    <p className="text-[13px] text-[#1a1208]/40 mt-1">{restaurants.length} total</p>
+                    <p className="text-[13px] text-[#1a1208]/40 mt-1">{total} total</p>
                 </div>
                 {!showForm && (
                     <button
@@ -368,25 +388,28 @@ export default function AdminRestaurantsPage() {
             )}
 
             {/* Search */}
-            <div className="relative">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1a1208]/25 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-                </svg>
-                <input
-                    type="text"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search by name or cuisine…"
-                    className="w-full pl-9 pr-4 py-2.5 border border-[#1a1208]/10 rounded-xl text-[13px] text-[#1a1208] bg-white placeholder:text-[#1a1208]/25 outline-none focus:border-[#c8783a]/40 focus:ring-2 focus:ring-[#c8783a]/10 transition-all duration-200"
-                />
-                {search && (
-                    <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a1208]/25 hover:text-[#1a1208]/50 transition-colors">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                )}
-            </div>
+            <form onSubmit={handleSearch} className="relative flex gap-2">
+                <div className="relative flex-1">
+                    <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1a1208]/25 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input
+                        type="text"
+                        value={searchInput}
+                        onChange={e => setSearchInput(e.target.value)}
+                        placeholder="Search by name or cuisine…"
+                        className="w-full pl-9 pr-4 py-2.5 border border-[#1a1208]/10 rounded-xl text-[13px] text-[#1a1208] bg-white placeholder:text-[#1a1208]/25 outline-none focus:border-[#c8783a]/40 focus:ring-2 focus:ring-[#c8783a]/10 transition-all duration-200"
+                    />
+                    {searchInput && (
+                        <button type="button" onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a1208]/25 hover:text-[#1a1208]/50 transition-colors">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+                <button type="submit" className="px-4 py-2.5 bg-[#1a1208] text-white rounded-xl text-[12px] font-bold uppercase tracking-[0.08em] hover:bg-[#2d2014] transition-colors">Search</button>
+            </form>
 
             {/* Card grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -414,7 +437,7 @@ export default function AdminRestaurantsPage() {
                         </p>
                     </div>
                 ) : (
-                    filtered.map((r) => (
+                    filtered.map(r => (
                         <div key={r.id} className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden hover:border-[#1a1208]/15 hover:shadow-[0_8px_28px_rgba(0,0,0,0.07)] transition-all duration-300 group flex flex-col">
 
                             {/* Cover image */}
@@ -524,6 +547,49 @@ export default function AdminRestaurantsPage() {
                     ))
                 )}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-4 pt-2">
+                    <p className="text-[12px] text-[#1a1208]/40">
+                        Showing {(page - 1) * PAGE_LIMIT + 1}–{Math.min(page * PAGE_LIMIT, total)} of {total}
+                    </p>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => { setPage(p => p - 1); load(page - 1, search); }}
+                            disabled={page === 1}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#1a1208]/10 text-[#1a1208]/40 hover:text-[#1a1208] hover:border-[#1a1208]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                            .reduce<(number | "…")[]>((acc, p, i, arr) => {
+                                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
+                                acc.push(p);
+                                return acc;
+                            }, [])
+                            .map((p, i) =>
+                                p === "…" ? (
+                                    <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#1a1208]/25">…</span>
+                                ) : (
+                                    <button key={p}
+                                        onClick={() => { setPage(p as number); load(p as number, search); }}
+                                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-[12px] font-semibold transition-all ${p === page ? "bg-[#1a1208] text-white" : "text-[#1a1208]/50 hover:bg-[#1a1208]/[0.06] border border-[#1a1208]/10"}`}
+                                    >{p}</button>
+                                )
+                            )
+                        }
+                        <button
+                            onClick={() => { setPage(p => p + 1); load(page + 1, search); }}
+                            disabled={page === totalPages}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#1a1208]/10 text-[#1a1208]/40 hover:text-[#1a1208] hover:border-[#1a1208]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

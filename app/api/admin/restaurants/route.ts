@@ -2,16 +2,31 @@ import { NextResponse } from "next/server";
 import { assertAdmin } from "@/lib/auth";
 import { db } from "@/db";
 import { profiles, restaurants, menuItems } from "@/db/schema";
-import { eq, count, sql } from "drizzle-orm";
+import { eq, count, sql, ilike, or } from "drizzle-orm";
 
 function parseIntOrNull(val: unknown): number | null {
     const n = parseInt(String(val ?? ""), 10);
     return isNaN(n) ? null : n;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
     const user = await assertAdmin();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+    const url    = new URL(req.url);
+    const page   = Math.max(1, parseInt(url.searchParams.get("page")  ?? "1",  10));
+    const limit  = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") ?? "15", 10)));
+    const search = url.searchParams.get("search")?.trim() ?? "";
+    const offset = (page - 1) * limit;
+
+    const where = search
+        ? or(ilike(restaurants.name, `%${search}%`), ilike(restaurants.cuisine, `%${search}%`))
+        : undefined;
+
+    const [{ total }] = await db
+        .select({ total: count() })
+        .from(restaurants)
+        .where(where);
 
     const rows = await db
         .select({
@@ -33,7 +48,10 @@ export async function GET() {
         })
         .from(restaurants)
         .leftJoin(profiles, eq(restaurants.ownerId, profiles.id))
-        .orderBy(sql`${restaurants.createdAt} desc`);
+        .where(where)
+        .orderBy(sql`${restaurants.createdAt} desc`)
+        .limit(limit)
+        .offset(offset);
 
     const counts = await db
         .select({ restaurantId: menuItems.restaurantId, count: count() })
@@ -42,7 +60,12 @@ export async function GET() {
 
     const countMap = Object.fromEntries(counts.map(c => [c.restaurantId, c.count]));
 
-    return NextResponse.json(rows.map(r => ({ ...r, menuItemCount: countMap[r.id] ?? 0 })));
+    return NextResponse.json({
+        data: rows.map(r => ({ ...r, menuItemCount: countMap[r.id] ?? 0 })),
+        total,
+        page,
+        limit,
+    });
 }
 
 export async function POST(req: Request) {

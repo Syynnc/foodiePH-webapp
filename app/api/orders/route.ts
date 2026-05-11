@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { orders, orderItems, profiles, restaurants, menuItems } from "@/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, count } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 
@@ -14,11 +14,21 @@ async function ensureProfile(userId: string, email: string) {
     await db.insert(profiles).values({ id: userId, email }).onConflictDoNothing();
 }
 
-// GET — fetch the current user's orders with line items
-export async function GET() {
+// GET — fetch the current user's orders with line items (paginated)
+export async function GET(req: Request) {
     try {
         const user = await getUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const url = new URL(req.url);
+        const page  = Math.max(1, parseInt(url.searchParams.get("page")  ?? "1",  10));
+        const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get("limit") ?? "10", 10)));
+        const offset = (page - 1) * limit;
+
+        const [{ total }] = await db
+            .select({ total: count() })
+            .from(orders)
+            .where(eq(orders.userId, user.id));
 
         // Fetch orders newest-first, joined with restaurant name/image
         const userOrders = await db
@@ -36,9 +46,11 @@ export async function GET() {
             .from(orders)
             .leftJoin(restaurants, eq(orders.restaurantId, restaurants.id))
             .where(eq(orders.userId, user.id))
-            .orderBy(desc(orders.createdAt));
+            .orderBy(desc(orders.createdAt))
+            .limit(limit)
+            .offset(offset);
 
-        if (userOrders.length === 0) return NextResponse.json([]);
+        if (userOrders.length === 0) return NextResponse.json({ data: [], total, page, limit });
 
         // Fetch all line items for these orders in a single query
         const orderIds = userOrders.map((o) => o.id);
@@ -61,9 +73,12 @@ export async function GET() {
             return acc;
         }, {});
 
-        return NextResponse.json(
-            userOrders.map((o) => ({ ...o, items: itemsByOrder[o.id] ?? [] }))
-        );
+        return NextResponse.json({
+            data: userOrders.map((o) => ({ ...o, items: itemsByOrder[o.id] ?? [] })),
+            total,
+            page,
+            limit,
+        });
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.error("[GET /api/orders]", message);

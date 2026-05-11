@@ -171,9 +171,10 @@ export default function DashboardShell({
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/orders");
+      const res = await fetch("/api/orders?limit=50");
       if (!res.ok) return;
-      const data: Order[] = await res.json();
+      const json = await res.json();
+      const data: Order[] = Array.isArray(json) ? json : (json.data ?? []);
       setUserOrders(data);
     } catch { /* silent */ }
   }, []);

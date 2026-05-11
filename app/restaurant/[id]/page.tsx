@@ -225,6 +225,7 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
     const [menuError, setMenuError] = useState("");
     const [togglingId, setTogglingId] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState<string>("all");
+    const [bulkToggling, setBulkToggling] = useState(false);
     const [mobileTab, setMobileTab] = useState<"menu" | "details">("menu");
 
     const loadAll = useCallback(async () => {
@@ -302,6 +303,19 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
         if (!confirm(`Delete "${item.name}"?`)) return;
         await fetch(`/api/restaurant/${restaurantId}/menu/${item.id}`, { method: "DELETE" });
         toast.success(`"${item.name}" deleted.`);
+        loadAll();
+    }
+
+    async function bulkToggleCategory(isAvailable: boolean) {
+        setBulkToggling(true);
+        const res = await fetch(`/api/restaurant/${restaurantId}/menu`, {
+            method: "PATCH", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category: activeCategory, isAvailable }),
+        });
+        setBulkToggling(false);
+        if (!res.ok) { toast.error("Bulk update failed"); return; }
+        const count = menuItems.filter(i => (i.category ?? "Uncategorized") === activeCategory).length;
+        toast.success(`${count} item${count !== 1 ? "s" : ""} in "${activeCategory}" ${isAvailable ? "enabled" : "disabled"}.`);
         loadAll();
     }
 
@@ -477,6 +491,17 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
                         <button onClick={() => { setDrawer("add"); setMenuError(""); }} className="flex-shrink-0 flex items-center gap-2 bg-[#c8783a] text-white rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] hover:bg-[#b5692e] active:scale-[0.97] transition-all duration-200 shadow-[0_4px_16px_rgba(200,120,58,0.35)]">
                             {Icons.plus} Add Item
                         </button>
+                        {activeCategory !== "all" && (
+                            <>
+                                <div className="w-px h-5 bg-[#1a1208]/10 flex-shrink-0" />
+                                <button onClick={() => bulkToggleCategory(true)} disabled={bulkToggling} className="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3.5 py-1.5 hover:bg-emerald-100 active:scale-[0.97] transition-all duration-200 disabled:opacity-40">
+                                    {bulkToggling ? Icons.spinner : Icons.check} Enable All
+                                </button>
+                                <button onClick={() => bulkToggleCategory(false)} disabled={bulkToggling} className="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3.5 py-1.5 hover:bg-amber-100 active:scale-[0.97] transition-all duration-200 disabled:opacity-40">
+                                    {bulkToggling ? Icons.spinner : Icons.close} Disable All
+                                </button>
+                            </>
+                        )}
                         <div className="w-px h-5 bg-[#1a1208]/10 flex-shrink-0" />
                         <div className="flex items-center gap-1.5 overflow-x-auto flex-1" style={{ scrollbarWidth: "none" }}>
                             {categories.map(cat => (

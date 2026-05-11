@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { menuItems } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, isNull } from "drizzle-orm";
 import { assertRestaurantOwner } from "@/lib/auth";
 import { sanitize } from "@/lib/sanitize";
 
@@ -40,4 +40,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }).returning();
 
     return NextResponse.json(row, { status: 201 });
+}
+
+// PATCH — bulk toggle availability for a category
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const user = await assertRestaurantOwner(id);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+    const { category, isAvailable } = await req.json() as { category: string; isAvailable: boolean };
+    if (typeof isAvailable !== "boolean") return NextResponse.json({ error: "isAvailable required" }, { status: 400 });
+
+    // "Uncategorized" sentinel maps to NULL in the DB
+    const catFilter = category === "Uncategorized"
+        ? and(eq(menuItems.restaurantId, id), isNull(menuItems.category))
+        : and(eq(menuItems.restaurantId, id), eq(menuItems.category, category));
+
+    await db.update(menuItems).set({ isAvailable }).where(catFilter);
+
+    return NextResponse.json({ ok: true });
 }
