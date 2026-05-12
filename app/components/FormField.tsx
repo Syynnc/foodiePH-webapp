@@ -56,7 +56,7 @@ export function Field({
 export function iCls(error?: string, extra?: string) {
     const base = "w-full rounded-xl px-3.5 py-2.5 text-[13px] text-[#1a1208] placeholder:text-[#1a1208]/25 outline-none focus:ring-2 transition-all duration-200";
     const normal = "border border-[#1a1208]/12 bg-white focus:border-[#c8783a]/50 focus:ring-[#c8783a]/10";
-    const err    = "border border-red-400 bg-red-50/40 focus:border-red-400 focus:ring-red-200/40";
+    const err = "border border-red-400 bg-red-50/40 focus:border-red-400 focus:ring-red-200/40";
     return [base, error ? err : normal, extra ?? ""].join(" ").trim();
 }
 
@@ -101,8 +101,8 @@ export const V = {
         if (!s) return "";
         if (!/^\+?[0-9]+$/.test(s)) return "Phone number must contain digits only (+ allowed at start)";
         const digits = s.replace(/^\+/, "");
-        if (digits.length < 7)  return "Phone number is too short (minimum 7 digits)";
-        if (digits.length > 15) return "Phone number is too long (maximum 15 digits)";
+        if (digits.length < 12) return "Phone number is too short (minimum 12 digits)";
+        if (digits.length > 12) return "Phone number is too long (maximum 12 digits)";
         return "";
     },
 

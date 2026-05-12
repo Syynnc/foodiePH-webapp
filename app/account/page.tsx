@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { Field, iCls, V } from "@/app/components/FormField";
 import { toast } from "sonner";
@@ -24,17 +25,17 @@ function validate(f: FormState): Errors {
   const e: Errors = {};
   const name = V.first(V.required(f.fullName, "Full name"), V.minLen(f.fullName, 2, "Full name"), V.maxLen(f.fullName, 100, "Full name"), V.name(f.fullName, "Full name"));
   if (name) e.fullName = name;
-  if (f.phone)   { const err = V.phone(f.phone);             if (err) e.phone   = err; }
+  if (f.phone) { const err = V.phone(f.phone); if (err) e.phone = err; }
   if (f.company) { const err = V.maxLen(f.company, 100, "Company"); if (err) e.company = err; }
   return e;
 }
 
 function RoleBadge({ role }: { role: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    admin:      { label: "Admin",            cls: "bg-[#1a1208]/8 text-[#1a1208]" },
+    admin: { label: "Admin", cls: "bg-[#1a1208]/8 text-[#1a1208]" },
     restaurant: { label: "Restaurant Owner", cls: "bg-amber-50 text-amber-700" },
-    driver:     { label: "Driver",           cls: "bg-blue-50 text-blue-700" },
-    customer:   { label: "Customer",         cls: "bg-emerald-50 text-emerald-700" },
+    driver: { label: "Driver", cls: "bg-blue-50 text-blue-700" },
+    customer: { label: "Customer", cls: "bg-emerald-50 text-emerald-700" },
   };
   const cfg = map[role] ?? { label: role, cls: "bg-[#1a1208]/8 text-[#1a1208]" };
   return (
@@ -46,13 +47,13 @@ function RoleBadge({ role }: { role: string }) {
 
 export default function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [saved, setSaved]       = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [serverError, setServerError] = useState("");
 
   const [form, setForm] = useState<FormState>({ fullName: "", phone: "", company: "" });
-  const [errors, setErrors]   = useState<Errors>({});
+  const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
 
   useEffect(() => {
@@ -147,7 +148,7 @@ export default function AccountPage() {
           {/* Avatar */}
           <div className="w-14 h-14 rounded-2xl bg-[#c8783a]/10 flex items-center justify-center shrink-0">
             <span className="font-playfair text-[1.4rem] font-bold text-[#c8783a]">
-              {(profile?.fullName ?? profile?.email ?? "?")[0].toUpperCase()}
+              {(profile?.fullName || profile?.email || "?")[0].toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
@@ -197,7 +198,7 @@ export default function AccountPage() {
                 onBlur={blur("phone")}
                 placeholder="+639312345678"
                 type="tel"
-                maxLength={20}
+                maxLength={13}
               />
             </Field>
 
@@ -284,6 +285,88 @@ export default function AccountPage() {
             </Row>
           </div>
         </div>
+
+        {/* Admin Dashboard */}
+        {profile?.role === "admin" && (
+          <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#1a1208]/[0.06]">
+              <h2 className="text-[13px] font-bold text-[#1a1208]">Administration</h2>
+              <p className="text-[11px] text-[#1a1208]/40 mt-0.5">Manage the platform as an administrator.</p>
+            </div>
+            <div className="p-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-semibold text-[#1a1208]">Admin Dashboard</p>
+                <p className="text-[11px] text-[#1a1208]/40 mt-0.5">View reports, manage users, restaurants, and orders.</p>
+              </div>
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 bg-[#c8783a] text-white rounded-xl px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] hover:bg-[#b5692e] active:scale-[0.98] transition-all duration-300"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Go to Dashboard
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {profile?.role === "restaurant" && (
+          <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#1a1208]/[0.06]">
+              <h2 className="text-[13px] font-bold text-[#1a1208]">Restaurant Owner</h2>
+              <p className="text-[11px] text-[#1a1208]/40 mt-0.5">Manage the platform as a restaurant owner.</p>
+            </div>
+            <div className="p-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-semibold text-[#1a1208]">Restaurant Dashboard</p>
+                <p className="text-[11px] text-[#1a1208]/40 mt-0.5">View and manage restaurants and menus.</p>
+              </div>
+              <Link
+                href="/restaurant"
+                className="flex items-center gap-2 bg-[#c8783a] text-white rounded-xl px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] hover:bg-[#b5692e] active:scale-[0.98] transition-all duration-300"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Go to Dashboard
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {profile?.role === "driver" && (
+          <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#1a1208]/[0.06]">
+              <h2 className="text-[13px] font-bold text-[#1a1208]">Foodie Rider</h2>
+              <p className="text-[11px] text-[#1a1208]/40 mt-0.5">Manage your orders as a Foodie Rider.</p>
+            </div>
+            <div className="p-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-semibold text-[#1a1208]">Driver Dashboard</p>
+                <p className="text-[11px] text-[#1a1208]/40 mt-0.5">View and manage customer's orders.</p>
+              </div>
+              <Link
+                href="/driver"
+                className="flex items-center gap-2 bg-[#c8783a] text-white rounded-xl px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] hover:bg-[#b5692e] active:scale-[0.98] transition-all duration-300"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Go to Dashboard
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Danger zone */}
         <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
