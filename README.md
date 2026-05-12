@@ -1,44 +1,48 @@
 # 🍱 Foodie.ph Web App
 
-> Premium corporate concierge food delivery for Metro Manila and Metro Cebu.
+> A premium corporate concierge food delivery platform for Metro Manila and Metro Cebu.
 
-Foodie.ph is a modern, high-performance web application built to handle corporate food delivery, group catering, and "eat-now-pay-later" services for businesses. It connects users with over 100+ partner restaurants through a seamless, fast, and beautifully designed interface.
+Foodie.ph is a modern web application built to simulate a high-end food delivery and group catering service. It allows users to browse partner restaurants, track live orders, and add items to a persistent cart. Built with cutting-edge React 19, Next.js App Router, and a Supabase backend.
 
-## ✨ Features
+## 🚀 Tech Stack & Core Technologies
 
-*   **🏪 Restaurant Discovery:** Browse, search, and filter through 100+ local partner restaurants.
-*   **🛒 Global Cart System:** Persistent shopping cart experience managed via React Context.
-*   **🔐 Authentication:** Secure user login and dashboard access powered by Supabase.
-*   **⚡ Real-time UI:** Live order tickers and dynamic delivery badges for an engaging user experience.
-*   **📱 Responsive Design:** Fully optimized for mobile, tablet, and desktop screens.
-*   **🎨 Custom Typography & Theming:** Utilizes *Playfair Display* and *Plus Jakarta Sans* with a warm, custom color palette.
+This repository uses a modern, strictly typed TypeScript stack (99.3% TS codebase):
 
-## 🛠️ Tech Stack
+*   **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+*   **UI Library:** [React 19](https://react.dev/)
+*   **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+*   **Authentication & Backend:** [Supabase](https://supabase.com/) & `@supabase/ssr`
+*   **Database ORM:** [Drizzle ORM](https://orm.drizzle.team/) & Drizzle Kit
+*   **Database Engine:** PostgreSQL (via `postgres` package)
+*   **Language:** [TypeScript](https://www.typescriptlang.org/)
 
-This project is built with modern web technologies:
+## ✨ Key Features
 
-*   **Framework:** [Next.js](https://nextjs.org/) (App Router)
-*   **Language:** [TypeScript](https://www.typescriptlang.org/) (97% of the codebase)
-*   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-*   **Backend & Auth:** [Supabase](https://supabase.com/)
-*   **Deployment:** Vercel (Recommended)
+*   **Restaurant Discovery:** Beautifully designed listing grid to browse 100+ local partner restaurants with animated category filters.
+*   **Shopping Cart State:** Fully functional, custom global shopping cart managed through React Context (`CartContext`).
+*   **User Dashboard:** Secure dashboard shell with protected routes enforcing user authentication before checkout.
+*   **Authentication Flow:** Email-based signup and login system securely connected to Supabase.
+*   **Live Order Tickers & Badges:** Engaging floating UI components showcasing real-time order tracking and delivery estimates.
+*   **Polished UI/UX:** Scroll reveal animations, marquee partner strips, and custom typography integrations (*Playfair Display* & *Plus Jakarta Sans*).
 
-## 🚀 Getting Started
+## 🛠️ Getting Started
 
-To run this project locally, follow these steps:
+Follow these instructions to set up the project locally.
 
 ### Prerequisites
 
-Make sure you have [Node.js](https://nodejs.org/) (v18 or higher) installed on your machine.
+*   Node.js v18 or later
+*   A [Supabase](https://supabase.com) account & project
 
 ### 1. Clone the repository
+
 \`\`\`bash
 git clone https://github.com/Syynnc/foodiePH-webapp.git
 cd foodiePH-webapp
 \`\`\`
 
 ### 2. Install dependencies
-Using npm, yarn, or pnpm:
+
 \`\`\`bash
 npm install
 # or
@@ -48,57 +52,54 @@ pnpm install
 \`\`\`
 
 ### 3. Set up Environment Variables
-Create a \`.env.local\` file in the root directory and add your Supabase credentials:
+
+Copy the example environment file or create a `.env.local` file in the root directory:
 
 \`\`\`env
+# Supabase keys for frontend auth/fetching
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-\`\`\`
-*(Note: If your Supabase project pauses due to inactivity, local requests will fail with a `ConnectTimeoutError` until you restore it from the Supabase dashboard).*
 
-### 4. Run the development server
+# Database URL for Drizzle ORM
+DATABASE_URL=postgres://postgres.[project-id]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+\`\`\`
+
+### 4. Database Setup (Drizzle ORM)
+
+Push the database schema to your Supabase PostgreSQL instance using Drizzle Kit:
+
+\`\`\`bash
+npx drizzle-kit push
+# or to generate/apply migrations:
+npx drizzle-kit generate
+npx drizzle-kit migrate
+\`\`\`
+
+### 5. Run the Development Server
+
 \`\`\`bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 \`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser. The page will auto-reload as you make edits to the code.
 
-## 📂 Project Structure
+## 📂 Repository Structure
 
-A quick look at the core structure of the application:
-
-\`\`\`text
-foodiePH-webapp/
-├── app/
-│   ├── auth/              # Authentication pages and actions
-│   ├── components/        # Reusable UI components (Navbar, Shell, ScrollReveal)
-│   ├── context/           # React Context providers (CartContext)
-│   ├── dashboard/         # Protected user dashboard routes
-│   ├── restaurants/       # Restaurant listing and filtering pages
-│   ├── layout.tsx         # Root layout and font configuration
-│   └── page.tsx           # Landing page
-├── lib/
-│   └── supabase/          # Supabase client utilities
-├── public/                # Static assets (images, icons)
-└── tailwind.config.ts     # Tailwind CSS configuration
-\`\`\`
-
-## 📝 Scripts
-
-*   \`npm run dev\` - Starts the local development server.
-*   \`npm run build\` - Creates an optimized production build.
-*   \`npm run start\` - Starts the production server.
-*   \`npm run lint\` - Runs ESLint to check for code issues.
+*   `/app` - Next.js App Router root (Pages, Layouts, API routes).
+    *   `/components` - Reusable UI components (Navbar, Shell, ScrollReveal).
+    *   `/context` - React Context providers (CartContext).
+    *   `/dashboard` - Protected routes requiring Supabase authentication.
+    *   `/restaurants` - Public restaurant discovery routes.
+    *   `/auth` - Sign up / Sign in pages and server actions.
+*   `/db` - Drizzle ORM schema definitions and database connection setup.
+*   `/drizzle` - Generated SQL migration files.
+*   `/lib` - Utility functions (e.g., Supabase client creation).
+*   `/public` - Static assets, images, and backgrounds.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! 
-Feel free to check the [issues page](https://github.com/Syynnc/foodiePH-webapp/issues) if you want to contribute.
+Contributions, bug reports, and feature requests are welcome! If you're planning to contribute, please open an issue first to discuss what you would like to change.
 
 ## 📄 License
 
-This project is proprietary. All rights reserved. 
+This project is proprietary. All rights reserved.
