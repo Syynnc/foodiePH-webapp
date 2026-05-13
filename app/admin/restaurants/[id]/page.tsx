@@ -51,14 +51,14 @@ function validateRest(f: RestForm): Errs<RestForm> {
     const e: Errs<RestForm> = {};
     const name = V.first(V.required(f.name, "Name"), V.minLen(f.name, 2, "Name"), V.maxLen(f.name, 100, "Name"));
     if (name) e.name = name;
-    if (f.cuisine)      { const err = V.maxLen(f.cuisine, 60, "Cuisine"); if (err) e.cuisine = err; }
-    if (f.description)  { const err = V.maxLen(f.description, 500, "Description"); if (err) e.description = err; }
-    if (f.address)      { const err = V.maxLen(f.address, 200, "Address"); if (err) e.address = err; }
-    if (f.phone)        { const err = V.phone(f.phone); if (err) e.phone = err; }
-    if (f.imageUrl)     { const err = V.url(f.imageUrl); if (err) e.imageUrl = err; }
-    if (f.minOrder)     { const err = V.nonNegativeInt(f.minOrder, "Min. order"); if (err) e.minOrder = err; }
+    if (f.cuisine) { const err = V.maxLen(f.cuisine, 60, "Cuisine"); if (err) e.cuisine = err; }
+    if (f.description) { const err = V.maxLen(f.description, 500, "Description"); if (err) e.description = err; }
+    if (f.address) { const err = V.maxLen(f.address, 200, "Address"); if (err) e.address = err; }
+    if (f.phone) { const err = V.phone(f.phone); if (err) e.phone = err; }
+    if (f.imageUrl) { const err = V.url(f.imageUrl); if (err) e.imageUrl = err; }
+    if (f.minOrder) { const err = V.nonNegativeInt(f.minOrder, "Min. order"); if (err) e.minOrder = err; }
     if (f.deliveryTime) { const err = V.maxLen(f.deliveryTime, 30, "Delivery time"); if (err) e.deliveryTime = err; }
-    if (f.ownerId)      { const err = V.uuid(f.ownerId); if (err) e.ownerId = err; }
+    if (f.ownerId) { const err = V.uuid(f.ownerId); if (err) e.ownerId = err; }
     return e;
 }
 
@@ -68,9 +68,9 @@ function validateItem(f: ItemForm): Errs<ItemForm> {
     if (name) e.name = name;
     const price = V.first(V.required(f.price, "Price"), V.positiveInt(f.price, "Price"));
     if (price) e.price = price;
-    if (f.imageUrl)    { const err = V.url(f.imageUrl); if (err) e.imageUrl = err; }
+    if (f.imageUrl) { const err = V.url(f.imageUrl); if (err) e.imageUrl = err; }
     if (f.description) { const err = V.maxLen(f.description, 500, "Description"); if (err) e.description = err; }
-    if (f.category)    { const err = V.maxLen(f.category, 60, "Category"); if (err) e.category = err; }
+    if (f.category) { const err = V.maxLen(f.category, 60, "Category"); if (err) e.category = err; }
     return e;
 }
 
@@ -402,7 +402,7 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
                         </Field>
 
                         <Field label="Phone" error={restErrors.phone} hint="+63 followed by 10 digits">
-                            <input className={iCls(restErrors.phone)} value={editForm.phone} onChange={e => { const v = e.target.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, ""); setRestField("phone")({ ...e, target: { ...e.target, value: v } }); }} onBlur={blurRestField("phone")} type="tel" maxLength={16} placeholder="+639312345678" />
+                            <input className={iCls(restErrors.phone)} value={editForm.phone} onChange={e => { const v = e.target.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, ""); setRestField("phone")({ ...e, target: { ...e.target, value: v } }); }} onBlur={blurRestField("phone")} type="tel" maxLength={13} placeholder="+639312345678" />
                         </Field>
 
                         <Field label="Status">

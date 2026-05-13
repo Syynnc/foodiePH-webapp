@@ -27,11 +27,10 @@ function CopyUUID({ id }: { id: string }) {
         <button
             onClick={handleCopy}
             title="Copy User ID"
-            className={`group flex items-center gap-1.5 font-mono text-[10px] rounded-lg px-2.5 py-1.5 border transition-all duration-200 max-w-[168px] ${
-                copied
+            className={`group flex items-center gap-1.5 font-mono text-[10px] rounded-lg px-2.5 py-1.5 border transition-all duration-200 max-w-[168px] ${copied
                     ? "border-emerald-200 bg-emerald-50 text-emerald-600"
                     : "border-[#1a1208]/10 bg-[#1a1208]/[0.02] text-[#1a1208]/35 hover:border-[#c8783a]/30 hover:text-[#c8783a] hover:bg-[#c8783a]/5"
-            }`}
+                }`}
         >
             <span className="truncate">{id.slice(0, 8)}…</span>
             {copied ? (
@@ -55,6 +54,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 const ROLES = ["customer", "driver", "restaurant", "admin"];
+const PROTECTED_EMAIL = "sindycasquejo@gmail.com";
 
 function timeAgo(d: string | null) {
     if (!d) return "";
@@ -192,7 +192,12 @@ export default function AdminUsersPage() {
 
                                 {/* Change role */}
                                 <div className="w-32">
-                                    {updating === user.id ? (
+                                    {user.email === PROTECTED_EMAIL ? (
+                                        <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[#1a1208]/30 italic px-2.5 py-1.5">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            Protected
+                                        </span>
+                                    ) : updating === user.id ? (
                                         <div className="h-8 w-full bg-[#1a1208]/[0.05] rounded-lg animate-pulse" />
                                     ) : (
                                         <select
