@@ -12,15 +12,17 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     if (!user) redirect("/auth");
 
     const [profile] = await db
-        .select({ role: profiles.role, email: profiles.email, fullName: profiles.fullName })
+        .select({ role: profiles.role, email: profiles.email, firstName: profiles.firstName, lastName: profiles.lastName })
         .from(profiles)
         .where(eq(profiles.id, user.id))
         .limit(1);
 
     if (!profile || profile.role !== "admin") redirect("/");
 
+    const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || null;
+
     return (
-        <AdminShell email={profile.email} name={profile.fullName}>
+        <AdminShell email={profile.email} name={name}>
             {children}
         </AdminShell>
     );

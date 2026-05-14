@@ -44,7 +44,7 @@ export async function GET(req: Request) {
             createdAt: restaurants.createdAt,
             ownerId: restaurants.ownerId,
             ownerEmail: profiles.email,
-            ownerName: profiles.fullName,
+            ownerName: sql<string | null>`NULLIF(TRIM(CONCAT(${profiles.firstName}, ' ', COALESCE(${profiles.lastName}, ''))), '')`,
         })
         .from(restaurants)
         .leftJoin(profiles, eq(restaurants.ownerId, profiles.id))

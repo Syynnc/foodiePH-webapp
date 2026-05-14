@@ -5,7 +5,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 type User = {
     id: string;
     email: string;
-    fullName: string | null;
+    firstName: string | null;
+    lastName: string | null;
     role: string;
     company: string | null;
     createdAt: string | null;
@@ -92,8 +93,9 @@ export default function AdminUsersPage() {
     }
 
     const filtered = users.filter(u => {
+        const fullName = [u.firstName, u.lastName].filter(Boolean).join(" ");
         const matchSearch = u.email.toLowerCase().includes(search.toLowerCase()) ||
-            (u.fullName ?? "").toLowerCase().includes(search.toLowerCase());
+            fullName.toLowerCase().includes(search.toLowerCase());
         const matchRole = filterRole === "all" || u.role === filterRole;
         return matchSearch && matchRole;
     });
@@ -170,11 +172,11 @@ export default function AdminUsersPage() {
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-8 h-8 rounded-full bg-[#1a1208]/[0.06] flex items-center justify-center flex-shrink-0">
                                         <span className="text-[10px] font-bold text-[#1a1208]/40">
-                                            {(user.fullName ?? user.email).slice(0, 2).toUpperCase()}
+                                            {([user.firstName, user.lastName].filter(Boolean).join(" ") || user.email).slice(0, 2).toUpperCase()}
                                         </span>
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-[13px] font-semibold text-[#1a1208] truncate">{user.fullName ?? "—"}</p>
+                                        <p className="text-[13px] font-semibold text-[#1a1208] truncate">{[user.firstName, user.lastName].filter(Boolean).join(" ") || "—"}</p>
                                         <p className="text-[11px] text-[#1a1208]/35 truncate">{user.email}</p>
                                     </div>
                                 </div>

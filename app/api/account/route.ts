@@ -26,12 +26,13 @@ export async function PATCH(req: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { fullName, phone, company } = body;
+  const { firstName, lastName, phone, company } = body;
 
   const [updated] = await db
     .update(profiles)
     .set({
-      fullName: sanitize(fullName) || null,
+      firstName: sanitize(firstName) || null,
+      lastName: sanitize(lastName) || null,
       phone: phone?.trim() || null,
       company: sanitize(company) || null,
     })
