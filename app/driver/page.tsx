@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -23,7 +23,13 @@ type MyOrder = AvailableOrder & {
 
 type DriverInfo = {
   isDriver: boolean;
-  driver: { firstName: string | null; lastName: string | null; vehicleType: string | null; plateNumber: string | null; licenseNumber: string | null } | null;
+  driver: {
+    firstName: string | null;
+    lastName: string | null;
+    vehicleType: string | null;
+    plateNumber: string | null;
+    licenseNumber: string | null;
+  } | null;
 };
 
 function timeAgo(dateStr: string | null) {
@@ -35,12 +41,76 @@ function timeAgo(dateStr: string | null) {
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
-  gcash: "GCash", card: "Card", cod: "Cash on Delivery", corporate: "Corporate",
+  gcash: "GCash",
+  card: "Card",
+  cod: "Cash",
+  corporate: "Corporate",
 };
+
+const VEHICLE_ICONS: Record<string, string> = {
+  motorcycle: "M",
+  bicycle: "B",
+  car: "C",
+};
+
+// ── Skeleton loader ──────────────────────────────────────────────────────────
+function SkeletonPulse({ className }: { className: string }) {
+  return (
+    <div
+      className={`bg-[#1a1208]/[0.06] rounded-xl animate-pulse ${className}`}
+    />
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-[100dvh] bg-[#FDFBF7]">
+      <div className="border-b border-[#1a1208]/[0.06] bg-[#FDFBF7]">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <SkeletonPulse className="w-28 h-5" />
+          <SkeletonPulse className="w-20 h-5" />
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+          <div className="space-y-4">
+            <SkeletonPulse className="w-32 h-3 mb-5" />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-[#1a1208]/[0.06] p-4 space-y-3"
+              >
+                <div className="flex items-center gap-4">
+                  <SkeletonPulse className="w-14 h-14 rounded-xl" />
+                  <div className="flex-1 space-y-2">
+                    <SkeletonPulse className="w-40 h-4" />
+                    <SkeletonPulse className="w-56 h-3" />
+                    <SkeletonPulse className="w-28 h-3" />
+                  </div>
+                </div>
+                <SkeletonPulse className="w-full h-10 rounded-xl" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-4">
+            <SkeletonPulse className="w-full h-36 rounded-2xl" />
+            <SkeletonPulse className="w-full h-48 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Registration gate ────────────────────────────────────────────────────────
 function RegisterForm({ onRegistered }: { onRegistered: () => void }) {
-  const [form, setForm] = useState({ firstName: "", lastName: "", licenseNumber: "", vehicleType: "motorcycle", plateNumber: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    licenseNumber: "",
+    vehicleType: "motorcycle",
+    plateNumber: "",
+  });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
@@ -64,94 +134,388 @@ function RegisterForm({ onRegistered }: { onRegistered: () => void }) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#FDFBF7] flex items-center justify-center px-5">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="flex items-center gap-2 mb-10">
-          <span className="font-playfair text-[1.25rem] font-bold tracking-tight text-[#1a1208]">
-            Foodie<span className="text-[#c8783a]">.ph</span>
+    <div className="min-h-[100dvh] bg-[#FDFBF7] grid grid-cols-1 lg:grid-cols-2">
+      {/* Left: Decorative panel */}
+      <div className="hidden lg:flex flex-col justify-between bg-[#1a1208] p-14 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 30% 50%, #c8783a 0%, transparent 60%), radial-gradient(circle at 80% 20%, #c8783a 0%, transparent 50%)`,
+          }}
+        />
+        <Link
+          href="/"
+          className="font-playfair text-[1.35rem] font-bold tracking-tight text-white relative z-10"
+        >
+          Foodie<span className="text-[#c8783a]">.ph</span>
+          <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-white/25 font-medium">
+            Rider
           </span>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[#1a1208]/35 font-medium">Driver</span>
         </Link>
-
-        <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-3">Get Started</p>
-        <h1 className="font-playfair text-[2rem] font-bold text-[#1a1208] leading-tight mb-2">
-          Register as a Rider
-        </h1>
-        <p className="text-[13px] text-[#1a1208]/45 font-light leading-relaxed mb-8">
-          Fill in your details to start accepting deliveries on Foodie.ph.
-        </p>
-
-        <form onSubmit={submit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40 mb-1.5">First Name</label>
-              <input
-                type="text"
-                placeholder="Juan"
-                required
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40 mb-1.5">Last Name</label>
-              <input
-                type="text"
-                placeholder="dela Cruz"
-                required
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
-              />
-            </div>
-          </div>
-
+        <div className="relative z-10 space-y-6">
           <div>
-            <label className="block text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40 mb-1.5">Vehicle Type</label>
-            <select
-              value={form.vehicleType}
-              onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+            <p className="text-[9px] uppercase tracking-[0.28em] font-bold text-white/30 mb-4">
+              Why ride with us
+            </p>
+            {[
+              {
+                title: "Flexible schedule",
+                body: "Accept orders on your own time. Go online when it works for you.",
+              },
+              {
+                title: "Fast payouts",
+                body: "Earnings deposited within 24 hours of each completed delivery.",
+              },
+              {
+                title: "Priority support",
+                body: "Dedicated driver support line, available 7 days a week.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="py-5 border-t border-white/[0.07] first:border-t-0"
+              >
+                <p className="text-[14px] font-semibold text-white mb-1">
+                  {item.title}
+                </p>
+                <p className="text-[12px] text-white/40 leading-relaxed">
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-white/20">
+            &copy; 2025 Foodie.ph. All rights reserved.
+          </p>
+        </div>
+      </div>
+
+      {/* Right: Form */}
+      <div className="flex items-center justify-center px-6 py-14">
+        <div className="w-full max-w-sm">
+          <Link href="/" className="flex items-center gap-2 mb-10 lg:hidden">
+            <span className="font-playfair text-[1.25rem] font-bold tracking-tight text-[#1a1208]">
+              Foodie<span className="text-[#c8783a]">.ph</span>
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#1a1208]/35 font-medium">
+              Driver
+            </span>
+          </Link>
+
+          <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-3">
+            Get Started
+          </p>
+          <h1 className="font-playfair text-[2rem] font-bold text-[#1a1208] leading-tight mb-2">
+            Register as a Rider
+          </h1>
+          <p className="text-[13px] text-[#1a1208]/45 font-light leading-relaxed mb-8">
+            Fill in your details to start accepting deliveries on Foodie.ph.
+          </p>
+
+          <form onSubmit={submit} className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Juan"
+                  required
+                  value={form.firstName}
+                  onChange={(e) =>
+                    setForm({ ...form, firstName: e.target.value })
+                  }
+                  className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="dela Cruz"
+                  required
+                  value={form.lastName}
+                  onChange={(e) =>
+                    setForm({ ...form, lastName: e.target.value })
+                  }
+                  className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+                Vehicle Type
+              </label>
+              <select
+                value={form.vehicleType}
+                onChange={(e) =>
+                  setForm({ ...form, vehicleType: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+              >
+                <option value="motorcycle">Motorcycle</option>
+                <option value="bicycle">Bicycle</option>
+                <option value="car">Car</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+                Plate Number
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. ABC 1234"
+                value={form.plateNumber}
+                onChange={(e) =>
+                  setForm({ ...form, plateNumber: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+                License Number{" "}
+                <span className="normal-case tracking-normal text-[#1a1208]/25 font-medium">
+                  (optional)
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. N01-23-456789"
+                value={form.licenseNumber}
+                onChange={(e) =>
+                  setForm({ ...form, licenseNumber: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+              />
+            </div>
+
+            {err && (
+              <p className="text-[12px] text-red-400 font-medium">{err}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#c8783a] hover:bg-[#b5692e] disabled:opacity-50 text-white py-3.5 rounded-xl font-semibold text-[14px] shadow-[0_6px_20px_rgba(200,120,58,0.28)] transition-all duration-300 active:scale-[0.98] mt-2"
             >
-              <option value="motorcycle">Motorcycle</option>
-              <option value="bicycle">Bicycle</option>
-              <option value="car">Car</option>
-            </select>
+              {loading ? "Registering…" : "Start Delivering"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Stats sidebar panel ──────────────────────────────────────────────────────
+function StatsPanel({
+  driver,
+  myOrders,
+}: {
+  driver: DriverInfo["driver"];
+  myOrders: MyOrder[];
+}) {
+  const todayStr = new Date().toDateString();
+
+  const todayDeliveries = useMemo(
+    () =>
+      myOrders.filter(
+        (o) =>
+          o.status === "delivered" &&
+          new Date(o.deliveredAt ?? o.createdAt ?? "").toDateString() ===
+            todayStr
+      ),
+    [myOrders, todayStr]
+  );
+
+  const todayEarnings = useMemo(
+    () => todayDeliveries.reduce((s, o) => s + o.totalAmount, 0),
+    [todayDeliveries]
+  );
+
+  const allDelivered = useMemo(
+    () => myOrders.filter((o) => o.status === "delivered"),
+    [myOrders]
+  );
+
+  const initials = [driver?.firstName?.[0], driver?.lastName?.[0]]
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
+
+  return (
+    <div className="space-y-4">
+      {/* Driver profile card */}
+      <div className="bg-[#1a1208] rounded-2xl p-6 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 80% 20%, #c8783a 0%, transparent 55%)`,
+          }}
+        />
+        <div className="relative z-10 flex items-start justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-[#c8783a]/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-[14px] font-bold text-[#c8783a]">
+                {initials || "R"}
+              </span>
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-white leading-tight">
+                {driver?.firstName} {driver?.lastName}
+              </p>
+              <p className="text-[11px] text-white/35 mt-0.5 font-medium">
+                {driver?.vehicleType
+                  ? driver.vehicleType.charAt(0).toUpperCase() +
+                    driver.vehicleType.slice(1)
+                  : "Rider"}{" "}
+                &middot; {driver?.plateNumber || "—"}
+              </p>
+            </div>
           </div>
-
-          <div>
-            <label className="block text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40 mb-1.5">Plate Number</label>
-            <input
-              type="text"
-              placeholder="e.g. ABC 1234"
-              value={form.plateNumber}
-              onChange={(e) => setForm({ ...form, plateNumber: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
-            />
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+            <span className="text-[10px] text-white/40 font-medium">
+              Online
+            </span>
           </div>
+        </div>
 
-          <div>
-            <label className="block text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40 mb-1.5">License Number <span className="normal-case tracking-normal text-[#1a1208]/25 font-medium">(optional)</span></label>
-            <input
-              type="text"
-              placeholder="e.g. N01-23-456789"
-              value={form.licenseNumber}
-              onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
-            />
+        <div className="relative z-10 grid grid-cols-2 gap-3">
+          <div className="bg-white/[0.06] rounded-xl px-4 py-3 border border-white/[0.06]">
+            <p className="text-[10px] text-white/35 uppercase tracking-[0.16em] font-medium mb-1">
+              Today
+            </p>
+            <p className="text-[1.4rem] font-bold text-white leading-none tabular-nums">
+              {todayDeliveries.length}
+            </p>
+            <p className="text-[10px] text-white/30 mt-0.5">deliveries</p>
           </div>
+          <div className="bg-white/[0.06] rounded-xl px-4 py-3 border border-white/[0.06]">
+            <p className="text-[10px] text-white/35 uppercase tracking-[0.16em] font-medium mb-1">
+              Earned
+            </p>
+            <p className="text-[1.4rem] font-bold text-[#c8783a] leading-none tabular-nums">
+              ₱{todayEarnings.toLocaleString()}
+            </p>
+            <p className="text-[10px] text-white/30 mt-0.5">today</p>
+          </div>
+        </div>
+      </div>
 
-          {err && <p className="text-[12px] text-red-400 font-medium">{err}</p>}
+      {/* All-time stat strip */}
+      <div className="bg-white rounded-2xl border border-[#1a1208]/[0.06] px-5 py-4 flex items-center justify-between">
+        <div className="text-center">
+          <p className="text-[10px] text-[#1a1208]/35 uppercase tracking-[0.14em] font-medium mb-0.5">
+            Total
+          </p>
+          <p className="text-[1.1rem] font-bold text-[#1a1208] tabular-nums">
+            {allDelivered.length}
+          </p>
+          <p className="text-[10px] text-[#1a1208]/35">deliveries</p>
+        </div>
+        <div className="w-px h-10 bg-[#1a1208]/[0.07]" />
+        <div className="text-center">
+          <p className="text-[10px] text-[#1a1208]/35 uppercase tracking-[0.14em] font-medium mb-0.5">
+            Lifetime
+          </p>
+          <p className="text-[1.1rem] font-bold text-[#1a1208] tabular-nums">
+            ₱{allDelivered.reduce((s, o) => s + o.totalAmount, 0).toLocaleString()}
+          </p>
+          <p className="text-[10px] text-[#1a1208]/35">earned</p>
+        </div>
+        <div className="w-px h-10 bg-[#1a1208]/[0.07]" />
+        <div className="text-center">
+          <p className="text-[10px] text-[#1a1208]/35 uppercase tracking-[0.14em] font-medium mb-0.5">
+            Vehicle
+          </p>
+          <p className="text-[1.1rem] font-bold text-[#1a1208] tabular-nums">
+            {VEHICLE_ICONS[driver?.vehicleType ?? ""] ?? "—"}
+          </p>
+          <p className="text-[10px] text-[#1a1208]/35">
+            {driver?.vehicleType ?? "—"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#c8783a] hover:bg-[#b5692e] disabled:opacity-50 text-white py-3.5 rounded-xl font-semibold text-[14px] shadow-[0_6px_20px_rgba(200,120,58,0.28)] transition-all duration-300 active:scale-[0.98] mt-2"
+// ── Recent deliveries sidebar list ───────────────────────────────────────────
+function RecentDeliveriesList({ orders }: { orders: MyOrder[] }) {
+  const recent = orders
+    .filter((o) => o.status === "delivered")
+    .slice(0, 6);
+
+  if (recent.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-[#1a1208]/[0.06] p-6 text-center">
+        <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-4">
+          Recent Deliveries
+        </p>
+        <p className="text-[12px] text-[#1a1208]/30 leading-relaxed">
+          Completed deliveries will appear here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#1a1208]/[0.06] overflow-hidden">
+      <div className="px-5 pt-5 pb-3">
+        <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40">
+          Recent Deliveries
+        </p>
+      </div>
+      <div className="divide-y divide-[#1a1208]/[0.05]">
+        {recent.map((order) => (
+          <Link
+            key={order.id}
+            href={`/driver/order/${order.id}`}
+            className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-[#1a1208]/[0.02] transition-colors duration-200 group"
           >
-            {loading ? "Registering…" : "Start Delivering"}
-          </button>
-        </form>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-[#f5ede0] flex-shrink-0">
+                {order.restaurantImage ? (
+                  <Image
+                    src={order.restaurantImage}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="32px"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-[#c8783a]/50">
+                      {order.restaurantName?.[0] ?? "?"}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-semibold text-[#1a1208] truncate">
+                  {order.restaurantName}
+                </p>
+                <p className="text-[10.5px] text-[#1a1208]/40 mt-0.5">
+                  {timeAgo(order.deliveredAt ?? order.createdAt)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-[12px] font-bold text-[#1a1208] tabular-nums">
+                ₱{order.totalAmount.toLocaleString()}
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -188,17 +552,20 @@ export default function DriverDashboard() {
     });
   }, [checkDriver, fetchOrders]);
 
-  // Poll every 10s when on the dashboard
   useEffect(() => {
     if (!driverInfo?.isDriver) return;
     pollRef.current = setInterval(fetchOrders, 10000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, [driverInfo, fetchOrders]);
 
   async function acceptOrder(orderId: string) {
     setAccepting(orderId);
     try {
-      const res = await fetch(`/api/driver/orders/${orderId}/accept`, { method: "POST" });
+      const res = await fetch(`/api/driver/orders/${orderId}/accept`, {
+        method: "POST",
+      });
       if (!res.ok) {
         const err = await res.json();
         alert(err.error ?? "Could not accept order");
@@ -210,34 +577,42 @@ export default function DriverDashboard() {
     }
   }
 
-  if (loading) {
+  if (loading) return <DashboardSkeleton />;
+
+  if (!driverInfo?.isDriver) {
     return (
-      <div className="min-h-[100dvh] bg-[#FDFBF7] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#c8783a] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <RegisterForm
+        onRegistered={() => {
+          checkDriver().then(() =>
+            fetchOrders().finally(() => setLoading(false))
+          );
+        }}
+      />
     );
   }
 
-  if (!driverInfo?.isDriver) {
-    return <RegisterForm onRegistered={() => { checkDriver().then(() => fetchOrders().finally(() => setLoading(false))); }} />;
-  }
-
-  const activeDelivery = myOrders.find((o) => o.status === "on_the_way" || o.status === "preparing");
-  const recentDeliveries = myOrders.filter((o) => o.status === "delivered").slice(0, 5);
+  const activeDelivery = myOrders.find(
+    (o) => o.status === "on_the_way" || o.status === "preparing"
+  );
 
   return (
-    <div className="min-h-[100dvh] bg-[#FDFBF7] text-[#1a1208]">
+    <div className="min-h-[100dvh] bg-[#F4F0EB] text-[#1a1208]">
 
       {/* ── Top bar ── */}
       <div className="sticky top-0 z-30 bg-[#FDFBF7]/95 backdrop-blur-xl border-b border-[#1a1208]/[0.06]">
-        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="font-playfair text-[1.15rem] font-bold tracking-tight">
+            <Link
+              href="/"
+              className="font-playfair text-[1.15rem] font-bold tracking-tight"
+            >
               Foodie<span className="text-[#c8783a]">.ph</span>
             </Link>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[#1a1208]/35 font-medium border border-[#1a1208]/10 px-2 py-0.5 rounded-full">Rider</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#1a1208]/35 font-medium border border-[#1a1208]/10 px-2 py-0.5 rounded-full">
+              Rider
+            </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {driverInfo?.driver?.firstName && (
               <span className="text-[12px] text-[#1a1208]/50 font-medium hidden sm:block">
                 {driverInfo.driver.firstName} {driverInfo.driver.lastName}
@@ -245,155 +620,299 @@ export default function DriverDashboard() {
             )}
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-              <span className="text-[11px] text-[#1a1208]/45 font-medium">Online</span>
+              <span className="text-[11px] text-[#1a1208]/45 font-medium">
+                Online
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-5 py-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
-        {/* ── Active delivery ── */}
+        {/* ── Active delivery — full-width banner ── */}
         {activeDelivery && (
-          <section>
-            <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-3">Active Delivery</p>
+          <div className="mb-8">
+            <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-3">
+              Active Delivery
+            </p>
             <Link
               href={`/driver/order/${activeDelivery.id}`}
-              className="block bg-[#1a1208] rounded-[1.5rem] p-5 hover:bg-[#2a1e0e] transition-colors duration-300"
+              className="block bg-[#1a1208] rounded-[1.75rem] p-6 lg:p-8 hover:bg-[#2a1e0e] transition-colors duration-300 group relative overflow-hidden"
             >
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <p className="font-playfair text-[1.2rem] font-bold text-white leading-tight mb-1">
-                    {activeDelivery.restaurantName ?? "Order"}
-                  </p>
-                  <p className="text-[11.5px] text-white/45">{timeAgo(activeDelivery.createdAt)}</p>
-                </div>
-                <span className={`text-[10px] font-bold uppercase tracking-[0.12em] px-3 py-1.5 rounded-full flex-shrink-0 ${
-                  activeDelivery.status === "on_the_way"
-                    ? "bg-[#3b82f6]/20 text-[#93c5fd]"
-                    : "bg-[#c8783a]/20 text-[#fdba74]"
-                }`}>
-                  {activeDelivery.status === "on_the_way" ? "On the Way" : "Preparing"}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 mb-4">
-                <svg width="13" height="13" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="opacity-45 flex-shrink-0">
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-                </svg>
-                <p className="text-[12.5px] text-white/60 font-medium">{activeDelivery.deliveryAddress}</p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] font-bold text-[#c8783a]">₱{activeDelivery.totalAmount.toLocaleString()}</span>
-                <span className="flex items-center gap-1.5 text-[12px] font-semibold text-white/70">
-                  {activeDelivery.status === "on_the_way" ? "Upload proof →" : "Confirm pickup →"}
-                </span>
-              </div>
-            </Link>
-          </section>
-        )}
-
-        {/* ── Available orders ── */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40">Available Orders</p>
-            <button onClick={fetchOrders} className="text-[11px] text-[#c8783a] font-semibold hover:text-[#b5692e] transition-colors">
-              Refresh
-            </button>
-          </div>
-
-          {available.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-2xl border border-[#1a1208]/[0.06]">
-              <div className="w-12 h-12 rounded-2xl bg-[#1a1208]/[0.04] flex items-center justify-center mb-3">
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-[#1a1208]/20">
-                  <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                </svg>
-              </div>
-              <p className="text-[13px] font-semibold text-[#1a1208]/50 mb-0.5">No orders right now</p>
-              <p className="text-[11px] text-[#1a1208]/30">New orders will appear here automatically.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {available.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-2xl border border-[#1a1208]/[0.06] hover:border-[#1a1208]/[0.12] hover:shadow-[0_8px_24px_rgba(26,18,8,0.06)] transition-all duration-300 overflow-hidden"
-                >
-                  <div className="flex items-center gap-4 p-4">
-                    {/* Restaurant image */}
-                    <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#f5ede0] flex-shrink-0">
-                      {order.restaurantImage ? (
-                        <Image src={order.restaurantImage} alt={order.restaurantName ?? ""} fill className="object-cover" sizes="56px" />
+              <div
+                className="absolute inset-0 opacity-[0.05]"
+                style={{
+                  backgroundImage: `radial-gradient(circle at 70% 50%, #c8783a 0%, transparent 55%)`,
+                }}
+              />
+              <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white/10 flex-shrink-0">
+                      {activeDelivery.restaurantImage ? (
+                        <Image
+                          src={activeDelivery.restaurantImage}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center opacity-20">
-                          <svg width="20" height="20" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24">
-                            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
-                          </svg>
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-white/30 text-[10px] font-bold">
+                            {activeDelivery.restaurantName?.[0]}
+                          </span>
                         </div>
                       )}
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13.5px] font-bold text-[#1a1208] leading-tight truncate">{order.restaurantName}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-[#1a1208]/35 flex-shrink-0">
-                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-                        </svg>
-                        <p className="text-[11.5px] text-[#1a1208]/45 truncate">{order.deliveryAddress}</p>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-[12px] font-bold text-[#c8783a]">₱{order.totalAmount.toLocaleString()}</span>
-                        <span className="text-[#1a1208]/15 text-[10px]">·</span>
-                        <span className="text-[11px] text-[#1a1208]/35">{PAYMENT_LABELS[order.paymentMethod ?? ""] ?? order.paymentMethod}</span>
-                        <span className="text-[#1a1208]/15 text-[10px]">·</span>
-                        <span className="text-[11px] text-[#1a1208]/35">{timeAgo(order.createdAt)}</span>
-                      </div>
+                    <div>
+                      <p className="font-playfair text-[1.25rem] font-bold text-white leading-tight">
+                        {activeDelivery.restaurantName ?? "Order"}
+                      </p>
+                      <p className="text-[11.5px] text-white/40 mt-0.5">
+                        {timeAgo(activeDelivery.createdAt)}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="px-4 pb-4">
-                    <button
-                      onClick={() => acceptOrder(order.id)}
-                      disabled={accepting === order.id || !!activeDelivery}
-                      className="w-full py-2.5 rounded-xl text-[13px] font-bold transition-all duration-300 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed bg-[#c8783a] text-white hover:bg-[#b5692e] shadow-[0_4px_14px_rgba(200,120,58,0.25)]"
+                  <div className="flex items-start gap-2">
+                    <svg
+                      width="13"
+                      height="13"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                      className="opacity-40 flex-shrink-0 mt-0.5"
                     >
-                      {accepting === order.id ? "Accepting…" : activeDelivery ? "Finish current delivery first" : "Accept Order"}
-                    </button>
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <p className="text-[13px] text-white/55 font-medium leading-snug">
+                      {activeDelivery.deliveryAddress}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
 
-        {/* ── Recent deliveries ── */}
-        {recentDeliveries.length > 0 && (
-          <section>
-            <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40 mb-3">Recent Deliveries</p>
-            <div className="bg-white rounded-2xl border border-[#1a1208]/[0.06] divide-y divide-[#1a1208]/[0.05] overflow-hidden">
-              {recentDeliveries.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/driver/order/${order.id}`}
-                  className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-[#1a1208]/[0.02] transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-semibold text-[#1a1208] truncate">{order.restaurantName}</p>
-                    <p className="text-[11px] text-[#1a1208]/40 mt-0.5">{timeAgo(order.deliveredAt ?? order.createdAt)}</p>
+                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4">
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-[0.12em] px-3 py-1.5 rounded-full ${
+                      activeDelivery.status === "on_the_way"
+                        ? "bg-[#3b82f6]/20 text-[#93c5fd]"
+                        : "bg-[#c8783a]/20 text-[#fdba74]"
+                    }`}
+                  >
+                    {activeDelivery.status === "on_the_way"
+                      ? "On the Way"
+                      : "Preparing"}
+                  </span>
+                  <div className="text-right">
+                    <p className="text-[1.35rem] font-bold text-[#c8783a] tabular-nums leading-none">
+                      ₱{activeDelivery.totalAmount.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-white/35 mt-1 font-medium group-hover:text-white/55 transition-colors">
+                      {activeDelivery.status === "on_the_way"
+                        ? "Upload proof →"
+                        : "Confirm pickup →"}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="text-[12px] font-bold text-[#1a1208]">₱{order.totalAmount.toLocaleString()}</span>
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-[#10b981] bg-[#10b981]/10 px-2 py-1 rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-                      Done
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
+                </div>
+              </div>
+            </Link>
+          </div>
         )}
+
+        {/* ── Main grid ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 items-start">
+
+          {/* ── LEFT: Available orders ── */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.24em] font-medium text-[#1a1208]/40">
+                  Available Orders
+                </p>
+                {available.length > 0 && (
+                  <p className="text-[12px] text-[#1a1208]/50 mt-0.5">
+                    {available.length} order
+                    {available.length !== 1 ? "s" : ""} waiting nearby
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={fetchOrders}
+                className="flex items-center gap-1.5 text-[11px] text-[#c8783a] font-semibold hover:text-[#b5692e] transition-colors duration-200 active:scale-[0.97]"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+                </svg>
+                Refresh
+              </button>
+            </div>
+
+            {available.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-[#1a1208]/[0.06]">
+                <div className="w-14 h-14 rounded-2xl bg-[#1a1208]/[0.04] flex items-center justify-center mb-4">
+                  <svg
+                    width="24"
+                    height="24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
+                    className="text-[#1a1208]/20"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                </div>
+                <p className="text-[14px] font-semibold text-[#1a1208]/50 mb-1">
+                  No orders right now
+                </p>
+                <p className="text-[12px] text-[#1a1208]/30 max-w-[200px] leading-relaxed">
+                  New orders will appear here. Checking every 10 seconds.
+                </p>
+                <div className="flex gap-1 mt-5">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full bg-[#c8783a]/30 animate-pulse"
+                      style={{ animationDelay: `${i * 300}ms` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {available.map((order, idx) => (
+                  <div
+                    key={order.id}
+                    className="bg-white rounded-2xl border border-[#1a1208]/[0.06] hover:border-[#1a1208]/[0.12] hover:shadow-[0_8px_32px_rgba(26,18,8,0.07)] transition-all duration-300 overflow-hidden"
+                    style={{
+                      animationDelay: `${idx * 60}ms`,
+                    }}
+                  >
+                    <div className="flex items-start gap-4 p-5">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#f5ede0] flex-shrink-0">
+                        {order.restaurantImage ? (
+                          <Image
+                            src={order.restaurantImage}
+                            alt={order.restaurantName ?? ""}
+                            fill
+                            className="object-cover"
+                            sizes="56px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg
+                              width="20"
+                              height="20"
+                              fill="none"
+                              stroke="#1a1208"
+                              strokeWidth="1.5"
+                              viewBox="0 0 24 24"
+                              className="opacity-20"
+                            >
+                              <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                              <path d="M7 2v20" />
+                              <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-[14px] font-bold text-[#1a1208] leading-tight truncate">
+                            {order.restaurantName}
+                          </p>
+                          <span className="text-[13px] font-bold text-[#c8783a] flex-shrink-0 tabular-nums">
+                            ₱{order.totalAmount.toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <svg
+                            width="11"
+                            height="11"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            viewBox="0 0 24 24"
+                            className="text-[#1a1208]/35 flex-shrink-0"
+                          >
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                          <p className="text-[12px] text-[#1a1208]/45 truncate">
+                            {order.deliveryAddress}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[11px] text-[#1a1208]/40 bg-[#1a1208]/[0.05] px-2 py-0.5 rounded-full font-medium">
+                            {PAYMENT_LABELS[order.paymentMethod ?? ""] ??
+                              order.paymentMethod}
+                          </span>
+                          <span className="text-[#1a1208]/15 text-[10px]">
+                            ·
+                          </span>
+                          <span className="text-[11px] text-[#1a1208]/35">
+                            {timeAgo(order.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-5 pb-5">
+                      <button
+                        onClick={() => acceptOrder(order.id)}
+                        disabled={
+                          accepting === order.id || !!activeDelivery
+                        }
+                        className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-300 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed bg-[#c8783a] text-white hover:bg-[#b5692e] shadow-[0_4px_14px_rgba(200,120,58,0.22)]"
+                      >
+                        {accepting === order.id
+                          ? "Accepting…"
+                          : activeDelivery
+                          ? "Finish current delivery first"
+                          : "Accept Order"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ── RIGHT: Stats + History ── */}
+          <aside className="space-y-4">
+            <StatsPanel
+              driver={driverInfo.driver}
+              myOrders={myOrders}
+            />
+            <RecentDeliveriesList orders={myOrders} />
+          </aside>
+        </div>
 
         <div className="pb-8" />
       </div>
