@@ -4,6 +4,7 @@ import { use, useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
+import { Footer } from "@/app/components/Footer";
 
 type MenuItem = {
   id: string;
@@ -355,6 +356,8 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
 
       {/* Bottom breathing room */}
       <div className="h-8" />
+
+      <Footer />
     </div>
   );
 }

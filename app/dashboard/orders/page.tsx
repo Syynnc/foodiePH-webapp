@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Footer } from "@/app/components/Footer";
 
 type OrderItem = { id: string; name: string; quantity: number; unitPrice: number };
 type Order = {
@@ -309,6 +310,8 @@ export default function OrdersPage() {
           </>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }

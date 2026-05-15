@@ -3,7 +3,8 @@ import { pgTable, uuid, text, timestamp, integer, boolean, numeric } from "drizz
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey(),
   email: text("email").notNull(),
-  fullName: text("full_name"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   company: text("company"),
   phone: text("phone"),
   creditLine: integer("credit_line").default(0),

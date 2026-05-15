@@ -12,7 +12,8 @@ export async function GET() {
         .select({
             id: profiles.id,
             email: profiles.email,
-            fullName: profiles.fullName,
+            firstName: profiles.firstName,
+            lastName: profiles.lastName,
             role: profiles.role,
             company: profiles.company,
             createdAt: profiles.createdAt,

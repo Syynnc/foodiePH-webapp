@@ -15,7 +15,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<{ full_name: string | null; email: string } | null>(null);
+  const [profile, setProfile] = useState<{ first_name: string | null; last_name: string | null; email: string } | null>(null);
   const [dropOpen, setDropOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
@@ -38,8 +38,8 @@ export function Navbar() {
     async function fetch() {
       if (!user) { if (mounted) setProfile(null); return; }
       const { data } = await supabase
-        .from("profiles").select("full_name, email").eq("id", user.id).single();
-      if (mounted) setProfile(data ?? { full_name: null, email: user.email ?? "" });
+        .from("profiles").select("first_name, last_name, email").eq("id", user.id).single();
+      if (mounted) setProfile(data ?? { first_name: null, last_name: null, email: user.email ?? "" });
     }
     fetch();
     return () => { mounted = false; };
@@ -67,7 +67,7 @@ export function Navbar() {
     window.location.href = "/";
   }
 
-  const displayName = profile?.full_name ?? profile?.email ?? user?.email ?? "U";
+  const displayName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || user?.email || "U";
   const initials = displayName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
   return (
@@ -123,7 +123,7 @@ export function Navbar() {
 
                   <div className={`absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl border border-[#1a1208]/[0.07] shadow-[0_12px_40px_rgba(0,0,0,0.10)] overflow-hidden transition-all duration-300 origin-top-right ${dropOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"}`}>
                     <div className="px-4 pt-4 pb-3 border-b border-[#1a1208]/[0.05]">
-                      <p className="text-xs font-semibold text-[#1a1208] truncate">{profile?.full_name ?? "My Account"}</p>
+                      <p className="text-xs font-semibold text-[#1a1208] truncate">{[profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "My Account"}</p>
                       <p className="text-[10px] text-[#1a1208]/40 truncate mt-0.5">{profile?.email ?? user.email}</p>
                     </div>
                     <div className="border-t border-[#1a1208]/[0.05] py-1.5">

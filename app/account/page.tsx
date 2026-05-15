@@ -9,7 +9,8 @@ import { toast } from "sonner";
 type Profile = {
   id: string;
   email: string;
-  fullName: string | null;
+  firstName: string | null;
+  lastName: string | null;
   company: string | null;
   phone: string | null;
   creditLine: number | null;
@@ -18,13 +19,15 @@ type Profile = {
   createdAt: string | null;
 };
 
-type FormState = { fullName: string; phone: string; company: string };
+type FormState = { firstName: string; lastName: string; phone: string; company: string };
 type Errors = Partial<Record<keyof FormState, string>>;
 
 function validate(f: FormState): Errors {
   const e: Errors = {};
-  const name = V.first(V.required(f.fullName, "Full name"), V.minLen(f.fullName, 2, "Full name"), V.maxLen(f.fullName, 100, "Full name"), V.name(f.fullName, "Full name"));
-  if (name) e.fullName = name;
+  const fn = V.first(V.required(f.firstName, "First name"), V.minLen(f.firstName, 2, "First name"), V.maxLen(f.firstName, 100, "First name"), V.name(f.firstName, "First name"));
+  if (fn) e.firstName = fn;
+  const ln = V.first(V.required(f.lastName, "Last name"), V.minLen(f.lastName, 2, "Last name"), V.maxLen(f.lastName, 100, "Last name"), V.name(f.lastName, "Last name"));
+  if (ln) e.lastName = ln;
   if (f.phone) { const err = V.phone(f.phone); if (err) e.phone = err; }
   if (f.company) { const err = V.maxLen(f.company, 100, "Company"); if (err) e.company = err; }
   return e;
@@ -52,7 +55,7 @@ export default function AccountPage() {
   const [saved, setSaved] = useState(false);
   const [serverError, setServerError] = useState("");
 
-  const [form, setForm] = useState<FormState>({ fullName: "", phone: "", company: "" });
+  const [form, setForm] = useState<FormState>({ firstName: "", lastName: "", phone: "", company: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
 
@@ -61,7 +64,7 @@ export default function AccountPage() {
       .then(r => r.json())
       .then((p: Profile) => {
         setProfile(p);
-        setForm({ fullName: p.fullName ?? "", phone: p.phone ?? "", company: p.company ?? "" });
+        setForm({ firstName: p.firstName ?? "", lastName: p.lastName ?? "", phone: p.phone ?? "", company: p.company ?? "" });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -89,7 +92,7 @@ export default function AccountPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    const allTouched = { fullName: true, phone: true, company: true };
+    const allTouched = { firstName: true, lastName: true, phone: true, company: true };
     setTouched(allTouched);
     const errs = validate(form);
     setErrors(errs);
@@ -148,12 +151,12 @@ export default function AccountPage() {
           {/* Avatar */}
           <div className="w-14 h-14 rounded-2xl bg-[#c8783a]/10 flex items-center justify-center shrink-0">
             <span className="font-playfair text-[1.4rem] font-bold text-[#c8783a]">
-              {(profile?.fullName || profile?.email || "?")[0].toUpperCase()}
+              {(profile?.firstName || profile?.email || "?")[0].toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <p className="text-[15px] font-bold text-[#1a1208] truncate">{profile?.fullName ?? "—"}</p>
+              <p className="text-[15px] font-bold text-[#1a1208] truncate">{[profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || "—"}</p>
               {profile?.role && <RoleBadge role={profile.role} />}
             </div>
             <p className="text-[12px] text-[#1a1208]/45 truncate">{profile?.email}</p>
@@ -179,16 +182,28 @@ export default function AccountPage() {
           </div>
           <form onSubmit={handleSave} noValidate className="p-6 space-y-4">
 
-            <Field label="Full Name" required error={errors.fullName}>
-              <input
-                className={iCls(errors.fullName)}
-                value={form.fullName}
-                onChange={set("fullName")}
-                onBlur={blur("fullName")}
-                placeholder="Juan dela Cruz"
-                maxLength={101}
-              />
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="First Name" required error={errors.firstName}>
+                <input
+                  className={iCls(errors.firstName)}
+                  value={form.firstName}
+                  onChange={set("firstName")}
+                  onBlur={blur("firstName")}
+                  placeholder="Juan"
+                  maxLength={101}
+                />
+              </Field>
+              <Field label="Last Name" required error={errors.lastName}>
+                <input
+                  className={iCls(errors.lastName)}
+                  value={form.lastName}
+                  onChange={set("lastName")}
+                  onBlur={blur("lastName")}
+                  placeholder="dela Cruz"
+                  maxLength={101}
+                />
+              </Field>
+            </div>
 
             <Field label="Phone" error={errors.phone} hint="+63 followed by 10 digits, e.g. +639312345678">
               <input

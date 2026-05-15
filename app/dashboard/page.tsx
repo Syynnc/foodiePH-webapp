@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Footer } from "../components/Footer";
 import { useState, useEffect } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -23,31 +24,31 @@ type Restaurant = {
 const CATEGORIES: { id: string; label: string; match: string | null; icon: React.ReactNode }[] = [
   {
     id: "all", label: "All", match: null,
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></svg>,
   },
   {
     id: "pizza", label: "Pizza", match: "pizza",
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2 2 19.8h20L12 2z"/><path d="M12 2v17.8"/><path d="M2 19.8h20"/><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2 2 19.8h20L12 2z" /><path d="M12 2v17.8" /><path d="M2 19.8h20" /><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none" /><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none" /></svg>,
   },
   {
     id: "asian", label: "Asian", match: "asian",
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M7 3c0 6 4 9 5 9s5-3 5-9"/><path d="M5 21c0-4.5 3-7 7-7s7 2.5 7 7"/><path d="M5 21h14"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M7 3c0 6 4 9 5 9s5-3 5-9" /><path d="M5 21c0-4.5 3-7 7-7s7 2.5 7 7" /><path d="M5 21h14" /></svg>,
   },
   {
     id: "burgers", label: "Burgers", match: "burger",
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M4 17h16"/><path d="M4 7h16"/><path d="M20 12c0-4-3.6-7-8-7S4 8 4 12"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M4 12h16" /><path d="M4 17h16" /><path d="M4 7h16" /><path d="M20 12c0-4-3.6-7-8-7S4 8 4 12" /></svg>,
   },
   {
     id: "chicken", label: "Filipino", match: "chicken",
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 3c-4 0-7 3-7 7 0 2.5 1.5 4.5 3 6l-3 5h10l-3-5c1.5-1.5 3-3.5 3-6 0-4-3-7-3-7z"/><path d="M9 10h6"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 3c-4 0-7 3-7 7 0 2.5 1.5 4.5 3 6l-3 5h10l-3-5c1.5-1.5 3-3.5 3-6 0-4-3-7-3-7z" /><path d="M9 10h6" /></svg>,
   },
   {
     id: "healthy", label: "Healthy", match: "healthy",
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 1 9 9c0 4-2.5 7-6 8.5"/><path d="M3 11a9 9 0 0 0 9 9"/><path d="M12 2C8 6 6 10 7 14c2-2 4-2.5 5-2"/><path d="M12 2c4 4 6 8 5 12-2-2-4-2.5-5-2"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 1 9 9c0 4-2.5 7-6 8.5" /><path d="M3 11a9 9 0 0 0 9 9" /><path d="M12 2C8 6 6 10 7 14c2-2 4-2.5 5-2" /><path d="M12 2c4 4 6 8 5 12-2-2-4-2.5-5-2" /></svg>,
   },
   {
     id: "dessert", label: "Desserts", match: "dessert",
-    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2c-4 0-7 2.5-7 6 0 2 1 3.5 2.5 4.5L6 21h12l-1.5-8.5C18 11.5 19 10 19 8c0-3.5-3-6-7-6z"/><path d="M9 21v-6"/><path d="M15 21v-6"/></svg>,
+    icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2c-4 0-7 2.5-7 6 0 2 1 3.5 2.5 4.5L6 21h12l-1.5-8.5C18 11.5 19 10 19 8c0-3.5-3-6-7-6z" /><path d="M9 21v-6" /><path d="M15 21v-6" /></svg>,
   },
 ];
 
@@ -137,11 +138,10 @@ export default function DashboardPage() {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border ${
-                  isActive
-                    ? "bg-[#1a1208] text-[#FDFBF7] border-[#1a1208] shadow-[0_4px_14px_rgba(26,18,8,0.22)]"
-                    : "bg-white text-[#1a1208]/55 border-[#1a1208]/[0.08] hover:border-[#1a1208]/20 hover:text-[#1a1208]"
-                }`}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border ${isActive
+                  ? "bg-[#1a1208] text-[#FDFBF7] border-[#1a1208] shadow-[0_4px_14px_rgba(26,18,8,0.22)]"
+                  : "bg-white text-[#1a1208]/55 border-[#1a1208]/[0.08] hover:border-[#1a1208]/20 hover:text-[#1a1208]"
+                  }`}
               >
                 {cat.icon}
                 {cat.label}
@@ -155,7 +155,7 @@ export default function DashboardPage() {
           <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center">
               <svg width="22" height="22" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+                <circle cx="12" cy="12" r="10" /><path d="M12 8v4m0 4h.01" />
               </svg>
             </div>
             <p className="font-playfair text-lg font-semibold text-[#1a1208]">Couldn't load restaurants</p>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
           <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-[#1a1208]/[0.04] flex items-center justify-center">
               <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-[#1a1208]/25">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
             </div>
             <p className="font-playfair text-lg font-semibold text-[#1a1208]">Nothing here yet</p>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
 
               {/* Featured badge */}
               <div className="absolute top-5 left-6 flex items-center gap-1.5 bg-[#c8783a] text-white text-[10px] font-bold uppercase tracking-[0.18em] px-3 py-1.5 rounded-full shadow-[0_4px_14px_rgba(200,120,58,0.40)]">
-                <svg width="8" height="8" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="8" height="8" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                 Featured
               </div>
 
@@ -220,13 +220,13 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-3 flex-wrap">
                     {hero.rating && (
                       <span className="flex items-center gap-1 bg-white/15 backdrop-blur-sm text-white text-[12px] font-bold px-3 py-1.5 rounded-full border border-white/12">
-                        <svg width="10" height="10" fill="#facc15" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg width="10" height="10" fill="#facc15" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                         {hero.rating}
                       </span>
                     )}
                     {hero.deliveryTime && (
                       <span className="flex items-center gap-1.5 text-white/70 text-[12px] font-medium">
-                        <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
                         {hero.deliveryTime}
                       </span>
                     )}
@@ -238,7 +238,7 @@ export default function DashboardPage() {
                 <div className="flex-shrink-0">
                   <div className="flex items-center gap-2 bg-white text-[#1a1208] text-[13px] font-bold px-5 py-3 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.20)] transition-all duration-300 group-hover:bg-[#c8783a] group-hover:text-white group-hover:shadow-[0_8px_28px_rgba(200,120,58,0.35)]">
                     Order now
-                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </div>
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                       : (
                         <div className="w-full h-full flex items-center justify-center opacity-20">
                           <svg width="32" height="32" fill="none" stroke="#1a1208" strokeWidth="1" viewBox="0 0 24 24">
-                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
                           </svg>
                         </div>
                       )
@@ -274,7 +274,7 @@ export default function DashboardPage() {
                     {/* Rating */}
                     {r.rating && (
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1 bg-white/95 backdrop-blur-sm text-[#1a1208] text-[11px] font-bold px-2 py-1 rounded-full shadow-sm">
-                        <svg width="9" height="9" fill="#facc15" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg width="9" height="9" fill="#facc15" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                         {r.rating}
                       </div>
                     )}
@@ -283,7 +283,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 bg-[#0d0905]/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="flex items-center gap-1.5 bg-white text-[#1a1208] text-[12px] font-bold px-4 py-2 rounded-full translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                         View menu
-                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                       </div>
                     </div>
                   </div>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2.5 mt-auto pt-2.5 border-t border-[#1a1208]/[0.05]">
                       {r.deliveryTime && (
                         <span className="flex items-center gap-1 text-[11px] font-semibold text-[#1a1208]/50">
-                          <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                          <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
                           {r.deliveryTime}
                         </span>
                       )}
@@ -319,6 +319,8 @@ export default function DashboardPage() {
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+
+      <Footer />
     </div>
   );
 }

@@ -85,7 +85,7 @@ function InputField({
 }
 
 type SignInErrors = { email?: string; password?: string };
-type SignUpErrors = { full_name?: string; email?: string; password?: string };
+type SignUpErrors = { first_name?: string; last_name?: string; email?: string; password?: string };
 
 function validateEmail(v: string) {
   if (!v.trim()) return "Email is required";
@@ -97,10 +97,10 @@ function validatePassword(v: string) {
   if (v.length < 8) return "Password must be at least 8 characters";
   return "";
 }
-function validateFullName(v: string) {
-  if (!v.trim()) return "Full name is required";
-  if (v.trim().length < 2) return "Full name must be at least 2 characters";
-  if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ '\-]+$/.test(v.trim())) return "Full name must contain letters only";
+function validateName(v: string, label: string) {
+  if (!v.trim()) return `${label} is required`;
+  if (v.trim().length < 2) return `${label} must be at least 2 characters`;
+  if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ '\-]+$/.test(v.trim())) return `${label} must contain letters only`;
   return "";
 }
 
@@ -131,12 +131,12 @@ function AuthContent() {
 
   function suBlur(name: keyof SignUpErrors, value: string) {
     setSuTouched(t => ({ ...t, [name]: true }));
-    const err = name === "full_name" ? validateFullName(value) : name === "email" ? validateEmail(value) : validatePassword(value);
+    const err = name === "first_name" ? validateName(value, "First name") : name === "last_name" ? validateName(value, "Last name") : name === "email" ? validateEmail(value) : validatePassword(value);
     setSuErrors(e => ({ ...e, [name]: err }));
   }
   function suChange(name: keyof SignUpErrors, value: string) {
     if (!suTouched[name]) return;
-    const err = name === "full_name" ? validateFullName(value) : name === "email" ? validateEmail(value) : validatePassword(value);
+    const err = name === "first_name" ? validateName(value, "First name") : name === "last_name" ? validateName(value, "Last name") : name === "email" ? validateEmail(value) : validatePassword(value);
     setSuErrors(e => ({ ...e, [name]: err }));
   }
 
@@ -155,13 +155,14 @@ function AuthContent() {
   }
 
   function handleSignUp(formData: FormData) {
-    const full_name = formData.get("full_name") as string;
+    const first_name = formData.get("first_name") as string;
+    const last_name = formData.get("last_name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const errs: SignUpErrors = { full_name: validateFullName(full_name), email: validateEmail(email), password: validatePassword(password) };
+    const errs: SignUpErrors = { first_name: validateName(first_name, "First name"), last_name: validateName(last_name, "Last name"), email: validateEmail(email), password: validatePassword(password) };
     setSuErrors(errs);
-    setSuTouched({ full_name: true, email: true, password: true });
-    if (errs.full_name || errs.email || errs.password) return;
+    setSuTouched({ first_name: true, last_name: true, email: true, password: true });
+    if (errs.first_name || errs.last_name || errs.email || errs.password) return;
     setError(null);
     startTransition(async () => {
       const result = await signUp(formData);
@@ -205,11 +206,10 @@ function AuthContent() {
                   key={t}
                   type="button"
                   onClick={() => { setTab(t); setError(null); setSiErrors({}); setSuErrors({}); setSiTouched({}); setSuTouched({}); }}
-                  className={`flex-1 rounded-full py-2.5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                    tab === t
-                      ? "bg-[#1a1208] text-[#FDFBF7] shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
-                      : "text-[#1a1208]/50 hover:text-[#1a1208]"
-                  }`}
+                  className={`flex-1 rounded-full py-2.5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${tab === t
+                    ? "bg-[#1a1208] text-[#FDFBF7] shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
+                    : "text-[#1a1208]/50 hover:text-[#1a1208]"
+                    }`}
                 >
                   {t === "signin" ? "Sign In" : "Sign Up"}
                 </button>
@@ -268,12 +268,20 @@ function AuthContent() {
             {/* Sign Up Form */}
             {tab === "signup" && (
               <form action={handleSignUp} className="flex flex-col gap-4">
-                <InputField
-                  label="Full Name" name="full_name" placeholder="Juan dela Cruz" required
-                  error={suErrors.full_name}
-                  onBlur={e => suBlur("full_name", e.target.value)}
-                  onChange={e => suChange("full_name", e.target.value)}
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField
+                    label="First Name" name="first_name" placeholder="Juan" required
+                    error={suErrors.first_name}
+                    onBlur={e => suBlur("first_name", e.target.value)}
+                    onChange={e => suChange("first_name", e.target.value)}
+                  />
+                  <InputField
+                    label="Last Name" name="last_name" placeholder="dela Cruz" required
+                    error={suErrors.last_name}
+                    onBlur={e => suBlur("last_name", e.target.value)}
+                    onChange={e => suChange("last_name", e.target.value)}
+                  />
+                </div>
                 <InputField label="Company" name="company" placeholder="Acme Corp" />
                 <InputField
                   label="Email" name="email" type="email" placeholder="you@company.com" required
