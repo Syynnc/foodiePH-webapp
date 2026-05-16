@@ -4,7 +4,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "../components/Footer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,20 @@ export default function DashboardPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name")
+        .eq("id", data.user.id)
+        .single();
+      setFirstName(profile?.first_name ?? null);
+    });
+  }, [supabase]);
 
   useEffect(() => {
     fetch("/api/restaurants")
@@ -113,7 +128,7 @@ export default function DashboardPage() {
         <div className="flex items-end justify-between mb-6 gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#c8783a] mb-1">
-              Good afternoon
+              Good afternoon{firstName ? `, ${firstName}` : ""}
             </p>
             <h1 className="font-playfair text-[2rem] md:text-[2.6rem] font-bold text-[#1a1208] leading-none tracking-tight">
               What are you<br className="hidden sm:block" /> craving today?

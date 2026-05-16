@@ -74,7 +74,7 @@ function DeliveryBadge() {
       className={`z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${visible ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
         }`}
     >
-      <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 flex items-center gap-3">
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 flex items-center gap-3 hover:cursor-none">
         <div className="w-9 h-9 rounded-xl bg-[#c8783a]/12 flex items-center justify-center flex-shrink-0">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
@@ -105,7 +105,7 @@ function OrderTicker() {
   const item = items[idx];
   return (
     <div className="z-10">
-      <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 w-52 overflow-hidden">
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.10)] border border-white/60 w-52 overflow-hidden hover:cursor-none">
         <p className="text-[9px] uppercase tracking-[0.18em] text-[#1a1208]/40 mb-1.5 font-medium">Live Orders</p>
         <div key={idx} className="animate-fade-up">
           <p className="text-[12px] font-semibold text-[#1a1208] leading-tight truncate">{item.name} · {item.order}</p>
@@ -156,7 +156,7 @@ export default function HomePage() {
 
             <div className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#1a1208]/12 bg-white/70 backdrop-blur-sm px-4 py-1.5 mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c8783a]" />
-              <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#1a1208]/60">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#1a1208]/60 hover:cursor-none">
                 Food Delivery · Philippines
               </span>
             </div>
