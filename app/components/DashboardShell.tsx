@@ -179,6 +179,11 @@ export default function DashboardShell({
     } catch { /* silent */ }
   }, []);
 
+  // Fetch orders on mount for the navbar active-order indicator
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
   // Load orders when panel opens; poll every 12s while open and there are active orders
   useEffect(() => {
     if (!isOrdersOpen) return;
@@ -320,22 +325,62 @@ export default function DashboardShell({
           {/* Right actions */}
           <div className="flex items-center gap-0.5 pr-1">
 
-            {/* Orders */}
-            <button
-              onClick={openOrders}
+            {/* Active order status button */}
+            {(() => {
+              const activeOrder = userOrders.find((o) => ACTIVE_STATUSES.has(o.status));
+              const cfg = activeOrder ? (STATUS_CONFIG[activeOrder.status] ?? null) : null;
+              return (
+                <button
+                  onClick={openOrders}
+                  className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all group ${
+                    activeOrder
+                      ? "hover:bg-[#c8783a]/[0.07] text-[#1a1208]"
+                      : "hover:bg-[#1a1208]/[0.05] text-[#1a1208]/40 hover:text-[#1a1208]/60"
+                  }`}
+                  aria-label="Current order"
+                >
+                  {activeOrder ? (
+                    <>
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
+                        style={{ background: cfg?.color ?? "#c8783a" }}
+                      />
+                      <span className="hidden sm:flex flex-col items-start leading-none gap-[3px]">
+                        <span className="text-[11px] font-bold text-[#1a1208] leading-none max-w-[100px] truncate">
+                          {activeOrder.restaurantName ?? "Order"}
+                        </span>
+                        <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em]" style={{ color: cfg?.color ?? "#c8783a" }}>
+                          {cfg?.label ?? activeOrder.status}
+                        </span>
+                      </span>
+                      {/* Mobile: just dot */}
+                      <span className="sm:hidden text-[11px] font-bold text-[#c8783a]">Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="flex-shrink-0">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
+                      </svg>
+                      <span className="text-[11.5px] font-medium hidden sm:block">No active order</span>
+                    </>
+                  )}
+                </button>
+              );
+            })()}
+
+            {/* Order history button */}
+            <Link
+              href="/dashboard/orders"
               className="relative flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#1a1208]/[0.05] transition-all text-[#1a1208]/60 hover:text-[#1a1208] group"
-              aria-label="My orders"
+              aria-label="Order history"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
                 <rect x="9" y="3" width="6" height="4" rx="1"/>
                 <path d="M9 12h6M9 16h4"/>
               </svg>
-              <span className="text-[12px] font-medium hidden sm:block">Orders</span>
-              {activeOrderCount > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#c8783a] animate-pulse" />
-              )}
-            </button>
+              <span className="text-[12px] font-medium hidden sm:block">History</span>
+            </Link>
 
             {/* Cart */}
             <button
@@ -903,30 +948,23 @@ export default function DashboardShell({
                   </div>
                 ))}
               </div>
-            ) : userOrders.length === 0 ? (
+            ) : userOrders.filter((o) => ACTIVE_STATUSES.has(o.status)).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-[#1a1208]/[0.04] flex items-center justify-center">
                   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-[#1a1208]/25">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                    <rect x="9" y="3" width="6" height="4" rx="1"/>
-                    <path d="M9 12h6M9 16h4"/>
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
                   </svg>
                 </div>
                 <div>
-                  <p className="font-playfair text-[1.1rem] font-semibold text-[#1a1208] mb-1">No orders yet</p>
+                  <p className="font-playfair text-[1.1rem] font-semibold text-[#1a1208] mb-1">No active orders</p>
                   <p className="text-[12px] text-[#1a1208]/40 font-light leading-relaxed">
-                    Your order history will appear here<br />once you place your first order.
+                    You don&apos;t have any ongoing orders.<br />View your past orders in History.
                   </p>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                {/* Active orders first, then history */}
-                {[...userOrders].sort((a, b) => {
-                  const aActive = ACTIVE_STATUSES.has(a.status) ? 1 : 0;
-                  const bActive = ACTIVE_STATUSES.has(b.status) ? 1 : 0;
-                  return bActive - aActive;
-                }).map((order) => {
+                {userOrders.filter((o) => ACTIVE_STATUSES.has(o.status)).map((order) => {
                   const isActive = ACTIVE_STATUSES.has(order.status);
                   const isExpanded = expandedOrderId === order.id;
 

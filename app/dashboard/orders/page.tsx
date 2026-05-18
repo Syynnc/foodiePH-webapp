@@ -170,8 +170,8 @@ function OrderCard({ order }: { order: Order }) {
       {open && (
         <div className="border-t border-[#1a1208]/[0.05] px-5 pb-5 pt-4 space-y-3">
           <div className="space-y-2">
-            {order.items.map(item => (
-              <div key={item.id} className="flex items-center justify-between gap-2">
+            {order.items.map((item, idx) => (
+              <div key={`${order.id}-${item.id}-${idx}`} className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-[10px] font-bold text-[#1a1208]/30 w-4 text-center shrink-0">×{item.quantity}</span>
                   <span className="text-[12px] text-[#1a1208] truncate">{item.name}</span>

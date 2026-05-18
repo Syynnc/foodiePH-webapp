@@ -129,9 +129,20 @@ function AuthContent() {
     setSiErrors(e => ({ ...e, [name]: err }));
   }
 
-  function suBlur(name: keyof SignUpErrors, value: string) {
+  async function suBlur(name: keyof SignUpErrors, value: string) {
     setSuTouched(t => ({ ...t, [name]: true }));
-    const err = name === "first_name" ? validateName(value, "First name") : name === "last_name" ? validateName(value, "Last name") : name === "email" ? validateEmail(value) : validatePassword(value);
+    let err = name === "first_name" ? validateName(value, "First name") : name === "last_name" ? validateName(value, "Last name") : name === "email" ? validateEmail(value) : validatePassword(value);
+    if (name === "email" && !err) {
+      try {
+        const res = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: value }),
+        });
+        const json = await res.json();
+        if (json.exists) err = "An account with this email already exists.";
+      } catch { /* fail open */ }
+    }
     setSuErrors(e => ({ ...e, [name]: err }));
   }
   function suChange(name: keyof SignUpErrors, value: string) {
@@ -165,8 +176,28 @@ function AuthContent() {
     if (errs.first_name || errs.last_name || errs.email || errs.password) return;
     setError(null);
     startTransition(async () => {
+      // Re-check email existence right before submit in case the inline blur check was skipped
+      try {
+        const res = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const json = await res.json();
+        if (json.exists) {
+          setSuErrors(e => ({ ...e, email: "An account with this email already exists." }));
+          return;
+        }
+      } catch { /* fail open — server action will catch it */ }
+
       const result = await signUp(formData);
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        if (result.error.toLowerCase().includes("already exists")) {
+          setSuErrors(e => ({ ...e, email: result.error }));
+        } else {
+          setError(result.error);
+        }
+      }
     });
   }
 
