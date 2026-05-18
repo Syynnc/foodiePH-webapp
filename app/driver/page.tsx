@@ -424,12 +424,20 @@ function StatsPanel({
         <div className="w-px h-10 bg-[#1a1208]/[0.07]" />
         <div className="text-center">
           <p className="text-[10px] text-[#1a1208]/35 uppercase tracking-[0.14em] font-medium mb-0.5">
-            Lifetime
+            This week
           </p>
           <p className="text-[1.1rem] font-bold text-[#1a1208] tabular-nums">
-            ₱{allDelivered.reduce((s, o) => s + o.totalAmount, 0).toLocaleString()}
+            {allDelivered.filter((o) => {
+              if (!o.deliveredAt) return false;
+              const d = new Date(o.deliveredAt);
+              const now = new Date();
+              const weekStart = new Date(now);
+              weekStart.setDate(now.getDate() - now.getDay());
+              weekStart.setHours(0, 0, 0, 0);
+              return d >= weekStart;
+            }).length}
           </p>
-          <p className="text-[10px] text-[#1a1208]/35">earned</p>
+          <p className="text-[10px] text-[#1a1208]/35">deliveries</p>
         </div>
         <div className="w-px h-10 bg-[#1a1208]/[0.07]" />
         <div className="text-center">
