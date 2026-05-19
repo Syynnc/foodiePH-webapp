@@ -1,105 +1,132 @@
-# 🍱 Foodie.ph Web App
+# Foodie.ph
 
-> A premium corporate concierge food delivery platform for Metro Manila and Metro Cebu.
+A corporate concierge food delivery platform for Metro Manila and Metro Cebu. Users can browse partner restaurants, place orders, track deliveries in real time, and manage their accounts. The platform also includes a restaurant owner portal, a driver dashboard, and an admin panel.
 
-Foodie.ph is a modern web application built to simulate a high-end food delivery and group catering service. It allows users to browse partner restaurants, track live orders, and add items to a persistent cart. Built with cutting-edge React 19, Next.js App Router, and a Supabase backend.
+## Tech Stack
 
-## 🚀 Tech Stack & Core Technologies
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + Tailwind CSS v4 |
+| Auth & Storage | Supabase (`@supabase/ssr`) |
+| ORM | Drizzle ORM |
+| Database | PostgreSQL (via Supabase) |
+| Language | TypeScript |
 
-This repository uses a modern, strictly typed TypeScript stack (99.3% TS codebase):
+## Features
 
-*   **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
-*   **UI Library:** [React 19](https://react.dev/)
-*   **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-*   **Authentication & Backend:** [Supabase](https://supabase.com/) & `@supabase/ssr`
-*   **Database ORM:** [Drizzle ORM](https://orm.drizzle.team/) & Drizzle Kit
-*   **Database Engine:** PostgreSQL (via `postgres` package)
-*   **Language:** [TypeScript](https://www.typescriptlang.org/)
+- Restaurant discovery with category filters
+- Persistent shopping cart (React Context)
+- Email-based authentication (sign up / sign in)
+- User dashboard with order history
+- Restaurant owner portal (menu and profile management)
+- Driver dashboard (accept, pick up, and deliver orders)
+- Admin panel (users, restaurants, stats)
+- Account settings (name, phone, company)
 
-## ✨ Key Features
-
-*   **Restaurant Discovery:** Beautifully designed listing grid to browse 100+ local partner restaurants with animated category filters.
-*   **Shopping Cart State:** Fully functional, custom global shopping cart managed through React Context (`CartContext`).
-*   **User Dashboard:** Secure dashboard shell with protected routes enforcing user authentication before checkout.
-*   **Authentication Flow:** Email-based signup and login system securely connected to Supabase.
-*   **Live Order Tickers & Badges:** Engaging floating UI components showcasing real-time order tracking and delivery estimates.
-*   **Polished UI/UX:** Scroll reveal animations, marquee partner strips, and custom typography integrations (*Playfair Display* & *Plus Jakarta Sans*).
-
-## 🛠️ Getting Started
-
-Follow these instructions to set up the project locally.
+## Local Setup
 
 ### Prerequisites
 
-*   Node.js v18 or later
-*   A [Supabase](https://supabase.com) account & project
+- Node.js v18 or later
+- A [Supabase](https://supabase.com) project
 
-### 1. Clone the repository
+### 1. Clone
 
-\`\`\`bash
+```bash
 git clone https://github.com/Syynnc/foodiePH-webapp.git
 cd foodiePH-webapp
-\`\`\`
+```
 
 ### 2. Install dependencies
 
-\`\`\`bash
+```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-\`\`\`
+```
 
-### 3. Set up Environment Variables
+### 3. Environment variables
 
-Copy the example environment file or create a `.env.local` file in the root directory:
+Create a `.env.local` file in the project root:
 
-\`\`\`env
-# Supabase keys for frontend auth/fetching
+```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+DATABASE_URL=postgresql://postgres.[project-id]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+NODE_OPTIONS=--dns-result-order=ipv4first
+```
 
-# Database URL for Drizzle ORM
-DATABASE_URL=postgres://postgres.[project-id]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
-\`\`\`
+> `SUPABASE_SERVICE_ROLE_KEY` is used server-side only and is never exposed to the browser.
 
-### 4. Database Setup (Drizzle ORM)
+### 4. Push the database schema
 
-Push the database schema to your Supabase PostgreSQL instance using Drizzle Kit:
-
-\`\`\`bash
+```bash
 npx drizzle-kit push
-# or to generate/apply migrations:
-npx drizzle-kit generate
-npx drizzle-kit migrate
-\`\`\`
+```
 
-### 5. Run the Development Server
+This creates all tables (`profiles`, `restaurants`, `menu_items`, `orders`, `order_items`, `drivers`, `reviews`, `cart_items`) in your Supabase PostgreSQL instance.
 
-\`\`\`bash
+### 5. Run the auth trigger migration
+
+In the **Supabase dashboard → SQL Editor**, run the contents of:
+
+```
+supabase/migrations/20260519000000_profiles_trigger.sql
+```
+
+This trigger auto-creates a `profiles` row whenever a new user signs up, so email-existence checks and role lookups work immediately after registration.
+
+### 6. (Optional) Seed sample data
+
+```bash
+npx tsx db/seed.ts
+```
+
+### 7. Start the dev server
+
+```bash
 npm run dev
-\`\`\`
+```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. The page will auto-reload as you make edits to the code.
+Open [http://localhost:3000](http://localhost:3000).
 
-## 📂 Repository Structure
+## Deployment (Vercel)
 
-*   `/app` - Next.js App Router root (Pages, Layouts, API routes).
-    *   `/components` - Reusable UI components (Navbar, Shell, ScrollReveal).
-    *   `/context` - React Context providers (CartContext).
-    *   `/dashboard` - Protected routes requiring Supabase authentication.
-    *   `/restaurants` - Public restaurant discovery routes.
-    *   `/auth` - Sign up / Sign in pages and server actions.
-*   `/db` - Drizzle ORM schema definitions and database connection setup.
-*   `/drizzle` - Generated SQL migration files.
-*   `/lib` - Utility functions (e.g., Supabase client creation).
-*   `/public` - Static assets, images, and backgrounds.
+1. Push the repo to GitHub.
+2. Import the project in [Vercel](https://vercel.com).
+3. Add all four environment variables from step 3 above in **Project Settings → Environment Variables**.
+4. Deploy. Vercel auto-detects Next.js and runs `npm run build`.
 
-## 🤝 Contributing
+## User Roles
 
-Contributions, bug reports, and feature requests are welcome! If you're planning to contribute, please open an issue first to discuss what you would like to change.
+| Role | Access |
+|---|---|
+| `customer` | Browse, cart, checkout, order history, account settings |
+| `driver` | Driver dashboard, accept/pick up/deliver orders |
+| `restaurant` | Restaurant portal, menu and profile management |
+| `admin` | Admin panel, all users and restaurants |
 
-## 📄 License
+Roles are stored in the `profiles.role` column and assigned at registration or by an admin.
 
-This project is proprietary. All rights reserved.
+## Project Structure
+
+```
+app/
+  auth/          Sign in / sign up pages and server actions
+  dashboard/     Protected customer dashboard (orders, cart)
+  account/       Account settings
+  restaurants/   Public restaurant listing
+  restaurant/    Restaurant owner portal
+  driver/        Driver dashboard
+  admin/         Admin panel
+  api/           REST API routes
+  components/    Shared UI components
+  context/       React Context providers (CartContext)
+db/
+  schema.ts      Drizzle table definitions
+  seed.ts        Sample data seeder
+lib/
+  supabase/      Supabase client helpers (server, client, admin, middleware)
+supabase/
+  migrations/    SQL migrations to run in the Supabase dashboard
+```
