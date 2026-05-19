@@ -590,7 +590,9 @@ export default function DriverDashboard() {
 
   if (loading) return <DashboardSkeleton />;
 
-  if (!driverInfo?.isDriver) {
+  if (!driverInfo) return <DashboardSkeleton />;
+
+  if (!driverInfo.isDriver) {
     return (
       <RegisterForm
         firstName={driverInfo.profileName?.firstName ?? ""}

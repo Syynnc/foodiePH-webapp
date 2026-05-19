@@ -28,10 +28,10 @@ type Order = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; step: number }> = {
-  preparing:   { label: "Preparing Order", color: "#c8783a", bg: "rgba(200,120,58,0.1)",  step: 0 },
-  on_the_way:  { label: "On the Way",      color: "#3b82f6", bg: "rgba(59,130,246,0.1)",  step: 1 },
-  delivered:   { label: "Delivered",       color: "#10b981", bg: "rgba(16,185,129,0.1)",  step: 2 },
-  cancelled:   { label: "Cancelled",       color: "#ef4444", bg: "rgba(239,68,68,0.1)",   step: -1 },
+  preparing: { label: "Preparing Order", color: "#c8783a", bg: "rgba(200,120,58,0.1)", step: 0 },
+  on_the_way: { label: "On the Way", color: "#3b82f6", bg: "rgba(59,130,246,0.1)", step: 1 },
+  delivered: { label: "Delivered", color: "#10b981", bg: "rgba(16,185,129,0.1)", step: 2 },
+  cancelled: { label: "Cancelled", color: "#ef4444", bg: "rgba(239,68,68,0.1)", step: -1 },
 };
 
 const ACTIVE_STATUSES = new Set(["preparing", "on_the_way"]);
@@ -62,13 +62,12 @@ function ProgressBar({ status }: { status: string }) {
       {steps.map((s, i) => (
         <div key={s} className="flex items-center flex-1 last:flex-none">
           <div
-            className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-500 ${
-              i <= cfg.step ? "bg-[#c8783a]" : "bg-[#1a1208]/10"
-            }`}
+            className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-500 ${i <= cfg.step ? "bg-[#c8783a]" : "bg-[#1a1208]/10"
+              }`}
           >
             {i <= cfg.step && (
               <svg width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <polyline points="20 6 9 17 4 12"/>
+                <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
           </div>
@@ -197,7 +196,7 @@ export default function DashboardShell({
       if (hasActive) fetchOrders();
     }, 12000);
     return () => clearInterval(iv);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOrdersOpen, fetchOrders]);
 
   const activeOrderCount = userOrders.filter((o) => ACTIVE_STATUSES.has(o.status)).length;
@@ -313,7 +312,7 @@ export default function DashboardShell({
             <div className="relative w-full">
               <div className="absolute inset-y-0 left-3.5 flex items-center text-[#1a1208]/30 pointer-events-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                 </svg>
               </div>
               <input
@@ -334,11 +333,10 @@ export default function DashboardShell({
               return (
                 <button
                   onClick={openOrders}
-                  className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all group ${
-                    activeOrder
+                  className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all group ${activeOrder
                       ? "hover:bg-[#c8783a]/[0.07] text-[#1a1208]"
                       : "hover:bg-[#1a1208]/[0.05] text-[#1a1208]/40 hover:text-[#1a1208]/60"
-                  }`}
+                    }`}
                   aria-label="Current order"
                 >
                   {activeOrder ? (
@@ -361,7 +359,7 @@ export default function DashboardShell({
                   ) : (
                     <>
                       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="flex-shrink-0">
-                        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
+                        <circle cx="12" cy="12" r="10" /><path d="M12 8v4l2 2" />
                       </svg>
                       <span className="text-[11.5px] font-medium hidden sm:block">No active order</span>
                     </>
@@ -377,9 +375,9 @@ export default function DashboardShell({
               aria-label="Order history"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                <rect x="9" y="3" width="6" height="4" rx="1"/>
-                <path d="M9 12h6M9 16h4"/>
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+                <path d="M9 12h6M9 16h4" />
               </svg>
               <span className="text-[12px] font-medium hidden sm:block">History</span>
             </Link>
@@ -391,8 +389,8 @@ export default function DashboardShell({
               aria-label="Open cart"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                <path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                <path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
               {cartCount > 0 && (
                 <>
@@ -415,8 +413,8 @@ export default function DashboardShell({
                 title="Sign out"
               >
                 <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" />
                 </svg>
               </button>
             </form>
@@ -445,11 +443,10 @@ export default function DashboardShell({
         {/* Scrim */}
         <div
           onClick={() => { closeCart(); closeOrders(); }}
-          className={`absolute inset-0 z-20 transition-all duration-500 ${
-            isCartOpen || isOrdersOpen
+          className={`absolute inset-0 z-20 transition-all duration-500 ${isCartOpen || isOrdersOpen
               ? "bg-[#1a1208]/25 backdrop-blur-[3px] pointer-events-auto"
               : "bg-transparent backdrop-blur-none pointer-events-none"
-          }`}
+            }`}
         />
 
         {/* ── Cart / Checkout drawer ────────────────────────────────────── */}
@@ -477,13 +474,13 @@ export default function DashboardShell({
             <div className="flex-1 flex flex-col items-center justify-center py-12 text-center px-8 gap-4">
               <div className="w-[72px] h-[72px] rounded-full bg-[#10b981]/[0.09] border border-[#10b981]/20 flex items-center justify-center">
                 <svg width="30" height="30" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <polyline points="20 6 9 17 4 12"/>
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <div>
                 <p className="font-playfair text-[1.5rem] font-bold text-[#1a1208] mb-1">Order placed!</p>
                 <p className="text-[13px] text-[#1a1208]/40 font-light leading-relaxed">
-                  Your food is being prepared.<br/>Estimated delivery in 25–40 min.
+                  Your food is being prepared.<br />Estimated delivery in 25–40 min.
                 </p>
               </div>
               <div className="mt-2 bg-white border border-[#1a1208]/[0.07] rounded-2xl px-5 py-4 text-left w-full max-w-xs">
@@ -516,7 +513,7 @@ export default function DashboardShell({
                       aria-label="Back"
                     >
                       <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="m15 18-6-6 6-6"/>
+                        <path d="m15 18-6-6 6-6" />
                       </svg>
                     </button>
                   )}
@@ -555,7 +552,7 @@ export default function DashboardShell({
                   aria-label="Close"
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
                   </svg>
                 </button>
               </div>
@@ -569,8 +566,8 @@ export default function DashboardShell({
                     <div className="flex-1 flex flex-col items-center justify-center py-14 text-center px-8 gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-[#1a1208]/[0.04] flex items-center justify-center">
                         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-[#1a1208]/25">
-                          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                          <path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                          <path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
                         </svg>
                       </div>
                       <div>
@@ -595,8 +592,8 @@ export default function DashboardShell({
                                 {item.image
                                   ? <Image src={item.image} alt={item.name} fill className="object-cover" sizes="52px" />
                                   : <div className="w-full h-full flex items-center justify-center opacity-20">
-                                      <svg width="18" height="18" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                                    </div>
+                                    <svg width="18" height="18" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+                                  </div>
                                 }
                               </div>
                               <div className="flex-1 min-w-0">
@@ -658,7 +655,7 @@ export default function DashboardShell({
                         >
                           Proceed to Checkout
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                            <path d="M5 12h14M12 5l7 7-7 7" />
                           </svg>
                         </button>
                         <p className="text-center text-[10px] text-[#1a1208]/25 font-medium tracking-wide">
@@ -682,11 +679,10 @@ export default function DashboardShell({
                       value={deliveryAddress}
                       onChange={(e) => { setDeliveryAddress(e.target.value); setAddressError(false); }}
                       placeholder="e.g. Unit 12B, BGC Tower, Taguig City"
-                      className={`w-full px-4 py-3 rounded-xl border text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 bg-white outline-none transition-all duration-200 ${
-                        addressError
+                      className={`w-full px-4 py-3 rounded-xl border text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 bg-white outline-none transition-all duration-200 ${addressError
                           ? "border-red-400 focus:ring-2 focus:ring-red-400/20"
                           : "border-[#1a1208]/[0.09] focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15"
-                      }`}
+                        }`}
                     />
                     {addressError && (
                       <p className="text-[11px] text-red-400 mt-1.5 font-medium">Please enter a delivery address.</p>
@@ -714,11 +710,10 @@ export default function DashboardShell({
                         <button
                           key={loc}
                           onClick={() => { setDeliveryAddress(loc); setAddressError(false); }}
-                          className={`px-3 py-1.5 rounded-full text-[12px] font-medium border transition-all duration-200 ${
-                            deliveryAddress === loc
+                          className={`px-3 py-1.5 rounded-full text-[12px] font-medium border transition-all duration-200 ${deliveryAddress === loc
                               ? "bg-[#1a1208] text-white border-[#1a1208]"
                               : "bg-white text-[#1a1208]/55 border-[#1a1208]/10 hover:border-[#1a1208]/25"
-                          }`}
+                            }`}
                         >
                           {loc}
                         </button>
@@ -733,7 +728,7 @@ export default function DashboardShell({
                     >
                       Continue to Payment
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </button>
                   </div>
@@ -752,15 +747,13 @@ export default function DashboardShell({
                       <button
                         key={method.id}
                         onClick={() => setPaymentMethod(method.id)}
-                        className={`group flex items-center gap-4 w-full text-left px-4 py-4 rounded-2xl border transition-all duration-200 ${
-                          paymentMethod === method.id
+                        className={`group flex items-center gap-4 w-full text-left px-4 py-4 rounded-2xl border transition-all duration-200 ${paymentMethod === method.id
                             ? "border-[#c8783a] bg-[#c8783a]/[0.05] shadow-[0_0_0_3px_rgba(200,120,58,0.1)]"
                             : "border-[#1a1208]/[0.09] bg-white hover:border-[#1a1208]/20 hover:bg-[#1a1208]/[0.02]"
-                        }`}
+                          }`}
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
-                          paymentMethod === method.id ? "bg-[#c8783a] text-white" : "bg-[#1a1208]/[0.05] text-[#1a1208]/50"
-                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${paymentMethod === method.id ? "bg-[#c8783a] text-white" : "bg-[#1a1208]/[0.05] text-[#1a1208]/50"
+                          }`}>
                           {method.icon}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -769,12 +762,11 @@ export default function DashboardShell({
                           </p>
                           <p className="text-[11px] text-[#1a1208]/35 mt-0.5">{method.description}</p>
                         </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all duration-200 flex items-center justify-center ${
-                          paymentMethod === method.id ? "border-[#c8783a] bg-[#c8783a]" : "border-[#1a1208]/20"
-                        }`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all duration-200 flex items-center justify-center ${paymentMethod === method.id ? "border-[#c8783a] bg-[#c8783a]" : "border-[#1a1208]/20"
+                          }`}>
                           {paymentMethod === method.id && (
                             <svg width="10" height="10" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                              <polyline points="20 6 9 17 4 12"/>
+                              <polyline points="20 6 9 17 4 12" />
                             </svg>
                           )}
                         </div>
@@ -790,7 +782,7 @@ export default function DashboardShell({
                     >
                       Review Order
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </button>
                   </div>
@@ -867,8 +859,8 @@ export default function DashboardShell({
                       {isPlacingOrder ? (
                         <>
                           <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"/>
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
                           </svg>
                           Placing order…
                         </>
@@ -876,7 +868,7 @@ export default function DashboardShell({
                         <>
                           Place Order · ₱{finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                            <path d="M5 12h14M12 5l7 7-7 7" />
                           </svg>
                         </>
                       )}
@@ -927,7 +919,7 @@ export default function DashboardShell({
               aria-label="Close"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                <path d="M18 6 6 18" /><path d="m6 6 12 12" />
               </svg>
             </button>
           </div>
@@ -953,7 +945,7 @@ export default function DashboardShell({
               <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-[#1a1208]/[0.04] flex items-center justify-center">
                   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-[#1a1208]/25">
-                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
+                    <circle cx="12" cy="12" r="10" /><path d="M12 8v4l2 2" />
                   </svg>
                 </div>
                 <div>
@@ -972,11 +964,10 @@ export default function DashboardShell({
                   return (
                     <div
                       key={order.id}
-                      className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${
-                        isActive
+                      className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${isActive
                           ? "border-[#c8783a]/25 shadow-[0_4px_20px_rgba(200,120,58,0.08)]"
                           : "border-[#1a1208]/[0.06]"
-                      }`}
+                        }`}
                     >
                       {/* Card header */}
                       <button
@@ -990,7 +981,7 @@ export default function DashboardShell({
                           ) : (
                             <div className="w-full h-full flex items-center justify-center opacity-25">
                               <svg width="20" height="20" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24">
-                                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+                                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
                               </svg>
                             </div>
                           )}
@@ -1013,7 +1004,7 @@ export default function DashboardShell({
                                 strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"
                                 className={`text-[#1a1208]/25 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
                               >
-                                <path d="m6 9 6 6 6-6"/>
+                                <path d="m6 9 6 6 6-6" />
                               </svg>
                             </div>
                           </div>
@@ -1041,7 +1032,7 @@ export default function DashboardShell({
                                       <Image src={item.imageUrl} alt={item.name ?? ""} fill className="object-cover" sizes="36px" />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center opacity-20">
-                                        <svg width="14" height="14" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/></svg>
+                                        <svg width="14" height="14" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /></svg>
                                       </div>
                                     )}
                                   </div>
