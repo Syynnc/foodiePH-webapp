@@ -45,7 +45,7 @@ export async function GET() {
         if (!user) return NextResponse.json({ isDriver: false });
 
         const [profile] = await db
-            .select({ role: profiles.role })
+            .select({ role: profiles.role, firstName: profiles.firstName, lastName: profiles.lastName })
             .from(profiles)
             .where(eq(profiles.id, user.id))
             .limit(1);
@@ -54,7 +54,11 @@ export async function GET() {
             ? await db.select().from(drivers).where(eq(drivers.id, user.id)).limit(1)
             : [null];
 
-        return NextResponse.json({ isDriver: profile?.role === "driver", driver: driverRow ?? null });
+        return NextResponse.json({
+            isDriver: profile?.role === "driver",
+            driver: driverRow ?? null,
+            profileName: { firstName: profile?.firstName ?? "", lastName: profile?.lastName ?? "" },
+        });
     } catch (err) {
         console.error("[GET /api/driver/register]", err);
         return NextResponse.json({ isDriver: false });

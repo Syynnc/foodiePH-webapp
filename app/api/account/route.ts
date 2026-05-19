@@ -15,8 +15,19 @@ export async function GET() {
   const user = await getAuthedUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [profile] = await db.select().from(profiles).where(eq(profiles.id, user.id));
-  if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+  let [profile] = await db.select().from(profiles).where(eq(profiles.id, user.id));
+  if (!profile) {
+    const meta = user.user_metadata ?? {};
+    [profile] = await db
+      .insert(profiles)
+      .values({
+        id: user.id,
+        email: user.email ?? "",
+        firstName: meta.first_name ?? null,
+        lastName: meta.last_name ?? null,
+      })
+      .returning();
+  }
 
   return NextResponse.json(profile);
 }

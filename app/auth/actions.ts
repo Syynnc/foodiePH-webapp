@@ -69,10 +69,12 @@ export async function signIn(formData: FormData) {
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
 
-  let error;
+  const email = (formData.get("email") as string).trim().toLowerCase();
+
+  let data, error;
   try {
-    ({ error } = await supabase.auth.signUp({
-      email: (formData.get("email") as string).trim().toLowerCase(),
+    ({ data, error } = await supabase.auth.signUp({
+      email,
       password: formData.get("password") as string,
       options: {
         data: {
@@ -91,6 +93,12 @@ export async function signUp(formData: FormData) {
       return { error: "An account with this email already exists. Try signing in instead." };
     }
     return { error: error.message };
+  }
+
+  // When email confirmation is ON, Supabase returns no error for duplicate emails
+  // but the user object will have an empty identities array.
+  if (data.user && data.user.identities?.length === 0) {
+    return { error: "An account with this email already exists. Try signing in instead." };
   }
 
   revalidatePath("/", "layout");

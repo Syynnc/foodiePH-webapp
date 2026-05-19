@@ -30,6 +30,7 @@ type DriverInfo = {
     plateNumber: string | null;
     licenseNumber: string | null;
   } | null;
+  profileName: { firstName: string; lastName: string };
 };
 
 function timeAgo(dateStr: string | null) {
@@ -103,10 +104,18 @@ function DashboardSkeleton() {
 }
 
 // ── Registration gate ────────────────────────────────────────────────────────
-function RegisterForm({ onRegistered }: { onRegistered: () => void }) {
+function RegisterForm({
+  onRegistered,
+  firstName,
+  lastName,
+}: {
+  onRegistered: () => void;
+  firstName: string;
+  lastName: string;
+}) {
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+    firstName,
+    lastName,
     licenseNumber: "",
     vehicleType: "motorcycle",
     plateNumber: "",
@@ -220,13 +229,10 @@ function RegisterForm({ onRegistered }: { onRegistered: () => void }) {
                 </label>
                 <input
                   type="text"
-                  placeholder="Juan"
                   required
+                  readOnly
                   value={form.firstName}
-                  onChange={(e) =>
-                    setForm({ ...form, firstName: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-[#1a1208]/[0.03] text-[13.5px] text-[#1a1208] cursor-default select-none focus:outline-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -235,13 +241,10 @@ function RegisterForm({ onRegistered }: { onRegistered: () => void }) {
                 </label>
                 <input
                   type="text"
-                  placeholder="dela Cruz"
                   required
+                  readOnly
                   value={form.lastName}
-                  onChange={(e) =>
-                    setForm({ ...form, lastName: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-[#1a1208]/[0.03] text-[13.5px] text-[#1a1208] cursor-default select-none focus:outline-none"
                 />
               </div>
             </div>
@@ -424,12 +427,20 @@ function StatsPanel({
         <div className="w-px h-10 bg-[#1a1208]/[0.07]" />
         <div className="text-center">
           <p className="text-[10px] text-[#1a1208]/35 uppercase tracking-[0.14em] font-medium mb-0.5">
-            Lifetime
+            This week
           </p>
           <p className="text-[1.1rem] font-bold text-[#1a1208] tabular-nums">
-            ₱{allDelivered.reduce((s, o) => s + o.totalAmount, 0).toLocaleString()}
+            {allDelivered.filter((o) => {
+              if (!o.deliveredAt) return false;
+              const d = new Date(o.deliveredAt);
+              const now = new Date();
+              const weekStart = new Date(now);
+              weekStart.setDate(now.getDate() - now.getDay());
+              weekStart.setHours(0, 0, 0, 0);
+              return d >= weekStart;
+            }).length}
           </p>
-          <p className="text-[10px] text-[#1a1208]/35">earned</p>
+          <p className="text-[10px] text-[#1a1208]/35">deliveries</p>
         </div>
         <div className="w-px h-10 bg-[#1a1208]/[0.07]" />
         <div className="text-center">
@@ -582,6 +593,8 @@ export default function DriverDashboard() {
   if (!driverInfo?.isDriver) {
     return (
       <RegisterForm
+        firstName={driverInfo.profileName?.firstName ?? ""}
+        lastName={driverInfo.profileName?.lastName ?? ""}
         onRegistered={() => {
           checkDriver().then(() =>
             fetchOrders().finally(() => setLoading(false))
