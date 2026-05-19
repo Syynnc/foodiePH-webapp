@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export default async function RestaurantLayout({ children }: { children: ReactNode }) {
+export default async function RestaurantPortalLayout({ children }: { children: ReactNode }) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/auth");
