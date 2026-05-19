@@ -61,11 +61,12 @@ export default function AccountPage() {
 
   useEffect(() => {
     fetch("/api/account")
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error("Failed to load profile"); return r.json(); })
       .then((p: Profile) => {
         setProfile(p);
         setForm({ firstName: p.firstName ?? "", lastName: p.lastName ?? "", phone: p.phone ?? "", company: p.company ?? "" });
       })
+      .catch(() => setServerError("Could not load your profile. Please refresh the page."))
       .finally(() => setLoading(false));
   }, []);
 
