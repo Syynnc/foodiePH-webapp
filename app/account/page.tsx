@@ -383,6 +383,32 @@ export default function AccountPage() {
           </div>
         )}
 
+        {/* Become a Driver */}
+        {profile?.role === "customer" && (
+          <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#1a1208]/[0.06]">
+              <h2 className="text-[13px] font-bold text-[#1a1208]">Earn with Foodie</h2>
+              <p className="text-[11px] text-[#1a1208]/40 mt-0.5">Deliver orders and earn on your own schedule.</p>
+            </div>
+            <div className="p-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-semibold text-[#1a1208]">Become a Rider</p>
+                <p className="text-[11px] text-[#1a1208]/40 mt-0.5">Register as a Foodie rider and start accepting deliveries.</p>
+              </div>
+              <Link
+                href="/driver"
+                className="flex items-center gap-2 bg-[#1a1208] text-white rounded-xl px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] hover:bg-[#c8783a] active:scale-[0.98] transition-all duration-300"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4l3 3" />
+                </svg>
+                Apply Now
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Danger zone */}
         <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-[#1a1208]/[0.06]">

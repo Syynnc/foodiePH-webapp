@@ -149,9 +149,11 @@ const PAYMENT_METHODS = [
 export default function DashboardShell({
   children,
   userEmail,
+  userName,
 }: {
   children: ReactNode;
   userEmail: string;
+  userName?: { first: string; last: string };
 }) {
   const { cart, cartTotal, isCartOpen, setIsCartOpen, updateQty, clearCart } = useCart();
 
@@ -422,14 +424,13 @@ export default function DashboardShell({
             {/* Avatar */}
             <Link
               href="/account"
-              className="ml-1 w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 relative ring-2 ring-transparent hover:ring-[#c8783a]/40 transition-all active:scale-95"
+              className="ml-1 w-8 h-8 rounded-xl flex-shrink-0 bg-[#c8783a] flex items-center justify-center ring-2 ring-transparent hover:ring-[#c8783a]/40 transition-all active:scale-95"
             >
-              <Image
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userEmail.charAt(0))}&background=c8783a&color=fff&bold=true`}
-                alt="Profile"
-                fill
-                className="object-cover"
-              />
+              <span className="text-[11px] font-bold text-white leading-none">
+                {userName
+                  ? `${userName.first.charAt(0)}${userName.last.charAt(0)}`.toUpperCase()
+                  : userEmail.slice(0, 2).toUpperCase()}
+              </span>
             </Link>
           </div>
         </div>

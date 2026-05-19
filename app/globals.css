@@ -48,6 +48,21 @@ body::before {
   opacity: 0.025;
 }
 
+@keyframes authFormIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-form-enter {
+  animation: authFormIn 0.22s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;

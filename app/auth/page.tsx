@@ -110,8 +110,19 @@ function AuthContent() {
   const message = searchParams.get("message");
 
   const [tab, setTab] = useState<"signin" | "signup">(defaultTab as "signin" | "signup");
+  const [isExiting, setIsExiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function switchTab(newTab: "signin" | "signup") {
+    if (newTab === tab || isExiting) return;
+    setError(null); setSiErrors({}); setSuErrors({}); setSiTouched({}); setSuTouched({});
+    setIsExiting(true);
+    setTimeout(() => {
+      setTab(newTab);
+      setIsExiting(false);
+    }, 180);
+  }
 
   const [siErrors, setSiErrors] = useState<SignInErrors>({});
   const [siTouched, setSiTouched] = useState<Record<string, boolean>>({});
@@ -236,7 +247,7 @@ function AuthContent() {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => { setTab(t); setError(null); setSiErrors({}); setSuErrors({}); setSiTouched({}); setSuTouched({}); }}
+                  onClick={() => switchTab(t)}
                   className={`flex-1 rounded-full py-2.5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${tab === t
                     ? "bg-[#1a1208] text-[#FDFBF7] shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
                     : "text-[#1a1208]/50 hover:text-[#1a1208]"
@@ -260,6 +271,17 @@ function AuthContent() {
                 {error}
               </div>
             )}
+
+            {/* Forms */}
+            <div
+              key={tab}
+              className="auth-form-enter"
+              style={{
+                opacity: isExiting ? 0 : undefined,
+                transform: isExiting ? 'translateY(6px)' : undefined,
+                transition: isExiting ? 'opacity 0.18s ease, transform 0.18s ease' : undefined,
+              }}
+            >
 
             {/* Sign In Form */}
             {tab === "signin" && (
@@ -347,19 +369,21 @@ function AuthContent() {
               </form>
             )}
 
+            </div>{/* end auth-form-enter */}
+
             {/* Switch tab hint */}
             <p className="mt-6 text-center text-xs text-[#1a1208]/40">
               {tab === "signin" ? (
                 <>
                   No account?{" "}
-                  <button type="button" onClick={() => setTab("signup")} className="text-[#c8783a] hover:underline">
+                  <button type="button" onClick={() => switchTab("signup")} className="text-[#c8783a] hover:underline">
                     Sign up for free
                   </button>
                 </>
               ) : (
                 <>
                   Already have an account?{" "}
-                  <button type="button" onClick={() => setTab("signin")} className="text-[#c8783a] hover:underline">
+                  <button type="button" onClick={() => switchTab("signin")} className="text-[#c8783a] hover:underline">
                     Sign in
                   </button>
                 </>
