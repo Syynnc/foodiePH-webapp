@@ -43,6 +43,33 @@ const NAV = [
             </svg>
         ),
     },
+    {
+        href: "/admin/applications",
+        label: "Applications",
+        exact: false,
+        icon: (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+            </svg>
+        ),
+    },
+    {
+        href: "/admin/analytics",
+        label: "Analytics",
+        exact: false,
+        icon: (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+                <line x1="2" y1="20" x2="22" y2="20" />
+            </svg>
+        ),
+    },
 ];
 
 export default function AdminShell({
@@ -200,6 +227,8 @@ export default function AdminShell({
                 <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-[#F4F0EB] border-b border-[#1a1208]/[0.08]">
                     {/* Mobile burger */}
                     <button
+                        type="button"
+                        aria-label="Open navigation menu"
                         onClick={() => setMobileOpen(o => !o)}
                         className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl border border-[#1a1208]/10 text-[#1a1208]/50 hover:text-[#1a1208] hover:border-[#1a1208]/20 transition-all duration-200"
                     >

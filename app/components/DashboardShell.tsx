@@ -1,10 +1,14 @@
 "use client";
 
-import { ReactNode, useState, useEffect, useCallback } from "react";
+import { ReactNode, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 import { signOut } from "@/app/auth/actions";
 import { useCart } from "@/app/context/CartContext";
+import { createClient } from "@/lib/supabase/client";
+
+// ── Types ──────────────────────────────────────────────────────────────────────
 
 type OrderLineItem = {
   orderId: string;
@@ -27,21 +31,40 @@ type Order = {
   items: OrderLineItem[];
 };
 
+// ── Status config ──────────────────────────────────────────────────────────────
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; step: number }> = {
-  preparing: { label: "Preparing Order", color: "#c8783a", bg: "rgba(200,120,58,0.1)", step: 0 },
-  on_the_way: { label: "On the Way", color: "#3b82f6", bg: "rgba(59,130,246,0.1)", step: 1 },
-  delivered: { label: "Delivered", color: "#10b981", bg: "rgba(16,185,129,0.1)", step: 2 },
-  cancelled: { label: "Cancelled", color: "#ef4444", bg: "rgba(239,68,68,0.1)", step: -1 },
+  pending:    { label: "Pending",         color: "#f59e0b", bg: "rgba(245,158,11,0.1)",   step: 0 },
+  preparing:  { label: "Preparing Order", color: "#c8783a", bg: "rgba(200,120,58,0.1)",   step: 0 },
+  confirmed:  { label: "Confirmed",       color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   step: 0 },
+  ready:      { label: "Ready",           color: "#8b5cf6", bg: "rgba(139,92,246,0.1)",   step: 1 },
+  delivering: { label: "On the Way",      color: "#0ea5e9", bg: "rgba(14,165,233,0.1)",   step: 1 },
+  on_the_way: { label: "On the Way",      color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   step: 1 },
+  delivered:  { label: "Delivered",       color: "#10b981", bg: "rgba(16,185,129,0.1)",   step: 2 },
+  cancelled:  { label: "Cancelled",       color: "#ef4444", bg: "rgba(239,68,68,0.1)",    step: -1 },
 };
 
-const ACTIVE_STATUSES = new Set(["preparing", "on_the_way"]);
+const STATUS_TOAST: Record<string, string> = {
+  pending:    "⏳ Your order is pending",
+  confirmed:  "✓ Your order has been confirmed!",
+  preparing:  "👨‍🍳 Your food is being prepared",
+  ready:      "✅ Your order is ready for pickup",
+  delivering: "🛵 Your driver is on the way!",
+  on_the_way: "🛵 Your driver is on the way!",
+  delivered:  "🎉 Your order has been delivered!",
+  cancelled:  "❌ Your order has been cancelled",
+};
+
+const ACTIVE_STATUSES = new Set(["pending", "preparing", "confirmed", "ready", "delivering", "on_the_way"]);
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function StatusDot({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? { label: status, color: "#1a1208", bg: "rgba(26,18,8,0.08)", step: -1 };
   const isActive = ACTIVE_STATUSES.has(status);
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.12em]`}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.12em]"
       style={{ background: cfg.bg, color: cfg.color }}
     >
       <span
@@ -62,8 +85,7 @@ function ProgressBar({ status }: { status: string }) {
       {steps.map((s, i) => (
         <div key={s} className="flex items-center flex-1 last:flex-none">
           <div
-            className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-500 ${i <= cfg.step ? "bg-[#c8783a]" : "bg-[#1a1208]/10"
-              }`}
+            className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-500 ${i <= cfg.step ? "bg-[#c8783a]" : "bg-[#1a1208]/10"}`}
           >
             {i <= cfg.step && (
               <svg width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -93,6 +115,8 @@ function timeAgo(dateStr: string | null) {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return new Date(dateStr).toLocaleDateString("en-PH", { month: "short", day: "numeric" });
 }
+
+// ── Checkout config ────────────────────────────────────────────────────────────
 
 type CheckoutStep = "cart" | "delivery" | "payment" | "confirm";
 
@@ -145,6 +169,69 @@ const PAYMENT_METHODS = [
   },
 ];
 
+// ── Promo input sub-component ──────────────────────────────────────────────────
+
+function PromoInput({ onApply, applied, onClear }: {
+  onApply: (code: string) => boolean;
+  applied: string;
+  onClear: () => void;
+}) {
+  const [value, setValue] = useState("");
+  const [error, setError] = useState("");
+
+  function handleApply() {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const ok = onApply(trimmed);
+    if (!ok) {
+      setError("Invalid promo code");
+    } else {
+      setError("");
+      setValue("");
+    }
+  }
+
+  if (applied) {
+    return (
+      <div className="flex items-center justify-between bg-[#10b981]/[0.07] border border-[#10b981]/25 rounded-xl px-3.5 py-2.5">
+        <div className="flex items-center gap-2">
+          <svg width="13" height="13" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span className="text-[12px] font-bold text-[#10b981] tracking-wide">{applied}</span>
+        </div>
+        <button onClick={onClear} className="text-[10px] font-semibold text-[#1a1208]/40 hover:text-red-400 transition-colors uppercase tracking-wide">
+          Remove
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex gap-2">
+        <input
+          value={value}
+          onChange={(e) => { setValue(e.target.value.toUpperCase()); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && handleApply()}
+          placeholder="Promo code"
+          className="flex-1 px-3 py-2 rounded-xl border border-[#1a1208]/[0.09] text-[12px] text-[#1a1208] placeholder-[#1a1208]/30 bg-white outline-none focus:border-[#c8783a]/40 focus:ring-2 focus:ring-[#c8783a]/10 transition-all uppercase font-mono tracking-wider"
+        />
+        <button
+          onClick={handleApply}
+          disabled={!value.trim()}
+          className="px-3.5 py-2 bg-[#1a1208] text-white text-[11px] font-bold uppercase tracking-[0.1em] rounded-xl disabled:opacity-30 hover:bg-[#2d2014] transition-colors"
+        >
+          Apply
+        </button>
+      </div>
+      {error && <p className="text-[10px] text-red-400 font-medium">{error}</p>}
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 export default function DashboardShell({
   children,
   userEmail,
@@ -154,7 +241,12 @@ export default function DashboardShell({
   userEmail: string;
   userName?: { first: string; last: string };
 }) {
-  const { cart, cartTotal, isCartOpen, setIsCartOpen, updateQty, clearCart } = useCart();
+  const {
+    cart, cartTotal, isCartOpen, setIsCartOpen, updateQty, clearCart,
+    promoCode, promoDiscount, applyPromo, clearPromo,
+  } = useCart();
+
+  const supabase = useMemo(() => createClient(), []);
 
   const [step, setStep] = useState<CheckoutStep>("cart");
   const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -162,7 +254,12 @@ export default function DashboardShell({
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [lastOrderTotal, setLastOrderTotal] = useState(0);
   const [addressError, setAddressError] = useState(false);
+
+  // Restaurant delivery time for ETA
+  const [restaurantETA, setRestaurantETA] = useState<string | null>(null);
+  const etaFetchedFor = useRef<string | null>(null);
 
   // Orders panel
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
@@ -172,7 +269,9 @@ export default function DashboardShell({
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/orders?limit=50");
+      const res = await fetch("/api/orders?limit=50", {
+        headers: { "Cache-Control": "no-cache" }
+      });
       if (!res.ok) return;
       const json = await res.json();
       const data: Order[] = Array.isArray(json) ? json : (json.data ?? []);
@@ -182,30 +281,107 @@ export default function DashboardShell({
 
   // Fetch orders on mount for the navbar active-order indicator
   useEffect(() => {
-    fetchOrders();
+    const t = setTimeout(() => { fetchOrders(); }, 0);
+    return () => clearTimeout(t);
   }, [fetchOrders]);
+
+  // ── #2 Realtime order status notifications ────────────────────────────────
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    async function subscribe() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+
+      channel = supabase
+        .channel("order-status-watch")
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "orders",
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const newRow = payload.new as { status: string; id: string };
+            const oldRow = payload.old as { status: string };
+            if (newRow.status !== oldRow.status) {
+              const msg = STATUS_TOAST[newRow.status];
+              if (msg) {
+                const isGood = newRow.status !== "cancelled";
+                if (isGood) toast.success(msg, { duration: 5000 });
+                else toast.error(msg, { duration: 6000 });
+              }
+              // Refresh orders list so progress bar & status dot update
+              fetchOrders();
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    subscribe();
+
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [supabase, fetchOrders]);
 
   // Load orders when panel opens; poll every 12s while open and there are active orders
   useEffect(() => {
     if (!isOrdersOpen) return;
-    setOrdersLoading(true);
-    fetchOrders().finally(() => setOrdersLoading(false));
+    const t = setTimeout(() => {
+      setOrdersLoading(true);
+      fetchOrders().finally(() => setOrdersLoading(false));
+    }, 0);
 
     const iv = setInterval(() => {
       const hasActive = userOrders.some((o) => ACTIVE_STATUSES.has(o.status));
       if (hasActive) fetchOrders();
     }, 12000);
-    return () => clearInterval(iv);
+    return () => {
+      clearTimeout(t);
+      clearInterval(iv);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOrdersOpen, fetchOrders]);
 
-  const activeOrderCount = userOrders.filter((o) => ACTIVE_STATUSES.has(o.status)).length;
+  // ── #8 Fetch restaurant ETA when cart has items ───────────────────────────
+  const restaurantId = cart[0]?.restaurantId ?? null;
+  useEffect(() => {
+    if (!restaurantId || etaFetchedFor.current === restaurantId) return;
+    etaFetchedFor.current = restaurantId;
+    fetch(`/api/restaurants/${restaurantId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.restaurant?.deliveryTime) setRestaurantETA(data.restaurant.deliveryTime);
+      })
+      .catch(() => {});
+  }, [restaurantId]);
 
+  // Clear ETA when cart is emptied
+  useEffect(() => {
+    if (cart.length === 0) {
+      const t = setTimeout(() => {
+        setRestaurantETA(null);
+        etaFetchedFor.current = null;
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [cart.length]);
+
+  // ── Computed totals ────────────────────────────────────────────────────────
+  const activeOrderCount = userOrders.filter((o) => ACTIVE_STATUSES.has(o.status)).length;
   const tax = cartTotal * 0.12;
   const deliveryFee = cartTotal > 0 ? 50 : 0;
-  const finalTotal = cartTotal + tax + deliveryFee;
+  const subtotalAfterPromo = Math.max(0, cartTotal - promoDiscount);
+  const finalTotal = subtotalAfterPromo + tax + deliveryFee;
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
-  const restaurantId = cart[0]?.restaurantId ?? null;
+
+  // ── Checkout handlers ──────────────────────────────────────────────────────
 
   function openCart() {
     setIsOrdersOpen(false);
@@ -227,15 +403,10 @@ export default function DashboardShell({
     setIsOrdersOpen(false);
   }
 
-  function handleProceedToDelivery() {
-    setStep("delivery");
-  }
+  function handleProceedToDelivery() { setStep("delivery"); }
 
   function handleDeliveryNext() {
-    if (!deliveryAddress.trim()) {
-      setAddressError(true);
-      return;
-    }
+    if (!deliveryAddress.trim()) { setAddressError(true); return; }
     setAddressError(false);
     setStep("payment");
   }
@@ -249,6 +420,7 @@ export default function DashboardShell({
     if (!cart.length || isPlacingOrder) return;
     setIsPlacingOrder(true);
     try {
+      const finalAmt = Math.round(finalTotal);
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -256,14 +428,19 @@ export default function DashboardShell({
           restaurantId,
           items: cart.map((i) => ({ menuItemId: i.id, quantity: i.qty, unitPrice: i.price })),
           subTotal: cartTotal,
-          totalAmount: Math.round(finalTotal),
+          totalAmount: finalAmt,
           deliveryAddress: deliveryAddress.trim(),
           paymentMethod,
+          promoCode: promoCode || null,
+          discount: promoDiscount,
         }),
       });
       if (!res.ok) throw new Error("Order failed");
+      setLastOrderTotal(finalAmt);
       clearCart();
+      clearPromo();
       setOrderSuccess(true);
+      await fetchOrders();
       setTimeout(() => {
         setOrderSuccess(false);
         setIsCartOpen(false);
@@ -271,10 +448,10 @@ export default function DashboardShell({
         setDeliveryAddress("");
         setDeliveryNote("");
         setPaymentMethod("");
-      }, 3200);
+      }, 3500);
     } catch (err) {
       console.error(err);
-      alert("Failed to place order. Please try again.");
+      toast.error("Failed to place order. Please try again.");
     } finally {
       setIsPlacingOrder(false);
     }
@@ -293,10 +470,12 @@ export default function DashboardShell({
     confirm: "payment",
   };
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div className="relative flex flex-col h-[100dvh] bg-[#FDFBF7] text-[#1a1208] overflow-hidden font-sans">
 
-      {/* ── Floating nav ─────────────────────────────────────────────────── */}
+      {/* ── Floating nav ──────────────────────────────────────────────────── */}
       <nav className="absolute top-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2.5rem)] max-w-5xl">
         <div className="bg-[#FDFBF7]/88 backdrop-blur-2xl border border-[#1a1208]/[0.07] rounded-2xl px-3 py-2 flex items-center justify-between shadow-[0_4px_40px_rgba(26,18,8,0.08)]">
 
@@ -334,17 +513,14 @@ export default function DashboardShell({
                 <button
                   onClick={openOrders}
                   className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all group ${activeOrder
-                      ? "hover:bg-[#c8783a]/[0.07] text-[#1a1208]"
-                      : "hover:bg-[#1a1208]/[0.05] text-[#1a1208]/40 hover:text-[#1a1208]/60"
-                    }`}
+                    ? "hover:bg-[#c8783a]/[0.07] text-[#1a1208]"
+                    : "hover:bg-[#1a1208]/[0.05] text-[#1a1208]/40 hover:text-[#1a1208]/60"
+                  }`}
                   aria-label="Current order"
                 >
                   {activeOrder ? (
                     <>
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
-                        style={{ background: cfg?.color ?? "#c8783a" }}
-                      />
+                      <span className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse" style={{ background: cfg?.color ?? "#c8783a" }} />
                       <span className="hidden sm:flex flex-col items-start leading-none gap-[3px]">
                         <span className="text-[11px] font-bold text-[#1a1208] leading-none max-w-[100px] truncate">
                           {activeOrder.restaurantName ?? "Order"}
@@ -353,7 +529,6 @@ export default function DashboardShell({
                           {cfg?.label ?? activeOrder.status}
                         </span>
                       </span>
-                      {/* Mobile: just dot */}
                       <span className="sm:hidden text-[11px] font-bold text-[#c8783a]">Active</span>
                     </>
                   ) : (
@@ -368,7 +543,7 @@ export default function DashboardShell({
               );
             })()}
 
-            {/* Order history button */}
+            {/* Order history */}
             <Link
               href="/dashboard/orders"
               className="relative flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#1a1208]/[0.05] transition-all text-[#1a1208]/60 hover:text-[#1a1208] group"
@@ -394,15 +569,12 @@ export default function DashboardShell({
               </svg>
               {cartCount > 0 && (
                 <>
-                  <span className="text-[12px] font-bold text-[#1a1208] tabular-nums hidden sm:block">
-                    {cartCount}
-                  </span>
+                  <span className="text-[12px] font-bold text-[#1a1208] tabular-nums hidden sm:block">{cartCount}</span>
                   <span className="absolute top-1 right-1 sm:hidden w-[7px] h-[7px] bg-[#c8783a] rounded-full" />
                 </>
               )}
             </button>
 
-            {/* Divider */}
             <div className="w-px h-5 bg-[#1a1208]/[0.08] mx-1" />
 
             {/* Sign out */}
@@ -444,12 +616,12 @@ export default function DashboardShell({
         <div
           onClick={() => { closeCart(); closeOrders(); }}
           className={`absolute inset-0 z-20 transition-all duration-500 ${isCartOpen || isOrdersOpen
-              ? "bg-[#1a1208]/25 backdrop-blur-[3px] pointer-events-auto"
-              : "bg-transparent backdrop-blur-none pointer-events-none"
-            }`}
+            ? "bg-[#1a1208]/25 backdrop-blur-[3px] pointer-events-auto"
+            : "bg-transparent backdrop-blur-none pointer-events-none"
+          }`}
         />
 
-        {/* ── Cart / Checkout drawer ────────────────────────────────────── */}
+        {/* ── Cart / Checkout drawer ─────────────────────────────────────── */}
         <div
           onClick={(e) => e.stopPropagation()}
           className={`
@@ -469,7 +641,7 @@ export default function DashboardShell({
             <div className="w-8 h-[3px] rounded-full bg-[#1a1208]/12" />
           </div>
 
-          {/* ── Order success ─────────────────────────────────────────── */}
+          {/* ── Order success ──────────────────────────────────────────── */}
           {orderSuccess ? (
             <div className="flex-1 flex flex-col items-center justify-center py-12 text-center px-8 gap-4">
               <div className="w-[72px] h-[72px] rounded-full bg-[#10b981]/[0.09] border border-[#10b981]/20 flex items-center justify-center">
@@ -480,7 +652,11 @@ export default function DashboardShell({
               <div>
                 <p className="font-playfair text-[1.5rem] font-bold text-[#1a1208] mb-1">Order placed!</p>
                 <p className="text-[13px] text-[#1a1208]/40 font-light leading-relaxed">
-                  Your food is being prepared.<br />Estimated delivery in 25–40 min.
+                  Your food is being prepared.
+                  {restaurantETA
+                    ? <><br />Estimated delivery: <span className="font-semibold text-[#c8783a]">{restaurantETA}</span></>
+                    : <><br />Estimated delivery in <span className="font-semibold text-[#c8783a]">25–40 min</span>.</>
+                  }
                 </p>
               </div>
               <div className="mt-2 bg-white border border-[#1a1208]/[0.07] rounded-2xl px-5 py-4 text-left w-full max-w-xs">
@@ -494,16 +670,22 @@ export default function DashboardShell({
                     <span className="text-[#1a1208]/50">Payment</span>
                     <span className="font-semibold text-[#1a1208]">{PAYMENT_METHODS.find(p => p.id === paymentMethod)?.label}</span>
                   </div>
+                  {promoDiscount > 0 && (
+                    <div className="flex justify-between text-[12px]">
+                      <span className="text-[#10b981]/80">Promo savings</span>
+                      <span className="font-bold text-[#10b981]">−₱{promoDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-[12px]">
                     <span className="text-[#1a1208]/50">Total paid</span>
-                    <span className="font-bold text-[#c8783a]">₱{finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="font-bold text-[#c8783a]">₱{lastOrderTotal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
             <>
-              {/* ── Drawer header ─────────────────────────────────────── */}
+              {/* ── Drawer header ──────────────────────────────────────── */}
               <div className="flex items-center justify-between px-6 pt-4 pb-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
                   {stepBack[step] && (
@@ -527,7 +709,6 @@ export default function DashboardShell({
                   )}
                 </div>
 
-                {/* Step indicator */}
                 {step !== "cart" && (
                   <div className="flex items-center gap-2 mr-10">
                     {(["delivery", "payment", "confirm"] as CheckoutStep[]).map((s) => {
@@ -559,7 +740,7 @@ export default function DashboardShell({
 
               <div className="h-px bg-[#1a1208]/[0.06] mx-6 flex-shrink-0" />
 
-              {/* ── STEP: CART ────────────────────────────────────────── */}
+              {/* ── STEP: CART ──────────────────────────────────────────── */}
               {step === "cart" && (
                 <>
                   {cart.length === 0 ? (
@@ -579,7 +760,6 @@ export default function DashboardShell({
                     </div>
                   ) : (
                     <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-
                       {/* Items list */}
                       <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4 min-h-0 md:border-r border-[#1a1208]/[0.06]">
                         <div className="flex flex-col gap-3">
@@ -592,8 +772,8 @@ export default function DashboardShell({
                                 {item.image
                                   ? <Image src={item.image} alt={item.name} fill className="object-cover" sizes="52px" />
                                   : <div className="w-full h-full flex items-center justify-center opacity-20">
-                                    <svg width="18" height="18" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-                                  </div>
+                                      <svg width="18" height="18" fill="none" stroke="#1a1208" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+                                    </div>
                                 }
                               </div>
                               <div className="flex-1 min-w-0">
@@ -631,6 +811,12 @@ export default function DashboardShell({
                             <span className="text-[12px] text-[#1a1208]/50 font-medium">Subtotal</span>
                             <span className="text-[12px] font-semibold text-[#1a1208] tabular-nums">₱{cartTotal.toLocaleString()}</span>
                           </div>
+                          {promoDiscount > 0 && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[12px] text-[#10b981] font-medium">Promo ({promoCode})</span>
+                              <span className="text-[12px] font-semibold text-[#10b981] tabular-nums">−₱{promoDiscount.toLocaleString()}</span>
+                            </div>
+                          )}
                           <div className="flex items-center justify-between">
                             <span className="text-[12px] text-[#1a1208]/50 font-medium">Delivery</span>
                             <span className="text-[12px] font-semibold text-[#10b981] tabular-nums">
@@ -642,6 +828,17 @@ export default function DashboardShell({
                             <span className="text-[12px] font-semibold text-[#1a1208] tabular-nums">₱{tax.toFixed(2)}</span>
                           </div>
                         </div>
+
+                        {/* ── #9 Promo code input ── */}
+                        <div className="pt-2 border-t border-[#1a1208]/[0.06]">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1a1208]/30 mb-2">Promo Code</p>
+                          <PromoInput
+                            applied={promoCode}
+                            onApply={applyPromo}
+                            onClear={clearPromo}
+                          />
+                        </div>
+
                         <div className="flex items-end justify-between pt-3 border-t border-[#1a1208]/[0.07]">
                           <span className="text-[12px] font-bold text-[#1a1208]/60 uppercase tracking-wider">Total</span>
                           <span className="font-playfair text-[1.6rem] font-bold text-[#1a1208] leading-none tabular-nums">
@@ -667,7 +864,7 @@ export default function DashboardShell({
                 </>
               )}
 
-              {/* ── STEP: DELIVERY ────────────────────────────────────── */}
+              {/* ── STEP: DELIVERY ──────────────────────────────────────── */}
               {step === "delivery" && (
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 flex flex-col gap-5">
                   <div>
@@ -680,9 +877,9 @@ export default function DashboardShell({
                       onChange={(e) => { setDeliveryAddress(e.target.value); setAddressError(false); }}
                       placeholder="e.g. Unit 12B, BGC Tower, Taguig City"
                       className={`w-full px-4 py-3 rounded-xl border text-[13.5px] text-[#1a1208] placeholder-[#1a1208]/30 bg-white outline-none transition-all duration-200 ${addressError
-                          ? "border-red-400 focus:ring-2 focus:ring-red-400/20"
-                          : "border-[#1a1208]/[0.09] focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15"
-                        }`}
+                        ? "border-red-400 focus:ring-2 focus:ring-red-400/20"
+                        : "border-[#1a1208]/[0.09] focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15"
+                      }`}
                     />
                     {addressError && (
                       <p className="text-[11px] text-red-400 mt-1.5 font-medium">Please enter a delivery address.</p>
@@ -711,15 +908,28 @@ export default function DashboardShell({
                           key={loc}
                           onClick={() => { setDeliveryAddress(loc); setAddressError(false); }}
                           className={`px-3 py-1.5 rounded-full text-[12px] font-medium border transition-all duration-200 ${deliveryAddress === loc
-                              ? "bg-[#1a1208] text-white border-[#1a1208]"
-                              : "bg-white text-[#1a1208]/55 border-[#1a1208]/10 hover:border-[#1a1208]/25"
-                            }`}
+                            ? "bg-[#1a1208] text-white border-[#1a1208]"
+                            : "bg-white text-[#1a1208]/55 border-[#1a1208]/10 hover:border-[#1a1208]/25"
+                          }`}
                         >
                           {loc}
                         </button>
                       ))}
                     </div>
                   </div>
+
+                  {/* ── #8 ETA preview on delivery step ── */}
+                  {restaurantETA && (
+                    <div className="flex items-center gap-3 bg-[#c8783a]/[0.06] border border-[#c8783a]/20 rounded-xl px-4 py-3">
+                      <svg width="16" height="16" fill="none" stroke="#c8783a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                      </svg>
+                      <div>
+                        <p className="text-[11px] font-bold text-[#1a1208] leading-none mb-0.5">Estimated Delivery</p>
+                        <p className="text-[12px] font-semibold text-[#c8783a]">{restaurantETA}</p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-auto pt-4 border-t border-[#1a1208]/[0.06]">
                     <button
@@ -735,7 +945,7 @@ export default function DashboardShell({
                 </div>
               )}
 
-              {/* ── STEP: PAYMENT ─────────────────────────────────────── */}
+              {/* ── STEP: PAYMENT ───────────────────────────────────────── */}
               {step === "payment" && (
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 flex flex-col gap-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1a1208]/40">
@@ -748,12 +958,11 @@ export default function DashboardShell({
                         key={method.id}
                         onClick={() => setPaymentMethod(method.id)}
                         className={`group flex items-center gap-4 w-full text-left px-4 py-4 rounded-2xl border transition-all duration-200 ${paymentMethod === method.id
-                            ? "border-[#c8783a] bg-[#c8783a]/[0.05] shadow-[0_0_0_3px_rgba(200,120,58,0.1)]"
-                            : "border-[#1a1208]/[0.09] bg-white hover:border-[#1a1208]/20 hover:bg-[#1a1208]/[0.02]"
-                          }`}
+                          ? "border-[#c8783a] bg-[#c8783a]/[0.05] shadow-[0_0_0_3px_rgba(200,120,58,0.1)]"
+                          : "border-[#1a1208]/[0.09] bg-white hover:border-[#1a1208]/20 hover:bg-[#1a1208]/[0.02]"
+                        }`}
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${paymentMethod === method.id ? "bg-[#c8783a] text-white" : "bg-[#1a1208]/[0.05] text-[#1a1208]/50"
-                          }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${paymentMethod === method.id ? "bg-[#c8783a] text-white" : "bg-[#1a1208]/[0.05] text-[#1a1208]/50"}`}>
                           {method.icon}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -762,8 +971,7 @@ export default function DashboardShell({
                           </p>
                           <p className="text-[11px] text-[#1a1208]/35 mt-0.5">{method.description}</p>
                         </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all duration-200 flex items-center justify-center ${paymentMethod === method.id ? "border-[#c8783a] bg-[#c8783a]" : "border-[#1a1208]/20"
-                          }`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all duration-200 flex items-center justify-center ${paymentMethod === method.id ? "border-[#c8783a] bg-[#c8783a]" : "border-[#1a1208]/20"}`}>
                           {paymentMethod === method.id && (
                             <svg width="10" height="10" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                               <polyline points="20 6 9 17 4 12" />
@@ -789,7 +997,7 @@ export default function DashboardShell({
                 </div>
               )}
 
-              {/* ── STEP: CONFIRM ─────────────────────────────────────── */}
+              {/* ── STEP: CONFIRM ───────────────────────────────────────── */}
               {step === "confirm" && (
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 flex flex-col gap-4">
                   {/* Items summary */}
@@ -826,6 +1034,13 @@ export default function DashboardShell({
                       <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/30 mb-1">Payment</p>
                       <p className="text-[12.5px] font-semibold text-[#1a1208] leading-snug">{PAYMENT_METHODS.find(p => p.id === paymentMethod)?.label}</p>
                     </div>
+                    {/* ── #8 ETA on confirm step ── */}
+                    {restaurantETA && (
+                      <div className="bg-[#c8783a]/[0.06] rounded-xl px-3.5 py-3">
+                        <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#c8783a]/60 mb-1">Est. Delivery</p>
+                        <p className="text-[12.5px] font-semibold text-[#c8783a] leading-snug">{restaurantETA}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Price breakdown */}
@@ -834,6 +1049,12 @@ export default function DashboardShell({
                       <span className="text-[#1a1208]/50">Subtotal</span>
                       <span className="font-semibold text-[#1a1208]">₱{cartTotal.toLocaleString()}</span>
                     </div>
+                    {promoDiscount > 0 && (
+                      <div className="flex justify-between text-[12px]">
+                        <span className="text-[#10b981]/80">Promo ({promoCode})</span>
+                        <span className="font-semibold text-[#10b981]">−₱{promoDiscount.toLocaleString()}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-[12px]">
                       <span className="text-[#1a1208]/50">Delivery fee</span>
                       <span className="font-semibold text-[#10b981]">{deliveryFee === 0 ? "Free" : `₱${deliveryFee}`}</span>
@@ -882,7 +1103,8 @@ export default function DashboardShell({
             </>
           )}
         </div>
-        {/* ── Orders drawer ────────────────────────────────────────── */}
+
+        {/* ── Orders drawer ──────────────────────────────────────────────── */}
         <div
           onClick={(e) => e.stopPropagation()}
           className={`
@@ -897,12 +1119,10 @@ export default function DashboardShell({
           `}
           style={{ maxHeight: "min(680px, 84vh)" }}
         >
-          {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-0.5 flex-shrink-0">
             <div className="w-8 h-[3px] rounded-full bg-[#1a1208]/12" />
           </div>
 
-          {/* Header */}
           <div className="flex items-center justify-between px-6 pt-4 pb-4 flex-shrink-0">
             <div className="flex items-center gap-3">
               <h2 className="font-playfair text-[1.35rem] font-bold text-[#1a1208] leading-none">My Orders</h2>
@@ -926,7 +1146,6 @@ export default function DashboardShell({
 
           <div className="h-px bg-[#1a1208]/[0.06] mx-6 flex-shrink-0" />
 
-          {/* Body */}
           <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
             {ordersLoading ? (
               <div className="flex flex-col gap-4">
@@ -965,16 +1184,14 @@ export default function DashboardShell({
                     <div
                       key={order.id}
                       className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${isActive
-                          ? "border-[#c8783a]/25 shadow-[0_4px_20px_rgba(200,120,58,0.08)]"
-                          : "border-[#1a1208]/[0.06]"
-                        }`}
+                        ? "border-[#c8783a]/25 shadow-[0_4px_20px_rgba(200,120,58,0.08)]"
+                        : "border-[#1a1208]/[0.06]"
+                      }`}
                     >
-                      {/* Card header */}
                       <button
                         onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                         className="w-full text-left px-5 py-4 flex items-start gap-4"
                       >
-                        {/* Restaurant image / icon */}
                         <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-[#f5ede0] flex-shrink-0">
                           {order.restaurantImage ? (
                             <Image src={order.restaurantImage} alt={order.restaurantName ?? ""} fill className="object-cover" sizes="48px" />
@@ -1008,8 +1225,6 @@ export default function DashboardShell({
                               </svg>
                             </div>
                           </div>
-
-                          {/* Progress bar for active orders */}
                           {isActive && (
                             <div className="mt-3">
                               <ProgressBar status={order.status} />
@@ -1018,10 +1233,8 @@ export default function DashboardShell({
                         </div>
                       </button>
 
-                      {/* Expanded details */}
                       {isExpanded && (
                         <div className="border-t border-[#1a1208]/[0.06] px-5 py-4 space-y-4">
-                          {/* Line items */}
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1a1208]/30 mb-2.5">Items</p>
                             <div className="flex flex-col gap-2">
@@ -1048,7 +1261,6 @@ export default function DashboardShell({
                             </div>
                           </div>
 
-                          {/* Delivery + payment */}
                           <div className="grid grid-cols-2 gap-3">
                             {order.deliveryAddress && (
                               <div className="bg-[#FDFBF7] rounded-xl px-3 py-2.5">
@@ -1064,7 +1276,6 @@ export default function DashboardShell({
                             )}
                           </div>
 
-                          {/* Total */}
                           <div className="flex justify-between items-center pt-1 border-t border-[#1a1208]/[0.06]">
                             <span className="text-[12px] text-[#1a1208]/45 font-medium">Total paid</span>
                             <span className="font-playfair text-[1.15rem] font-bold text-[#1a1208]">₱{order.totalAmount.toLocaleString()}</span>

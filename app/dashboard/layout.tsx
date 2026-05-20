@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CartProvider } from "@/app/context/CartContext";
 import DashboardShell from "@/app/components/DashboardShell";
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -20,17 +21,19 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .limit(1);
 
   return (
-    <CartProvider>
-      <DashboardShell
-        userEmail={user?.email || "user@foodie.ph"}
-        userName={
-          profile?.firstName && profile?.lastName
-            ? { first: profile.firstName, last: profile.lastName }
-            : undefined
-        }
-      >
-        {children}
-      </DashboardShell>
-    </CartProvider>
+    <ErrorBoundary>
+      <CartProvider>
+        <DashboardShell
+          userEmail={user?.email || "user@foodie.ph"}
+          userName={
+            profile?.firstName && profile?.lastName
+              ? { first: profile.firstName, last: profile.lastName }
+              : undefined
+          }
+        >
+          {children}
+        </DashboardShell>
+      </CartProvider>
+    </ErrorBoundary>
   );
 }

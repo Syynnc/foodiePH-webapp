@@ -97,3 +97,31 @@ export const cartItems = pgTable("cart_items", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const driverApplications = pgTable("driver_applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id),
+  status: text("status").notNull().default("pending"), // pending | approved | denied
+  vehicleType: text("vehicle_type").default("motorcycle"),
+  plateNumber: text("plate_number"),
+  licenseNumber: text("license_number"),
+  govIdUrl: text("gov_id_url"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const restaurantApplications = pgTable("restaurant_applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id),
+  status: text("status").notNull().default("pending"), // pending | approved | denied
+  restaurantName: text("restaurant_name").notNull(),
+  cuisine: text("cuisine"),
+  address: text("address"),
+  phone: text("phone"),
+  description: text("description"),
+  permitUrl: text("permit_url"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
