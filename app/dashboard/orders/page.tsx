@@ -217,8 +217,27 @@ function ReorderButton({ order }: { order: Order }) {
 
 // ── Order card ─────────────────────────────────────────────────────────────────
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, onCancel }: { order: Order; onCancel: (id: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  
+  async function handleCancel() {
+    if (!confirm("Are you sure you want to cancel this order?")) return;
+    setCancelling(true);
+    const res = await fetch("/api/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order.id, status: "cancelled" }),
+    });
+    setCancelling(false);
+    if (!res.ok) {
+      toast.error((await res.json()).error ?? "Failed to cancel order.");
+      return;
+    }
+    toast.success("Order cancelled successfully.");
+    onCancel(order.id);
+  }
+
   const date = order.createdAt
     ? new Date(order.createdAt).toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" })
     : "—";
@@ -298,6 +317,16 @@ function OrderCard({ order }: { order: Order }) {
           {/* ── #4 Reorder + review row ── */}
           <div className="border-t border-[#1a1208]/[0.05] pt-3 flex items-center justify-between gap-3 flex-wrap">
             <ReorderButton order={order} />
+            {order.status === "pending" && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="text-[11px] font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl px-3.5 py-2 transition-colors disabled:opacity-40"
+              >
+                {cancelling ? "Cancelling…" : "Cancel Order"}
+              </button>
+            )}
             {order.status === "delivered" && (
               <Link
                 href={`/dashboard/restaurant/${order.restaurantId}`}
@@ -376,7 +405,9 @@ export default function OrdersPage() {
 
   const load = useCallback((p: number) => {
     setLoading(true);
-    fetch(`/api/orders?page=${p}&limit=${PAGE_LIMIT}`)
+    fetch(`/api/orders?page=${p}&limit=${PAGE_LIMIT}`, {
+      headers: { "Cache-Control": "no-cache" }
+    })
       .then(r => r.ok ? r.json() : { data: [], total: 0 })
       .then(d => { setOrders(d.data ?? []); setTotal(d.total ?? 0); })
       .finally(() => setLoading(false));
@@ -415,7 +446,13 @@ export default function OrdersPage() {
         ) : (
           <>
             <div className="space-y-3">
-              {orders.map(order => <OrderCard key={order.id} order={order} />)}
+              {orders.map(order => 
+                <OrderCard 
+                  key={order.id} 
+                  order={order} 
+                  onCancel={(id) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "cancelled" } : o))} 
+                />
+              )}
             </div>
             <Pagination page={page} total={total} limit={PAGE_LIMIT} onChange={p => setPage(p)} />
           </>

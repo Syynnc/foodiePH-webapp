@@ -34,6 +34,7 @@ type Order = {
 // ── Status config ──────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; step: number }> = {
+  pending:    { label: "Pending",         color: "#f59e0b", bg: "rgba(245,158,11,0.1)",   step: 0 },
   preparing:  { label: "Preparing Order", color: "#c8783a", bg: "rgba(200,120,58,0.1)",   step: 0 },
   confirmed:  { label: "Confirmed",       color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   step: 0 },
   ready:      { label: "Ready",           color: "#8b5cf6", bg: "rgba(139,92,246,0.1)",   step: 1 },
@@ -44,6 +45,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 };
 
 const STATUS_TOAST: Record<string, string> = {
+  pending:    "⏳ Your order is pending",
   confirmed:  "✓ Your order has been confirmed!",
   preparing:  "👨‍🍳 Your food is being prepared",
   ready:      "✅ Your order is ready for pickup",
@@ -53,7 +55,7 @@ const STATUS_TOAST: Record<string, string> = {
   cancelled:  "❌ Your order has been cancelled",
 };
 
-const ACTIVE_STATUSES = new Set(["preparing", "confirmed", "ready", "delivering", "on_the_way"]);
+const ACTIVE_STATUSES = new Set(["pending", "preparing", "confirmed", "ready", "delivering", "on_the_way"]);
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -252,6 +254,7 @@ export default function DashboardShell({
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [lastOrderTotal, setLastOrderTotal] = useState(0);
   const [addressError, setAddressError] = useState(false);
 
   // Restaurant delivery time for ETA
@@ -266,7 +269,9 @@ export default function DashboardShell({
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/orders?limit=50");
+      const res = await fetch("/api/orders?limit=50", {
+        headers: { "Cache-Control": "no-cache" }
+      });
       if (!res.ok) return;
       const json = await res.json();
       const data: Order[] = Array.isArray(json) ? json : (json.data ?? []);
@@ -276,7 +281,8 @@ export default function DashboardShell({
 
   // Fetch orders on mount for the navbar active-order indicator
   useEffect(() => {
-    fetchOrders();
+    const t = setTimeout(() => { fetchOrders(); }, 0);
+    return () => clearTimeout(t);
   }, [fetchOrders]);
 
   // ── #2 Realtime order status notifications ────────────────────────────────
@@ -327,14 +333,19 @@ export default function DashboardShell({
   // Load orders when panel opens; poll every 12s while open and there are active orders
   useEffect(() => {
     if (!isOrdersOpen) return;
-    setOrdersLoading(true);
-    fetchOrders().finally(() => setOrdersLoading(false));
+    const t = setTimeout(() => {
+      setOrdersLoading(true);
+      fetchOrders().finally(() => setOrdersLoading(false));
+    }, 0);
 
     const iv = setInterval(() => {
       const hasActive = userOrders.some((o) => ACTIVE_STATUSES.has(o.status));
       if (hasActive) fetchOrders();
     }, 12000);
-    return () => clearInterval(iv);
+    return () => {
+      clearTimeout(t);
+      clearInterval(iv);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOrdersOpen, fetchOrders]);
 
@@ -354,8 +365,11 @@ export default function DashboardShell({
   // Clear ETA when cart is emptied
   useEffect(() => {
     if (cart.length === 0) {
-      setRestaurantETA(null);
-      etaFetchedFor.current = null;
+      const t = setTimeout(() => {
+        setRestaurantETA(null);
+        etaFetchedFor.current = null;
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [cart.length]);
 
@@ -406,6 +420,7 @@ export default function DashboardShell({
     if (!cart.length || isPlacingOrder) return;
     setIsPlacingOrder(true);
     try {
+      const finalAmt = Math.round(finalTotal);
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -413,7 +428,7 @@ export default function DashboardShell({
           restaurantId,
           items: cart.map((i) => ({ menuItemId: i.id, quantity: i.qty, unitPrice: i.price })),
           subTotal: cartTotal,
-          totalAmount: Math.round(finalTotal),
+          totalAmount: finalAmt,
           deliveryAddress: deliveryAddress.trim(),
           paymentMethod,
           promoCode: promoCode || null,
@@ -421,6 +436,7 @@ export default function DashboardShell({
         }),
       });
       if (!res.ok) throw new Error("Order failed");
+      setLastOrderTotal(finalAmt);
       clearCart();
       clearPromo();
       setOrderSuccess(true);
@@ -662,7 +678,7 @@ export default function DashboardShell({
                   )}
                   <div className="flex justify-between text-[12px]">
                     <span className="text-[#1a1208]/50">Total paid</span>
-                    <span className="font-bold text-[#c8783a]">₱{finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="font-bold text-[#c8783a]">₱{lastOrderTotal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

@@ -118,7 +118,7 @@ export async function POST(req: Request) {
             .values({
                 userId,
                 restaurantId: restaurantId ?? null,
-                status: "preparing",
+                status: "pending",
                 subTotal,
                 discount: 0,
                 totalAmount,
@@ -144,5 +144,43 @@ export async function POST(req: Request) {
         // Remove the `detail` field before going to production.
         console.error("[POST /api/orders]", err);
         return NextResponse.json({ error: "Failed to place order" }, { status: 500 });
+    }
+}
+
+// PATCH — cancel an order
+export async function PATCH(req: Request) {
+    try {
+        const user = await getUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        
+        const { orderId, status } = await req.json();
+        if (!orderId || status !== "cancelled") {
+            return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+        }
+
+        // Verify the order belongs to the user and is still pending
+        const [existingOrder] = await db
+            .select()
+            .from(orders)
+            .where(eq(orders.id, orderId))
+            .limit(1);
+
+        if (!existingOrder || existingOrder.userId !== user.id) {
+            return NextResponse.json({ error: "Order not found or unauthorized" }, { status: 404 });
+        }
+
+        if (existingOrder.status !== "pending") {
+            return NextResponse.json({ error: "Order can only be cancelled while pending" }, { status: 400 });
+        }
+
+        await db
+            .update(orders)
+            .set({ status: "cancelled" })
+            .where(eq(orders.id, orderId));
+
+        return NextResponse.json({ ok: true });
+    } catch (err) {
+        console.error("[PATCH /api/orders]", err);
+        return NextResponse.json({ error: "Failed to cancel order" }, { status: 500 });
     }
 }
