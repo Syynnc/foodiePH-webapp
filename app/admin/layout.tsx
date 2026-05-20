@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import AdminShell from "./AdminShell";
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
     const supabase = await createClient();
@@ -22,8 +23,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || null;
 
     return (
-        <AdminShell email={profile.email} name={name}>
-            {children}
-        </AdminShell>
+        <ErrorBoundary>
+            <AdminShell email={profile.email} name={name}>
+                {children}
+            </AdminShell>
+        </ErrorBoundary>
     );
 }

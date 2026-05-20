@@ -280,13 +280,15 @@ function ApplyForm({
           <form onSubmit={submit} noValidate className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "First Name", value: form.firstName },
-                { label: "Last Name", value: form.lastName },
+                { label: "First Name", value: form.firstName, id: 'firstName' },
+                { label: "Last Name", value: form.lastName, id: 'lastName' },
               ].map((f) => (
                 <div key={f.label} className="flex flex-col gap-1.5">
-                  <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">{f.label}</label>
+                  <label htmlFor={f.id} className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">{f.label}</label>
                   <input
+                    id={f.id}
                     type="text" readOnly value={f.value}
+                    aria-label={f.label}
                     className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-[#1a1208]/[0.03] text-[13.5px] text-[#1a1208] cursor-default select-none focus:outline-none"
                   />
                 </div>
@@ -294,8 +296,10 @@ function ApplyForm({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">Vehicle Type</label>
+              <label htmlFor="vehicleType" className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">Vehicle Type</label>
               <select
+                id="vehicleType"
+                aria-label="Vehicle Type"
                 value={form.vehicleType}
                 onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-[#1a1208]/[0.09] bg-white text-[13.5px] text-[#1a1208] focus:outline-none focus:border-[#c8783a]/50 focus:ring-2 focus:ring-[#c8783a]/15 transition-all"
@@ -307,12 +311,14 @@ function ApplyForm({
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+              <label htmlFor="plateNumber" className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
                 Plate Number <span className="normal-case tracking-normal text-red-400 font-medium">*</span>
               </label>
               <input
+                id="plateNumber"
                 type="text"
                 placeholder="e.g. ABC 1234"
+                aria-label="Plate Number"
                 value={form.plateNumber}
                 onChange={handlePlateChange}
                 onBlur={() => { touch("plateNumber"); revalidate(); }}
@@ -627,10 +633,15 @@ export default function DriverDashboard() {
   }, []);
 
   useEffect(() => {
-    checkDriver().then((isDriver) => {
-      if (isDriver) fetchOrders().finally(() => setLoading(false));
-      else setLoading(false);
-    });
+    let cancelled = false;
+    async function init() {
+      const isDriver = await checkDriver();
+      if (cancelled) return;
+      if (isDriver) await fetchOrders();
+      if (!cancelled) setLoading(false);
+    }
+    init();
+    return () => { cancelled = true; };
   }, [checkDriver, fetchOrders]);
 
   useEffect(() => {

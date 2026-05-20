@@ -57,6 +57,19 @@ const NAV = [
             </svg>
         ),
     },
+    {
+        href: "/admin/analytics",
+        label: "Analytics",
+        exact: false,
+        icon: (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+                <line x1="2" y1="20" x2="22" y2="20" />
+            </svg>
+        ),
+    },
 ];
 
 export default function AdminShell({
@@ -214,6 +227,8 @@ export default function AdminShell({
                 <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-[#F4F0EB] border-b border-[#1a1208]/[0.08]">
                     {/* Mobile burger */}
                     <button
+                        type="button"
+                        aria-label="Open navigation menu"
                         onClick={() => setMobileOpen(o => !o)}
                         className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl border border-[#1a1208]/10 text-[#1a1208]/50 hover:text-[#1a1208] hover:border-[#1a1208]/20 transition-all duration-200"
                     >

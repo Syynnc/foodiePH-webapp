@@ -4,6 +4,7 @@ import { use, useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Field, iCls, V } from "@/app/components/FormField";
+import { ImageUpload } from "@/app/components/ImageUpload";
 import { toast } from "sonner";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -117,19 +118,25 @@ function ItemDrawer({ initial, title, onSave, onCancel, saving, error }: {
                             </Field>
                         </div>
                         <Field label="Availability">
-                            <select className={iCls()} value={form.isAvailable} onChange={set("isAvailable")}>
+                            <select className={iCls()} value={form.isAvailable} onChange={set("isAvailable")} title="Availability">
                                 <option value="true">Available</option>
                                 <option value="false">Unavailable</option>
                             </select>
                         </Field>
                     </div>
                     <div className="space-y-4">
-                        <Field label="Image URL" error={errors.imageUrl} hint="Must start with https://">
-                            <div className="flex gap-2 items-start">
-                                <input className={iCls(errors.imageUrl) + " flex-1"} value={form.imageUrl} onChange={set("imageUrl")} onBlur={blur("imageUrl")} placeholder="https://..." />
-                                {(() => { try { new URL(form.imageUrl); } catch { return null; } return form.imageUrl && !errors.imageUrl ? (<div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[#F4F0EB] relative border border-[#1a1208]/[0.08]"><Image src={form.imageUrl} alt="" fill className="object-cover" sizes="40px" /></div>) : null; })()}
-                            </div>
-                        </Field>
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1208]/40 mb-1.5">Item Photo</p>
+                            <ImageUpload
+                                value={form.imageUrl}
+                                onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))}
+                                bucket="menu-images"
+                                folder="items"
+                                label="Upload menu item photo"
+                                aspectRatio="aspect-[4/3]"
+                            />
+                            {errors.imageUrl && <p className="text-[11px] text-red-400 mt-1">{errors.imageUrl}</p>}
+                        </div>
                         <Field label="Description">
                             <textarea className={iCls(undefined, "resize-none h-[90px]")} value={form.description} onChange={set("description")} placeholder="Brief description of the item" />
                         </Field>
@@ -229,7 +236,6 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
     const [mobileTab, setMobileTab] = useState<"menu" | "details">("menu");
 
     const loadAll = useCallback(async () => {
-        setLoading(true);
         const [rRes, mRes] = await Promise.all([
             fetch(`/api/restaurant/${restaurantId}/profile`),
             fetch(`/api/restaurant/${restaurantId}/menu`),
@@ -253,7 +259,10 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
         setLoading(false);
     }, [restaurantId]);
 
-    useEffect(() => { loadAll(); }, [loadAll]);
+    useEffect(() => {
+        const t = setTimeout(() => { void loadAll(); }, 0);
+        return () => clearTimeout(t);
+    }, [loadAll]);
 
     const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm(f => ({ ...f, [k]: e.target.value }));
@@ -453,10 +462,16 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
                     </div>
                     <div className="mx-5 my-1 border-t border-white/[0.06]" />
                     <div className="px-5 pt-3 pb-5">
-                        <p className="text-[8.5px] uppercase tracking-[0.28em] font-bold text-white/25 mb-3">Media</p>
-                        <SidebarField label="Cover Image URL" hint="Paste any https:// image URL">
-                            <input className={sidebarInput} value={form.imageUrl ?? ""} onChange={setField("imageUrl")} placeholder="https://example.com/photo.jpg" />
-                        </SidebarField>
+                        <p className="text-[8.5px] uppercase tracking-[0.28em] font-bold text-white/25 mb-3">Cover Photo</p>
+                        <ImageUpload
+                            value={form.imageUrl ?? ""}
+                            onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+                            bucket="restaurant-images"
+                            folder="covers"
+                            label="Upload cover photo"
+                            aspectRatio="aspect-[3/2]"
+                            className="[&_div]:border-white/20 [&_div]:bg-white/5 [&_p]:text-white/50"
+                        />
                     </div>
                 </div>
 

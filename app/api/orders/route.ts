@@ -40,6 +40,7 @@ export async function GET(req: Request) {
                 deliveryAddress: orders.deliveryAddress,
                 paymentMethod: orders.paymentMethod,
                 createdAt: orders.createdAt,
+                restaurantId: orders.restaurantId,
                 restaurantName: restaurants.name,
                 restaurantImage: restaurants.imageUrl,
             })
@@ -57,6 +58,7 @@ export async function GET(req: Request) {
         const lineItems = await db
             .select({
                 orderId: orderItems.orderId,
+                menuItemId: orderItems.menuItemId,
                 quantity: orderItems.quantity,
                 unitPrice: orderItems.unitPrice,
                 name: menuItems.name,

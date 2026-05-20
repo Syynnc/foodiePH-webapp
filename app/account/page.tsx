@@ -233,6 +233,7 @@ export default function AccountPage() {
               <input
                 className={iCls(undefined, "opacity-50 cursor-not-allowed")}
                 value={profile?.email ?? ""}
+                title="Email"
                 readOnly
                 disabled
               />
@@ -366,7 +367,7 @@ export default function AccountPage() {
             <div className="p-6 flex items-center justify-between gap-4">
               <div>
                 <p className="text-[13px] font-semibold text-[#1a1208]">Driver Dashboard</p>
-                <p className="text-[11px] text-[#1a1208]/40 mt-0.5">View and manage customer's orders.</p>
+                <p className="text-[11px] text-[#1a1208]/40 mt-0.5">View and manage customer&apos orders.</p>
               </div>
               <Link
                 href="/driver"

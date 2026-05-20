@@ -5,8 +5,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Footer } from "@/app/components/Footer";
+import { useCart } from "@/app/context/CartContext";
 
-type OrderItem = { id: string; name: string; quantity: number; unitPrice: number };
+type OrderItem = {
+  id: string;
+  menuItemId: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  imageUrl?: string | null;
+};
+
 type Order = {
   id: string;
   status: string;
@@ -15,6 +24,7 @@ type Order = {
   deliveryAddress: string | null;
   paymentMethod: string | null;
   createdAt: string | null;
+  restaurantId: string | null;
   restaurantName: string | null;
   restaurantImage: string | null;
   items: OrderItem[];
@@ -51,6 +61,7 @@ function StarRating({ value, onChange, readonly }: { value: number; onChange?: (
       {[1, 2, 3, 4, 5].map(n => (
         <button key={n} type="button"
           disabled={readonly}
+          title={`${n} Star`}
           onClick={() => onChange?.(n)}
           onMouseEnter={() => !readonly && setHovered(n)}
           onMouseLeave={() => !readonly && setHovered(0)}
@@ -117,11 +128,90 @@ function ReviewSection({ orderId }: { orderId: string }) {
         maxLength={400}
         className="w-full mt-2 px-3 py-2 text-[12px] text-[#1a1208] placeholder:text-[#1a1208]/30 bg-[#FDFBF7] border border-[#1a1208]/10 rounded-xl outline-none focus:border-[#c8783a]/40 focus:ring-2 focus:ring-[#c8783a]/10 resize-none h-16 transition-all"
       />
-      <button onClick={submit} disabled={submitting || rating === 0}
+      <button type="button" onClick={submit} disabled={submitting || rating === 0}
         className="mt-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white bg-[#c8783a] rounded-xl px-4 py-2 hover:bg-[#b5692e] disabled:opacity-40 transition-all active:scale-[0.98]">
         {submitting ? "Submitting…" : "Submit Review"}
       </button>
     </div>
+  );
+}
+
+// ── Reorder button ─────────────────────────────────────────────────────────────
+
+function ReorderButton({ order }: { order: Order }) {
+  const { addToCart, setIsCartOpen } = useCart();
+  const [reordering, setReordering] = useState(false);
+
+  async function handleReorder() {
+    if (!order.restaurantId || order.items.length === 0) return;
+    setReordering(true);
+
+    try {
+      // Fetch fresh menu data for the restaurant to get current prices / availability
+      const res = await fetch(`/api/restaurants/${order.restaurantId}`);
+      const data = res.ok ? await res.json() : null;
+      const allMenuItems: { id: string; name: string; price: number; imageUrl: string | null; isAvailable: boolean | null }[] =
+        data?.menu?.flatMap((cat: { items: unknown[] }) => cat.items) ?? [];
+
+      let addedCount = 0;
+      for (const item of order.items) {
+        const fresh = allMenuItems.find(m => m.id === item.menuItemId);
+        if (fresh && fresh.isAvailable !== false) {
+          // Add each unit individually so qty tracking in addToCart works correctly
+          for (let i = 0; i < item.quantity; i++) {
+            addToCart({
+              id: fresh.id,
+              name: fresh.name,
+              price: fresh.price,
+              image: fresh.imageUrl ?? "",
+              restaurant: order.restaurantName ?? "",
+              restaurantId: order.restaurantId!,
+            });
+          }
+          addedCount++;
+        }
+      }
+
+      if (addedCount === 0) {
+        toast.error("None of the items from this order are currently available.");
+      } else {
+        toast.success(`${addedCount} item${addedCount !== 1 ? "s" : ""} added back to cart`);
+        setIsCartOpen(true);
+      }
+    } catch {
+      toast.error("Couldn't load the menu. Please try again.");
+    } finally {
+      setReordering(false);
+    }
+  }
+
+  if (!order.restaurantId) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={handleReorder}
+      disabled={reordering}
+      className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#c8783a] border border-[#c8783a]/30 rounded-xl px-3.5 py-2 hover:bg-[#c8783a]/[0.06] disabled:opacity-40 transition-all active:scale-[0.97]"
+    >
+      {reordering ? (
+        <>
+          <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+          </svg>
+          Adding…
+        </>
+      ) : (
+        <>
+          <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          Reorder
+        </>
+      )}
+    </button>
   );
 }
 
@@ -138,7 +228,7 @@ function OrderCard({ order }: { order: Order }) {
 
   return (
     <div className="bg-white border border-[#1a1208]/[0.07] rounded-2xl overflow-hidden">
-      <button onClick={() => setOpen(o => !o)}
+      <button type="button" onClick={() => setOpen(o => !o)}
         className="w-full text-left p-5 flex items-center gap-4 hover:bg-[#FDFBF7] transition-colors">
         <div className="w-12 h-12 rounded-xl bg-[#f5ede0] overflow-hidden shrink-0">
           {order.restaurantImage
@@ -180,6 +270,7 @@ function OrderCard({ order }: { order: Order }) {
               </div>
             ))}
           </div>
+
           <div className="border-t border-[#1a1208]/[0.05] pt-3 space-y-1.5">
             <div className="flex justify-between text-[11px] text-[#1a1208]/50">
               <span>Subtotal</span><span>₱{(order.subTotal ?? 0).toLocaleString()}</span>
@@ -188,6 +279,7 @@ function OrderCard({ order }: { order: Order }) {
               <span>Total</span><span>₱{(order.totalAmount ?? 0).toLocaleString()}</span>
             </div>
           </div>
+
           <div className="border-t border-[#1a1208]/[0.05] pt-3 space-y-1.5">
             {order.deliveryAddress && (
               <div className="flex items-start gap-2">
@@ -202,12 +294,28 @@ function OrderCard({ order }: { order: Order }) {
               </div>
             )}
           </div>
+
+          {/* ── #4 Reorder + review row ── */}
+          <div className="border-t border-[#1a1208]/[0.05] pt-3 flex items-center justify-between gap-3 flex-wrap">
+            <ReorderButton order={order} />
+            {order.status === "delivered" && (
+              <Link
+                href={`/dashboard/restaurant/${order.restaurantId}`}
+                className="text-[11px] font-semibold text-[#1a1208]/40 hover:text-[#1a1208] transition-colors"
+              >
+                View menu →
+              </Link>
+            )}
+          </div>
+
           {order.status === "delivered" && <ReviewSection orderId={order.id} />}
         </div>
       )}
     </div>
   );
 }
+
+// ── Skeleton ───────────────────────────────────────────────────────────────────
 
 function SkeletonCard() {
   return (
@@ -222,7 +330,7 @@ function SkeletonCard() {
   );
 }
 
-// ── Pagination control ─────────────────────────────────────────────────────────
+// ── Pagination ─────────────────────────────────────────────────────────────────
 
 function Pagination({ page, total, limit, onChange }: { page: number; total: number; limit: number; onChange: (p: number) => void }) {
   const totalPages = Math.ceil(total / limit);
@@ -233,7 +341,7 @@ function Pagination({ page, total, limit, onChange }: { page: number; total: num
         {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total} orders
       </p>
       <div className="flex items-center gap-1">
-        <button onClick={() => onChange(page - 1)} disabled={page === 1}
+        <button type="button" onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Previous page"
           className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#1a1208]/10 text-[#1a1208]/40 hover:text-[#1a1208] hover:border-[#1a1208]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
@@ -245,11 +353,11 @@ function Pagination({ page, total, limit, onChange }: { page: number; total: num
           }, [])
           .map((p, i) => p === "…"
             ? <span key={`e${i}`} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#1a1208]/25">…</span>
-            : <button key={p} onClick={() => onChange(p as number)}
+            : <button type="button" key={p} onClick={() => onChange(p as number)}
                 className={`w-8 h-8 flex items-center justify-center rounded-lg text-[12px] font-semibold transition-all ${p === page ? "bg-[#1a1208] text-white" : "text-[#1a1208]/50 hover:bg-[#1a1208]/[0.06] border border-[#1a1208]/10"}`}
               >{p}</button>
           )}
-        <button onClick={() => onChange(page + 1)} disabled={page === totalPages}
+        <button type="button" onClick={() => onChange(page + 1)} disabled={page === totalPages} aria-label="Next page"
           className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#1a1208]/10 text-[#1a1208]/40 hover:text-[#1a1208] hover:border-[#1a1208]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
         </button>
@@ -274,7 +382,10 @@ export default function OrdersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(page); }, [load, page]);
+  useEffect(() => {
+    const t = setTimeout(() => { load(page); }, 0);
+    return () => clearTimeout(t);
+  }, [load, page]);
 
   return (
     <div className="h-full overflow-y-auto bg-[#FDFBF7]">
