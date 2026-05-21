@@ -134,33 +134,33 @@ function MenuItemForm({
 
                 <div className="sm:col-span-2">
                     <Field label="Item Name" required error={errors.name}>
-                        <input className={iCls(errors.name)} value={form.name} onChange={set("name")} onBlur={blur("name")} placeholder="e.g. Tonkotsu Ramen" maxLength={101} />
+                        <input className={iCls(errors.name)} value={form.name} onChange={set("name")} onBlur={blur("name")} placeholder="e.g. Tonkotsu Ramen" maxLength={101} title="Item name" />
                     </Field>
                 </div>
 
                 <Field label="Price (₱)" required error={errors.price}>
-                    <input className={iCls(errors.price)} type="number" value={form.price} onChange={set("price")} onBlur={blur("price")} placeholder="350" min="1" step="1" />
+                    <input className={iCls(errors.price)} type="number" value={form.price} onChange={set("price")} onBlur={blur("price")} placeholder="350" min="1" step="1" title="Item price in Philippine pesos" />
                 </Field>
 
                 <Field label="Category" error={errors.category}>
-                    <input className={iCls(errors.category)} value={form.category} onChange={set("category")} onBlur={blur("category")} placeholder="e.g. Mains, Drinks, Desserts" maxLength={61} />
+                    <input className={iCls(errors.category)} value={form.category} onChange={set("category")} onBlur={blur("category")} placeholder="e.g. Mains, Drinks, Desserts" maxLength={61} title="Item category" />
                 </Field>
 
                 <div className="sm:col-span-2">
                     <Field label="Image URL" error={errors.imageUrl}>
-                        <input className={iCls(errors.imageUrl)} value={form.imageUrl} onChange={set("imageUrl")} onBlur={blur("imageUrl")} placeholder="https://..." type="url" />
+                        <input className={iCls(errors.imageUrl)} value={form.imageUrl} onChange={set("imageUrl")} onBlur={blur("imageUrl")} placeholder="https://..." type="url" title="Item image URL" />
                     </Field>
                 </div>
 
                 <div className="sm:col-span-2">
                     <Field label="Description" error={errors.description} charCount={form.description.length} maxChars={500}>
-                        <textarea className={iCls(errors.description, "resize-none h-16")} value={form.description} onChange={set("description")} onBlur={blur("description")} placeholder="Brief description" maxLength={501} />
+                        <textarea className={iCls(errors.description, "resize-none h-16")} value={form.description} onChange={set("description")} onBlur={blur("description")} placeholder="Brief description" maxLength={501} title="Item description" />
                     </Field>
                 </div>
 
                 <div>
                     <Field label="Availability">
-                        <select className={iCls()} value={form.isAvailable} onChange={set("isAvailable")}>
+                        <select className={iCls()} value={form.isAvailable} onChange={set("isAvailable")} title="Item availability status">
                             <option value="true">Available</option>
                             <option value="false">Unavailable</option>
                         </select>
@@ -211,11 +211,15 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
     const [savingItem, setSavingItem] = useState(false);
     const [menuServerError, setMenuServerError] = useState("");
 
-    const load = useCallback(() => {
-        setLoading(true);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const reload = useCallback(() => setRefreshKey(k => k + 1), []);
+
+    useEffect(() => {
+        let cancelled = false;
         fetch(`/api/admin/restaurants/${id}`)
             .then(r => r.json())
             .then((d: Restaurant) => {
+                if (cancelled) return;
                 setData(d);
                 setEditForm({
                     name: d.name ?? "", cuisine: d.cuisine ?? "", description: d.description ?? "",
@@ -227,10 +231,9 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
                 setRestTouched({});
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
-    }, [id]);
-
-    useEffect(() => { load(); }, [load]);
+            .catch(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [id, refreshKey]);
 
     // ── Restaurant edit helpers ──
 
@@ -270,7 +273,7 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
         setSavingRest(false);
         if (!res.ok) { setRestServerError((await res.json()).error ?? "Failed"); return; }
         setRestSuccess(true);
-        load();
+        reload();
         setTimeout(() => setRestSuccess(false), 3000);
     }
 
@@ -286,7 +289,7 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
         setSavingItem(false);
         if (!res.ok) { setMenuServerError((await res.json()).error ?? "Failed"); return; }
         setShowAddItem(false);
-        load();
+        reload();
     }
 
     async function updateMenuItem(form: ItemForm) {
@@ -300,13 +303,13 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
         setSavingItem(false);
         if (!res.ok) { setMenuServerError((await res.json()).error ?? "Failed"); return; }
         setEditingItem(null);
-        load();
+        reload();
     }
 
     async function deleteMenuItem(itemId: string, name: string) {
         if (!confirm(`Delete "${name}"?\n\nThis cannot be undone.`)) return;
         await fetch(`/api/admin/menu/${itemId}`, { method: "DELETE" });
-        load();
+        reload();
     }
 
     // Group by category
@@ -398,7 +401,17 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
                         </Field>
 
                         <Field label="Min. Order (₱)" error={restErrors.minOrder}>
-                            <input className={iCls(restErrors.minOrder)} type="number" value={editForm.minOrder} onChange={setRestField("minOrder")} onBlur={blurRestField("minOrder")} min="0" step="1" />
+                            <input
+                                className={iCls(restErrors.minOrder)}
+                                type="number"
+                                value={editForm.minOrder}
+                                onChange={setRestField("minOrder")}
+                                onBlur={blurRestField("minOrder")}
+                                min="0"
+                                step="1"
+                                title="Minimum order amount in Philippine pesos"
+                                placeholder="0"
+                            />
                         </Field>
 
                         <Field label="Phone" error={restErrors.phone} hint="+63 followed by 10 digits">
@@ -406,7 +419,7 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
                         </Field>
 
                         <Field label="Status">
-                            <select className={iCls()} value={editForm.isActive} onChange={setRestField("isActive")}>
+                            <select aria-label="Status" className={iCls()} value={editForm.isActive} onChange={setRestField("isActive")}>
                                 <option value="true">Active</option>
                                 <option value="false">Inactive</option>
                             </select>
@@ -430,7 +443,7 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
 
                         <div className="sm:col-span-2">
                             <Field label="Description" error={restErrors.description} charCount={editForm.description.length} maxChars={500}>
-                                <textarea className={iCls(restErrors.description, "resize-none h-20")} value={editForm.description} onChange={setRestField("description")} onBlur={blurRestField("description")} maxLength={501} />
+                                <textarea className={iCls(restErrors.description, "resize-none h-20")} value={editForm.description} onChange={setRestField("description")} onBlur={blurRestField("description")} maxLength={501} placeholder="Enter restaurant description" title="Restaurant description" />
                             </Field>
                         </div>
                     </div>
@@ -554,13 +567,13 @@ export default function AdminRestaurantDetail({ params }: { params: Promise<{ id
                                                     </div>
                                                     <span className="text-[13px] font-bold text-[#1a1208] tabular-nums shrink-0">₱{item.price.toLocaleString()}</span>
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                                        <button onClick={() => setEditingItem(item)} className="w-7 h-7 flex items-center justify-center text-[#1a1208]/35 hover:text-[#1a1208] hover:bg-[#1a1208]/[0.06] rounded-lg transition-all">
+                                                        <button type="button" onClick={() => setEditingItem(item)} title="Edit item" className="w-7 h-7 flex items-center justify-center text-[#1a1208]/35 hover:text-[#1a1208] hover:bg-[#1a1208]/[0.06] rounded-lg transition-all">
                                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                                             </svg>
                                                         </button>
-                                                        <button onClick={() => deleteMenuItem(item.id, item.name)} className="w-7 h-7 flex items-center justify-center text-[#1a1208]/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                                        <button type="button" onClick={() => deleteMenuItem(item.id, item.name)} title={`Delete ${item.name}`} className="w-7 h-7 flex items-center justify-center text-[#1a1208]/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                                 <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                                                                 <path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />

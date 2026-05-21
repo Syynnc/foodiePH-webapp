@@ -93,6 +93,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
       .sort((a, b) => a.top - b.top);
     const pivot = entries.findIndex((e) => e.top > 100);
     if (pivot > 0) setActiveCategory(entries[pivot - 1].cat);
+    else if (pivot === -1 && entries.length > 0) setActiveCategory(entries[entries.length - 1].cat);
     else if (entries[0]) setActiveCategory(entries[0].cat);
   }, []);
 
@@ -143,7 +144,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
       {/* ── Sticky category bar (appears after hero scrolls away) ─────── */}
       {showStickyNav && menuCategories.length > 1 && (
         <div className="sticky top-0 z-30 bg-[#FDFBF7]/95 backdrop-blur-xl border-b border-[#1a1208]/[0.07]">
-          <div className="flex items-center gap-1 px-5 py-2.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+          <div className="flex items-center gap-1 pl-5 py-2.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
             <Link href="/dashboard" className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1208]/[0.06] hover:bg-[#1a1208]/10 flex items-center justify-center mr-1 transition-colors">
               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
             </Link>
@@ -153,6 +154,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
                 {g.category}
               </button>
             ))}
+            <span className="flex-shrink-0 w-5" aria-hidden="true" />
           </div>
         </div>
       )}
@@ -236,7 +238,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
 
       {/* ── Category tabs (below hero) ────────────────────────────────────── */}
       {(menuCategories.length > 1 || loading) && (
-        <div ref={tabsRef} className="bg-[#FDFBF7] border-b border-[#1a1208]/[0.06] px-5 flex items-center gap-1 overflow-x-auto py-3" style={{ scrollbarWidth: "none" }}>
+        <div ref={tabsRef} className="bg-[#FDFBF7] border-b border-[#1a1208]/[0.06] pl-5 flex items-center gap-1 overflow-x-auto py-3" style={{ scrollbarWidth: "none" }}>
           {loading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="h-7 rounded-full bg-[#1a1208]/[0.06] animate-pulse flex-shrink-0" style={{ width: 52 + i * 12 }} />
@@ -248,6 +250,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
                 </button>
               ))
           }
+          <span className="flex-shrink-0 w-5" aria-hidden="true" />
         </div>
       )}
 
@@ -265,7 +268,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
               </svg>
             </div>
             <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">No items yet</p>
-            <p className="text-sm text-[#1a1208]/40">This restaurant hasn't added any menu items.</p>
+            <p className="text-sm text-[#1a1208]/40">This restaurant hasn&apos;t added any menu items.</p>
           </div>
         ) : (
           menuCategories.map((cat) => (

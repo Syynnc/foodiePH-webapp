@@ -282,20 +282,23 @@ export default function AdminRestaurantsPage() {
     const [search, setSearch] = useState("");
     const [searchInput, setSearchInput] = useState("");
 
-    const load = useCallback((p = page, q = search) => {
-        setLoading(true);
-        const qs = new URLSearchParams({ page: String(p), limit: String(PAGE_LIMIT), ...(q ? { search: q } : {}) });
+    const [refreshKey, setRefreshKey] = useState(0);
+    const reload = useCallback(() => setRefreshKey(k => k + 1), []);
+
+    useEffect(() => {
+        let cancelled = false;
+        const qs = new URLSearchParams({ page: String(page), limit: String(PAGE_LIMIT), ...(search ? { search } : {}) });
         fetch(`/api/admin/restaurants?${qs}`)
             .then(r => r.json())
             .then(d => {
+                if (cancelled) return;
                 setRestaurants(Array.isArray(d.data) ? d.data : []);
                 setTotal(d.total ?? 0);
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
-    }, [page, search]);
-
-    useEffect(() => { load(); }, [load]);
+            .catch(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [page, search, refreshKey]);
 
     function handleSearch(e: React.FormEvent) {
         e.preventDefault();
@@ -320,7 +323,8 @@ export default function AdminRestaurantsPage() {
         if (!res.ok) { setServerError((await res.json()).error ?? "Failed to save. Try again."); return; }
         setShowForm(false);
         router.replace("/admin/restaurants");
-        load(1, search);
+        setPage(1);
+        reload();
     }
 
     async function handleToggle(id: string, isActive: boolean) {
@@ -331,13 +335,13 @@ export default function AdminRestaurantsPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...r, isActive: String(!isActive) }),
         });
-        load();
+        reload();
     }
 
     async function handleDelete(id: string, name: string) {
         if (!confirm(`Delete "${name}" and all its menu items?\n\nThis cannot be undone.`)) return;
         await fetch(`/api/admin/restaurants/${id}`, { method: "DELETE" });
-        load();
+        reload();
     }
 
     const totalPages = Math.ceil(total / PAGE_LIMIT);
@@ -371,7 +375,12 @@ export default function AdminRestaurantsPage() {
                 <div className="bg-white border border-[#1a1208]/[0.08] rounded-2xl p-6 shadow-[0_4px_32px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="font-playfair text-[1.35rem] font-bold text-[#1a1208]">New Restaurant</h2>
-                        <button onClick={() => { setShowForm(false); setServerError(""); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#1a1208]/30 hover:text-[#1a1208]/60 hover:bg-[#1a1208]/[0.05] transition-all duration-200">
+                        <button
+                            onClick={() => { setShowForm(false); setServerError(""); }}
+                            aria-label="Close new restaurant form"
+                            title="Close"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#1a1208]/30 hover:text-[#1a1208]/60 hover:bg-[#1a1208]/[0.05] transition-all duration-200"
+                        >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
@@ -401,7 +410,7 @@ export default function AdminRestaurantsPage() {
                         className="w-full pl-9 pr-4 py-2.5 border border-[#1a1208]/10 rounded-xl text-[13px] text-[#1a1208] bg-white placeholder:text-[#1a1208]/25 outline-none focus:border-[#c8783a]/40 focus:ring-2 focus:ring-[#c8783a]/10 transition-all duration-200"
                     />
                     {searchInput && (
-                        <button type="button" onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a1208]/25 hover:text-[#1a1208]/50 transition-colors">
+                        <button type="button" onClick={clearSearch} aria-label="Clear search" title="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a1208]/25 hover:text-[#1a1208]/50 transition-colors">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
@@ -535,6 +544,7 @@ export default function AdminRestaurantsPage() {
                                     <button
                                         onClick={() => handleDelete(r.id, r.name)}
                                         className="w-8 h-8 flex items-center justify-center text-[#1a1208]/20 hover:text-red-500 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-100 transition-all duration-200 shrink-0"
+                                        title="Delete restaurant"
                                     >
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -556,9 +566,12 @@ export default function AdminRestaurantsPage() {
                     </p>
                     <div className="flex items-center gap-1">
                         <button
-                            onClick={() => { setPage(p => p - 1); load(page - 1, search); }}
+                            type="button"
+                            onClick={() => setPage(p => p - 1)}
                             disabled={page === 1}
                             className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#1a1208]/10 text-[#1a1208]/40 hover:text-[#1a1208] hover:border-[#1a1208]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            aria-label="Previous page"
+                            title="Previous page"
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
                         </button>
@@ -574,16 +587,20 @@ export default function AdminRestaurantsPage() {
                                     <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#1a1208]/25">…</span>
                                 ) : (
                                     <button key={p}
-                                        onClick={() => { setPage(p as number); load(p as number, search); }}
+                                        type="button"
+                                        onClick={() => setPage(p as number)}
                                         className={`w-8 h-8 flex items-center justify-center rounded-lg text-[12px] font-semibold transition-all ${p === page ? "bg-[#1a1208] text-white" : "text-[#1a1208]/50 hover:bg-[#1a1208]/[0.06] border border-[#1a1208]/10"}`}
                                     >{p}</button>
                                 )
                             )
                         }
                         <button
-                            onClick={() => { setPage(p => p + 1); load(page + 1, search); }}
+                            type="button"
+                            onClick={() => setPage(p => p + 1)}
                             disabled={page === totalPages}
                             className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#1a1208]/10 text-[#1a1208]/40 hover:text-[#1a1208] hover:border-[#1a1208]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            aria-label="Next page"
+                            title="Next page"
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                         </button>

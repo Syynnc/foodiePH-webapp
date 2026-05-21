@@ -93,6 +93,10 @@ export async function POST(req: Request) {
     }).returning();
 
     if (ownerId) {
+        const [ownerProfile] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, ownerId)).limit(1);
+        if (!ownerProfile) return NextResponse.json({ error: "Owner account not found." }, { status: 400 });
+        if (ownerProfile.role === "driver") return NextResponse.json({ error: "Cannot assign a driver as a restaurant owner. Remove their driver role first." }, { status: 400 });
+        if (ownerProfile.role === "admin") return NextResponse.json({ error: "Cannot assign an admin as a restaurant owner." }, { status: 400 });
         await db.update(profiles).set({ role: "restaurant" }).where(eq(profiles.id, ownerId));
     }
 

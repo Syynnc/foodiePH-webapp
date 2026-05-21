@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+/** Fixed delivery fee charged to the customer; the driver's allocated cut per delivery. */
+const DRIVER_DELIVERY_FEE = 50;
+
 type AvailableOrder = {
   id: string;
   status: string;
@@ -484,7 +487,7 @@ function StatsPanel({ driver, myOrders }: { driver: DriverInfo["driver"]; myOrde
     () => myOrders.filter((o) => o.status === "delivered" && new Date(o.deliveredAt ?? o.createdAt ?? "").toDateString() === todayStr),
     [myOrders, todayStr]
   );
-  const todayEarnings = useMemo(() => todayDeliveries.reduce((s, o) => s + o.totalAmount, 0), [todayDeliveries]);
+  const todayEarnings = useMemo(() => todayDeliveries.length * DRIVER_DELIVERY_FEE, [todayDeliveries]);
   const allDelivered = useMemo(() => myOrders.filter((o) => o.status === "delivered"), [myOrders]);
   const initials = [driver?.firstName?.[0], driver?.lastName?.[0]].filter(Boolean).join("").toUpperCase();
 

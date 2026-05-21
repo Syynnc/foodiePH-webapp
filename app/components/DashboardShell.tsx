@@ -291,7 +291,11 @@ export default function DashboardShell({
     let cancelled = false;
 
     async function subscribe() {
-      const { data: { user } } = await supabase.auth.getUser();
+      // getSession() reads from local storage without acquiring the auth lock,
+      // avoiding the "lock stolen" error that getUser() (a network call) causes
+      // when this effect re-runs while a previous getUser() is still in-flight.
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user || cancelled) return;
 
       channel = supabase
