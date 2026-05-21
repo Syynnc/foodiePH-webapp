@@ -333,7 +333,18 @@ export default function AdminRestaurantsPage() {
         await fetch(`/api/admin/restaurants/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...r, isActive: String(!isActive) }),
+            body: JSON.stringify({
+                name: r.name,
+                cuisine: r.cuisine ?? "",
+                description: r.description ?? "",
+                address: r.address ?? "",
+                phone: r.phone ?? "",
+                imageUrl: r.imageUrl ?? "",
+                minOrder: String(r.minOrder ?? 0),
+                deliveryTime: r.deliveryTime ?? "",
+                ownerId: r.ownerId ?? "",
+                isActive: String(!isActive),
+            }),
         });
         reload();
     }

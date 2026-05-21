@@ -25,7 +25,8 @@ export async function GET() {
         const driver = await getDriverUser();
         if (!driver) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        // Orders waiting for a driver (preparing + no driver assigned)
+        // Orders waiting for a driver (pending/confirmed/preparing + no driver assigned)
+        const AVAILABLE_STATUSES = ["pending", "confirmed", "preparing"] as const;
         const available = await db
             .select({
                 id: orders.id,
@@ -39,7 +40,7 @@ export async function GET() {
             })
             .from(orders)
             .leftJoin(restaurants, eq(orders.restaurantId, restaurants.id))
-            .where(and(eq(orders.status, "preparing"), isNull(orders.driverId)))
+            .where(and(inArray(orders.status, [...AVAILABLE_STATUSES]), isNull(orders.driverId)))
             .orderBy(desc(orders.createdAt));
 
         // This driver's active delivery (on_the_way or still preparing but assigned to them)

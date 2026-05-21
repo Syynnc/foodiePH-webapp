@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { orders, profiles, drivers } from "@/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, inArray } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 
@@ -24,11 +24,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         // Ensure driver record exists (auto-create on first accept)
         await db.insert(drivers).values({ id: user.id }).onConflictDoNothing();
 
-        // Claim the order — only if it's preparing and has no driver yet
+        // Claim the order — only if it has no driver yet and is in an acceptable state
         const [updated] = await db
             .update(orders)
-            .set({ driverId: user.id })
-            .where(and(eq(orders.id, orderId), eq(orders.status, "preparing"), isNull(orders.driverId)))
+            .set({ driverId: user.id, status: "preparing" })
+            .where(and(
+                eq(orders.id, orderId),
+                inArray(orders.status, ["pending", "confirmed", "preparing"]),
+                isNull(orders.driverId),
+            ))
             .returning({ id: orders.id });
 
         if (!updated) return NextResponse.json({ error: "Order no longer available" }, { status: 409 });
