@@ -266,6 +266,7 @@ export default function DashboardShell({
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -278,6 +279,29 @@ export default function DashboardShell({
       setUserOrders(data);
     } catch { /* silent */ }
   }, []);
+
+  const cancelOrder = useCallback(async (orderId: string) => {
+    setCancellingOrderId(orderId);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, status: "cancelled" }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error ?? "Could not cancel order.");
+        return;
+      }
+      toast.success("Order cancelled.");
+      setExpandedOrderId(null);
+      await fetchOrders();
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setCancellingOrderId(null);
+    }
+  }, [fetchOrders]);
 
   // Fetch orders on mount for the navbar active-order indicator
   useEffect(() => {
@@ -1284,6 +1308,31 @@ export default function DashboardShell({
                             <span className="text-[12px] text-[#1a1208]/45 font-medium">Total paid</span>
                             <span className="font-playfair text-[1.15rem] font-bold text-[#1a1208]">₱{order.totalAmount.toLocaleString()}</span>
                           </div>
+
+                          {order.status === "pending" && (
+                            <button
+                              onClick={() => cancelOrder(order.id)}
+                              disabled={cancellingOrderId === order.id}
+                              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-500 text-[12px] font-semibold hover:bg-red-50 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {cancellingOrderId === order.id ? (
+                                <>
+                                  <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                                  </svg>
+                                  Cancelling…
+                                </>
+                              ) : (
+                                <>
+                                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" />
+                                  </svg>
+                                  Cancel Order
+                                </>
+                              )}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
