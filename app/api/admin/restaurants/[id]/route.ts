@@ -64,6 +64,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const oldRow = await db.select({ ownerId: restaurants.ownerId }).from(restaurants).where(eq(restaurants.id, id)).limit(1);
     const prevOwnerId = oldRow[0]?.ownerId;
 
+    // Validate new owner before writing — reject drivers and admins
+    const newOwnerIdRaw = (ownerId as string) || null;
+    if (newOwnerIdRaw && newOwnerIdRaw !== prevOwnerId) {
+        const [ownerProfile] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, newOwnerIdRaw)).limit(1);
+        if (!ownerProfile) return NextResponse.json({ error: "Owner account not found." }, { status: 400 });
+        if (ownerProfile.role === "driver") return NextResponse.json({ error: "Cannot assign a driver as a restaurant owner. Remove their driver role first." }, { status: 400 });
+        if (ownerProfile.role === "admin") return NextResponse.json({ error: "Cannot assign an admin as a restaurant owner." }, { status: 400 });
+    }
+
     const parsedMinOrder = parseIntOrNull(minOrder) ?? 500;
 
     // Accept both boolean and string "true"/"false" from clients
