@@ -180,6 +180,8 @@ export function ImageUpload({
         onChange={handleInputChange}
         disabled={disabled || uploading}
         tabIndex={-1}
+        aria-label={label}
+        title={label}
       />
     </div>
   );
