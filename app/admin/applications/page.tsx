@@ -26,7 +26,14 @@ type RestaurantApp = {
     address: string | null;
     phone: string | null;
     description: string | null;
+    openingHours: string | null;
+    minOrder: number | null;
+    deliveryTime: string | null;
+    website: string | null;
+    facebook: string | null;
+    seatingCapacity: number | null;
     permitUrl: string | null;
+    logoUrl: string | null;
     adminNotes: string | null;
     createdAt: string | null;
     email: string | null;
@@ -278,7 +285,7 @@ export default function AdminApplicationsPage() {
                                         <div className="flex flex-col md:flex-row gap-5">
 
                                             {/* Document preview */}
-                                            <div className="shrink-0 w-full md:w-40">
+                                            <div className="shrink-0 w-full md:w-40 space-y-3">
                                                 <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1a1208]/30 mb-2">
                                                     {isDriver ? "Gov. ID" : "Business Permit"}
                                                 </p>
@@ -339,19 +346,49 @@ export default function AdminApplicationsPage() {
                                                         <Detail label="License No." value={dApp.licenseNumber || "Not provided"} muted={!dApp.licenseNumber} />
                                                     </div>
                                                 ) : (
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
-                                                        <Detail label="Applicant" value={applicantName} />
-                                                        <Detail label="Cuisine" value={rApp.cuisine || "Not specified"} muted={!rApp.cuisine} />
-                                                        <Detail label="Phone" value={rApp.phone || "Not provided"} muted={!rApp.phone} />
-                                                        {rApp.address && (
-                                                            <div className="col-span-2 sm:col-span-3">
-                                                                <Detail label="Address" value={rApp.address} />
+                                                    <div className="space-y-3">
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
+                                                            <Detail label="Applicant" value={applicantName} />
+                                                            <Detail label="Cuisine" value={rApp.cuisine || "Not specified"} muted={!rApp.cuisine} />
+                                                            <Detail label="Phone" value={rApp.phone || "Not provided"} muted={!rApp.phone} />
+                                                            {rApp.address && (
+                                                                <div className="col-span-2 sm:col-span-3">
+                                                                    <Detail label="Address" value={rApp.address} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {/* Extended fields */}
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 pt-2 border-t border-[#1a1208]/[0.05]">
+                                                            {rApp.openingHours && <Detail label="Opening Hours" value={rApp.openingHours} />}
+                                                            {rApp.deliveryTime && <Detail label="Delivery Time" value={rApp.deliveryTime} />}
+                                                            {rApp.minOrder != null && <Detail label="Min. Order" value={`₱${rApp.minOrder.toLocaleString()}`} />}
+                                                            {rApp.seatingCapacity != null && <Detail label="Seating" value={`${rApp.seatingCapacity} seats`} />}
+                                                            {rApp.website && (
+                                                                <div className="col-span-2 sm:col-span-3">
+                                                                    <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/30 mb-0.5">Website</p>
+                                                                    <a href={rApp.website} target="_blank" rel="noopener noreferrer" className="text-[12.5px] text-[#c8783a] hover:underline truncate block">{rApp.website}</a>
+                                                                </div>
+                                                            )}
+                                                            {rApp.facebook && (
+                                                                <div className="col-span-2 sm:col-span-3">
+                                                                    <Detail label="Facebook" value={rApp.facebook} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {rApp.description && (
+                                                            <div className="pt-1">
+                                                                <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/30 mb-0.5">About</p>
+                                                                <p className="text-[12.5px] text-[#1a1208]/60 leading-relaxed line-clamp-3">{rApp.description}</p>
                                                             </div>
                                                         )}
-                                                        {rApp.description && (
-                                                            <div className="col-span-2 sm:col-span-3">
-                                                                <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/30 mb-0.5">About</p>
-                                                                <p className="text-[12.5px] text-[#1a1208]/60 leading-relaxed line-clamp-2">{rApp.description}</p>
+                                                        {/* Logo preview */}
+                                                        {rApp.logoUrl && (
+                                                            <div className="pt-1">
+                                                                <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/30 mb-2">Logo / Photo</p>
+                                                                <a href={rApp.logoUrl} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 rounded-xl overflow-hidden border border-[#1a1208]/[0.08] hover:border-[#c8783a]/30 transition-colors">
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img src={rApp.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                                                                </a>
                                                             </div>
                                                         )}
                                                     </div>

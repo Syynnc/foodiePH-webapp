@@ -120,7 +120,15 @@ export const restaurantApplications = pgTable("restaurant_applications", {
   address: text("address"),
   phone: text("phone"),
   description: text("description"),
+  // Extended fields
+  openingHours: text("opening_hours"),         // e.g. "Mon–Sat 10AM–9PM"
+  minOrder: integer("min_order"),               // minimum order in PHP pesos
+  deliveryTime: text("delivery_time"),          // e.g. "30–45 mins"
+  website: text("website"),                     // optional URL
+  facebook: text("facebook"),                  // optional FB page handle/URL
+  seatingCapacity: integer("seating_capacity"), // optional dine-in info
   permitUrl: text("permit_url"),
+  logoUrl: text("logo_url"),                   // uploaded restaurant logo/photo
   adminNotes: text("admin_notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

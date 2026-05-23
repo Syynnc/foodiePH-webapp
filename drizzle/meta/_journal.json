@@ -50,6 +50,13 @@
       "when": 1778737256264,
       "tag": "0006_flimsy_senator_kelly",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779562870825,
+      "tag": "0007_slim_shard",
+      "breakpoints": true
     }
   ]
 }

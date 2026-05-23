@@ -53,35 +53,71 @@ export async function POST(req: Request) {
     const address = (formData.get("address") as string) ?? "";
     const phone = (formData.get("phone") as string) ?? "";
     const description = (formData.get("description") as string) ?? "";
+    const openingHours = (formData.get("openingHours") as string) ?? "";
+    const minOrderStr = (formData.get("minOrder") as string) ?? "";
+    const deliveryTime = (formData.get("deliveryTime") as string) ?? "";
+    const website = (formData.get("website") as string) ?? "";
+    const facebook = (formData.get("facebook") as string) ?? "";
+    const seatingCapacityStr = (formData.get("seatingCapacity") as string) ?? "";
+
+    const minOrder = minOrderStr ? parseInt(minOrderStr, 10) : null;
+    const seatingCapacity = seatingCapacityStr ? parseInt(seatingCapacityStr, 10) : null;
+
     const permitFile = formData.get("permit") as File | null;
+    const logoFile = formData.get("logo") as File | null;
 
     if (!permitFile || permitFile.size === 0) {
         return NextResponse.json({ error: "A business permit or registration document is required." }, { status: 400 });
     }
 
+    const admin = createAdminClient();
+
+    // Upload permit
     let permitUrl: string | null = null;
+    const permitExt = permitFile.name.split(".").pop() ?? "jpg";
+    const permitPath = `${user.id}/permit-${Date.now()}.${permitExt}`;
+    const permitBuffer = Buffer.from(await permitFile.arrayBuffer());
+    const { error: permitUploadError } = await admin.storage
+        .from("application-docs")
+        .upload(permitPath, permitBuffer, { contentType: permitFile.type, upsert: true });
+    if (!permitUploadError) {
+        const { data: { publicUrl } } = admin.storage.from("application-docs").getPublicUrl(permitPath);
+        permitUrl = publicUrl;
+    }
 
-    if (permitFile && permitFile.size > 0) {
-        const admin = createAdminClient();
-        const ext = permitFile.name.split(".").pop() ?? "jpg";
-        const path = `${user.id}/permit-${Date.now()}.${ext}`;
-        const buffer = Buffer.from(await permitFile.arrayBuffer());
-
-        const { error: uploadError } = await admin.storage
+    // Upload logo (optional)
+    let logoUrl: string | null = null;
+    if (logoFile && logoFile.size > 0) {
+        const logoExt = logoFile.name.split(".").pop() ?? "jpg";
+        const logoPath = `${user.id}/logo-${Date.now()}.${logoExt}`;
+        const logoBuffer = Buffer.from(await logoFile.arrayBuffer());
+        const { error: logoUploadError } = await admin.storage
             .from("application-docs")
-            .upload(path, buffer, { contentType: permitFile.type, upsert: true });
-
-        if (!uploadError) {
-            const { data: { publicUrl } } = admin.storage
-                .from("application-docs")
-                .getPublicUrl(path);
-            permitUrl = publicUrl;
+            .upload(logoPath, logoBuffer, { contentType: logoFile.type, upsert: true });
+        if (!logoUploadError) {
+            const { data: { publicUrl } } = admin.storage.from("application-docs").getPublicUrl(logoPath);
+            logoUrl = publicUrl;
         }
     }
 
     const [newApp] = await db
         .insert(restaurantApplications)
-        .values({ userId: user.id, restaurantName, cuisine, address, phone, description, permitUrl })
+        .values({
+            userId: user.id,
+            restaurantName,
+            cuisine: cuisine || null,
+            address: address || null,
+            phone: phone || null,
+            description: description || null,
+            openingHours: openingHours || null,
+            minOrder: minOrder ?? null,
+            deliveryTime: deliveryTime || null,
+            website: website || null,
+            facebook: facebook || null,
+            seatingCapacity: seatingCapacity ?? null,
+            permitUrl,
+            logoUrl,
+        })
         .returning();
 
     return NextResponse.json({ application: newApp });

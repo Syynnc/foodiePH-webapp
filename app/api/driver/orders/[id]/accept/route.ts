@@ -24,13 +24,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         // Ensure driver record exists (auto-create on first accept)
         await db.insert(drivers).values({ id: user.id }).onConflictDoNothing();
 
-        // Claim the order — only if it has no driver yet and is in an acceptable state
+        // Claim the order — only if the restaurant has marked it ready_for_pickup
+        // and no driver is assigned yet. Status stays ready_for_pickup until driver
+        // physically picks it up and calls the /pickup endpoint.
         const [updated] = await db
             .update(orders)
-            .set({ driverId: user.id, status: "preparing" })
+            .set({ driverId: user.id })
             .where(and(
                 eq(orders.id, orderId),
-                inArray(orders.status, ["pending", "confirmed", "preparing"]),
+                eq(orders.status, "ready_for_pickup"),
                 isNull(orders.driverId),
             ))
             .returning({ id: orders.id });

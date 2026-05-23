@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import { Footer } from "@/app/components/Footer";
+import { createClient } from "@/lib/supabase/client";
 
 type MenuItem = {
   id: string;
@@ -59,6 +60,7 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [showStickyNav, setShowStickyNav] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -78,6 +80,20 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
         setLoading(false);
       })
       .catch((err) => { console.error(err); setLoading(false); });
+  }, [id]);
+
+  /* ── Check if current user owns this restaurant ─────────────────────── */
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      fetch("/api/restaurant/my-restaurants")
+        .then((r) => r.ok ? r.json() : [])
+        .then((rows: { id: string }[]) => {
+          if (Array.isArray(rows) && rows.some((r) => r.id === id)) setIsOwner(true);
+        })
+        .catch(() => {});
+    });
   }, [id]);
 
   /* ── Scroll tracking ────────────────────────────────────────────────── */
@@ -177,6 +193,17 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
           <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
           Menu
         </Link>
+
+        {/* Owner-only: manage orders button */}
+        {isOwner && (
+          <Link href="/restaurant/orders"
+            className="absolute top-5 right-6 z-10 flex items-center gap-2 text-white/90 hover:text-white text-[13px] font-semibold bg-white/10 hover:bg-white/18 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/12 transition-all duration-300">
+            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>
+            </svg>
+            Manage Orders
+          </Link>
+        )}
 
         {/* Restaurant info — bottom left */}
         <div className="absolute bottom-0 left-0 right-0 px-6 pb-7 flex items-end justify-between gap-6">

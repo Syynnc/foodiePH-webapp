@@ -673,7 +673,7 @@ export default function DriverDashboard() {
 
   // Approved driver → show dashboard
   if (driverInfo.isDriver) {
-    const activeDelivery = myOrders.find((o) => o.status === "on_the_way" || o.status === "preparing");
+    const activeDelivery = myOrders.find((o) => o.status === "on_the_way" || o.status === "ready_for_pickup" || o.status === "preparing");
 
     return (
       <div className="min-h-[100dvh] bg-[#F4F0EB] text-[#1a1208]">
@@ -733,8 +733,14 @@ export default function DriverDashboard() {
                     </div>
                   </div>
                   <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4">
-                    <span className={`text-[10px] font-bold uppercase tracking-[0.12em] px-3 py-1.5 rounded-full ${activeDelivery.status === "on_the_way" ? "bg-[#3b82f6]/20 text-[#93c5fd]" : "bg-[#c8783a]/20 text-[#fdba74]"}`}>
-                      {activeDelivery.status === "on_the_way" ? "On the Way" : "Preparing"}
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.12em] px-3 py-1.5 rounded-full ${
+                      activeDelivery.status === "on_the_way" ? "bg-[#3b82f6]/20 text-[#93c5fd]"
+                      : activeDelivery.status === "ready_for_pickup" ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
+                      : "bg-[#c8783a]/20 text-[#fdba74]"
+                    }`}>
+                      {activeDelivery.status === "on_the_way" ? "On the Way"
+                        : activeDelivery.status === "ready_for_pickup" ? "Ready for Pickup"
+                        : "Preparing"}
                     </span>
                     <div className="text-right">
                       <p className="text-[1.35rem] font-bold text-[#c8783a] tabular-nums leading-none">₱{activeDelivery.totalAmount.toLocaleString()}</p>

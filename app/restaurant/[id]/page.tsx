@@ -468,12 +468,21 @@ export default function RestaurantPortal({ params }: { params: Promise<{ id: str
                     </div>
                 )}
 
-                <div className="px-5 py-4 border-t border-white/[0.06] flex-shrink-0">
+                <div className="px-5 py-4 border-t border-white/[0.06] flex-shrink-0 space-y-2.5">
+                    {/* Manage Orders shortcut */}
+                    <Link href="/restaurant/orders"
+                        className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] bg-white/[0.08] text-white/70 hover:bg-white/[0.14] hover:text-white border border-white/[0.08] transition-all duration-200">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>
+                        </svg>
+                        Manage Orders
+                    </Link>
+
                     <button onClick={saveDetails} disabled={savingRest || !detailsDirty}
                         className={`w-full flex items-center justify-center gap-2 rounded-xl py-3 text-[12px] font-bold uppercase tracking-[0.12em] transition-all duration-300 ${detailsDirty ? "bg-[#c8783a] text-white hover:bg-[#d4894b] active:scale-[0.98] shadow-[0_4px_20px_rgba(200,120,58,0.35)]" : "bg-white/[0.06] text-white/20 cursor-not-allowed"}`}>
                         {savingRest ? <>{Icons.spinner} Saving…</> : <>{Icons.check} Save Changes</>}
                     </button>
-                    <Link href="/restaurant" className="flex items-center justify-center gap-1.5 mt-2.5 text-[10px] font-semibold text-white/25 hover:text-white/50 transition-colors duration-200">
+                    <Link href="/restaurant" className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-white/25 hover:text-white/50 transition-colors duration-200">
                         {Icons.back} All restaurants
                     </Link>
                 </div>

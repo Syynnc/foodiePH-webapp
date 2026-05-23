@@ -34,28 +34,32 @@ type Order = {
 // ── Status config ──────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; step: number }> = {
-  pending:    { label: "Pending",         color: "#f59e0b", bg: "rgba(245,158,11,0.1)",   step: 0 },
-  preparing:  { label: "Preparing Order", color: "#c8783a", bg: "rgba(200,120,58,0.1)",   step: 0 },
-  confirmed:  { label: "Confirmed",       color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   step: 0 },
-  ready:      { label: "Ready",           color: "#8b5cf6", bg: "rgba(139,92,246,0.1)",   step: 1 },
-  delivering: { label: "On the Way",      color: "#0ea5e9", bg: "rgba(14,165,233,0.1)",   step: 1 },
-  on_the_way: { label: "On the Way",      color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   step: 1 },
-  delivered:  { label: "Delivered",       color: "#10b981", bg: "rgba(16,185,129,0.1)",   step: 2 },
-  cancelled:  { label: "Cancelled",       color: "#ef4444", bg: "rgba(239,68,68,0.1)",    step: -1 },
+  pending:          { label: "Pending",          color: "#f59e0b", bg: "rgba(245,158,11,0.1)",   step: 0 },
+  confirmed:        { label: "Accepted",         color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   step: 1 },
+  ready_for_pickup: { label: "Ready for Pickup", color: "#8b5cf6", bg: "rgba(139,92,246,0.1)",   step: 2 },
+  on_the_way:       { label: "On the Way",       color: "#0ea5e9", bg: "rgba(14,165,233,0.1)",   step: 3 },
+  delivered:        { label: "Delivered",        color: "#10b981", bg: "rgba(16,185,129,0.1)",   step: 4 },
+  cancelled:        { label: "Cancelled",        color: "#ef4444", bg: "rgba(239,68,68,0.1)",    step: -1 },
+  // legacy aliases kept for any existing data
+  preparing:        { label: "Preparing",        color: "#c8783a", bg: "rgba(200,120,58,0.1)",   step: 1 },
+  ready:            { label: "Ready",            color: "#8b5cf6", bg: "rgba(139,92,246,0.1)",   step: 2 },
+  delivering:       { label: "On the Way",       color: "#0ea5e9", bg: "rgba(14,165,233,0.1)",   step: 3 },
 };
 
 const STATUS_TOAST: Record<string, string> = {
-  pending:    "⏳ Your order is pending",
-  confirmed:  "✓ Your order has been confirmed!",
-  preparing:  "👨‍🍳 Your food is being prepared",
-  ready:      "✅ Your order is ready for pickup",
-  delivering: "🛵 Your driver is on the way!",
-  on_the_way: "🛵 Your driver is on the way!",
-  delivered:  "🎉 Your order has been delivered!",
-  cancelled:  "❌ Your order has been cancelled",
+  pending:          "⏳ Your order is pending",
+  confirmed:        "✓ Restaurant accepted your order!",
+  ready_for_pickup: "🍱 Your order is ready — driver is on the way!",
+  on_the_way:       "🛵 Your driver is on the way!",
+  delivered:        "🎉 Your order has been delivered!",
+  cancelled:        "❌ Your order has been cancelled",
+  // legacy
+  preparing:        "👨‍🍳 Your food is being prepared",
+  ready:            "✅ Your order is ready for pickup",
+  delivering:       "🛵 Your driver is on the way!",
 };
 
-const ACTIVE_STATUSES = new Set(["pending", "preparing", "confirmed", "ready", "delivering", "on_the_way"]);
+const ACTIVE_STATUSES = new Set(["pending", "confirmed", "ready_for_pickup", "on_the_way", "preparing", "ready", "delivering"]);
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -79,7 +83,8 @@ function StatusDot({ status }: { status: string }) {
 function ProgressBar({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status];
   if (!cfg || cfg.step < 0) return null;
-  const steps = ["Preparing", "On the Way", "Delivered"];
+  // step 0 = pending, 1 = confirmed/preparing, 2 = ready_for_pickup, 3 = on_the_way, 4 = delivered
+  const steps = ["Placed", "Accepted", "Ready", "On the Way", "Delivered"];
   return (
     <div className="flex items-center gap-1 w-full">
       {steps.map((s, i) => (

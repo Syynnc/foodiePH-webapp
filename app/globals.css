@@ -141,6 +141,31 @@ body::before {
 .float-b { animation: floatB 7.5s ease-in-out infinite; }
 .float-c { animation: floatC 5.5s ease-in-out infinite; }
 
+/* ── Apply page wizard ───────────────────────────────────────────────────── */
+@keyframes applyFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.apply-fade-up {
+  animation: applyFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.apply-fade-up-delay {
+  animation: applyFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+.apply-fade-up-nav {
+  animation: applyFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.apply-sidebar-glow {
+  background: radial-gradient(ellipse at 20% 80%, rgba(200,120,58,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 10%, rgba(200,120,58,0.07) 0%, transparent 50%);
+}
+
+.apply-step-track-fill {
+  background: linear-gradient(to bottom, #c8783a80, transparent);
+}
+
 /* Shimmer on hover for image cards */
 @keyframes shimmer {
   from { transform: translateX(-100%) skewX(-12deg); }

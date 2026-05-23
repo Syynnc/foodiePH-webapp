@@ -21,11 +21,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         if (!profile || profile.role !== "driver")
             return NextResponse.json({ error: "Not a driver" }, { status: 403 });
 
-        // Only the assigned driver can mark pickup
+        // Only the assigned driver can mark pickup — order must be ready_for_pickup
         const [updated] = await db
             .update(orders)
             .set({ status: "on_the_way" })
-            .where(and(eq(orders.id, orderId), eq(orders.driverId, user.id), eq(orders.status, "preparing")))
+            .where(and(eq(orders.id, orderId), eq(orders.driverId, user.id), eq(orders.status, "ready_for_pickup")))
             .returning({ id: orders.id });
 
         if (!updated) return NextResponse.json({ error: "Cannot update this order" }, { status: 409 });

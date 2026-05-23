@@ -34,9 +34,9 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 const STATUS_STEPS = [
   {
-    key: "preparing",
-    label: "Preparing",
-    desc: "Restaurant is preparing the order.",
+    key: "ready_for_pickup",
+    label: "Ready for Pickup",
+    desc: "Restaurant has finished preparing. Head to the restaurant to pick up.",
     shortDesc: "At restaurant",
   },
   {
@@ -487,7 +487,7 @@ export default function DriverOrderPage({
             {/* Actions */}
             {!isDelivered && (
               <div className="space-y-3">
-                {order.status === "preparing" && (
+                {order.status === "ready_for_pickup" && (
                   <button
                     onClick={confirmPickup}
                     disabled={actionLoading}

@@ -25,8 +25,8 @@ export async function GET() {
         const driver = await getDriverUser();
         if (!driver) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        // Orders waiting for a driver (pending/confirmed/preparing + no driver assigned)
-        const AVAILABLE_STATUSES = ["pending", "confirmed", "preparing"] as const;
+        // Orders waiting for a driver — only after restaurant marks ready_for_pickup
+        const AVAILABLE_STATUSES = ["ready_for_pickup"] as const;
         const available = await db
             .select({
                 id: orders.id,

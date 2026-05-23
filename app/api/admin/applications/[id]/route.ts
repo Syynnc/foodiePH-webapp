@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertAdmin } from "@/lib/auth";
 import { db } from "@/db";
-import { driverApplications, restaurantApplications, profiles, drivers } from "@/db/schema";
+import { driverApplications, restaurantApplications, profiles, drivers, restaurants } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 // PATCH /api/admin/applications/[id]
@@ -78,7 +78,22 @@ export async function PATCH(
     if (!app) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     if (action === "approve") {
+        // Promote user to restaurant role
         await db.update(profiles).set({ role: "restaurant" }).where(eq(profiles.id, app.userId));
+
+        // Create the restaurant record from application data
+        await db.insert(restaurants).values({
+            ownerId: app.userId,
+            name: app.restaurantName,
+            cuisine: app.cuisine ?? null,
+            description: app.description ?? null,
+            address: app.address ?? null,
+            phone: app.phone ?? null,
+            imageUrl: app.logoUrl ?? null,
+            minOrder: app.minOrder ?? 500,
+            deliveryTime: app.deliveryTime ?? null,
+            isActive: true,
+        });
     }
 
     return NextResponse.json({ ok: true });
