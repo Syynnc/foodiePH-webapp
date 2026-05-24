@@ -3,6 +3,7 @@ import { orders, orderItems, profiles, restaurants, menuItems } from "@/db/schem
 import { eq, desc, inArray, count } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
+import { extractRegionFromAddress } from "@/lib/ph-regions";
 
 async function getUser() {
     const supabase = await createClient();
@@ -112,6 +113,10 @@ export async function POST(req: Request) {
 
         await ensureProfile(userId, user.email ?? "");
 
+        // Detect the Philippine delivery zone from the customer's address.
+        // This is stored on the order so drivers can be matched by region.
+        const deliveryRegion = extractRegionFromAddress(deliveryAddress) ?? null;
+
         // Create the order
         const [order] = await db
             .insert(orders)
@@ -123,6 +128,7 @@ export async function POST(req: Request) {
                 discount: 0,
                 totalAmount,
                 deliveryAddress,
+                deliveryRegion,
                 paymentMethod,
             })
             .returning();

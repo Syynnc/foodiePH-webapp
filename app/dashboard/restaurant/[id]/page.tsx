@@ -352,27 +352,17 @@ export default function RestaurantPage({ params }: { params: Promise<{ id: strin
                         <div className="flex items-center justify-between gap-2 pt-1">
                           <span className="font-bold text-[15px] text-[#1a1208] leading-none">₱{item.price.toLocaleString()}</span>
 
-                          {qty > 0 ? (
-                            <div className="flex items-center rounded-xl overflow-hidden border border-[#c8783a]/30 bg-[#c8783a]/[0.05]">
-                              <button onClick={() => updateQty(item.id, -1)} aria-label="Decrease"
-                                className="w-7 h-7 flex items-center justify-center text-[#c8783a] hover:bg-[#c8783a]/10 transition-colors font-bold text-[16px] leading-none">−</button>
-                              <span className="w-6 text-center text-[12px] font-bold text-[#c8783a] tabular-nums">{qty}</span>
-                              <button onClick={() => handleAdd(item)} aria-label="Increase"
-                                className="w-7 h-7 flex items-center justify-center text-[#c8783a] hover:bg-[#c8783a]/10 transition-colors font-bold text-[16px] leading-none">+</button>
-                            </div>
-                          ) : (
-                            <button onClick={() => handleAdd(item)}
-                              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex-shrink-0 ${
-                                justAdded
-                                  ? "bg-[#10b981] text-white shadow-[0_3px_10px_rgba(16,185,129,0.25)] scale-95"
-                                  : "bg-[#1a1208]/[0.06] text-[#1a1208] hover:bg-[#c8783a] hover:text-white hover:shadow-[0_4px_14px_rgba(200,120,58,0.30)] active:scale-95"
-                              }`}>
-                              {justAdded
-                                ? <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Added</>
-                                : <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add</>
-                              }
-                            </button>
-                          )}
+                          <button type="button" onClick={() => handleAdd(item)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex-shrink-0 ${
+                              justAdded
+                                ? "bg-[#10b981] text-white shadow-[0_3px_10px_rgba(16,185,129,0.25)] scale-95"
+                                : "bg-[#1a1208]/[0.06] text-[#1a1208] hover:bg-[#c8783a] hover:text-white hover:shadow-[0_4px_14px_rgba(200,120,58,0.30)] active:scale-95"
+                            }`}>
+                            {justAdded
+                              ? <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Added</>
+                              : <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add</>
+                            }
+                          </button>
                         </div>
                       </div>
                     </div>

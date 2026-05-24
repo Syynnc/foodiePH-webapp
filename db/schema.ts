@@ -10,6 +10,10 @@ export const profiles = pgTable("profiles", {
   creditLine: integer("credit_line").default(0),
   isCorporate: boolean("is_corporate").default(false),
   role: text("role").notNull().default("customer"), // 'customer' | 'driver' | 'admin' | 'restaurant'
+  /** Full delivery address entered at sign-up or in account settings */
+  address: text("address"),
+  /** Philippine region auto-detected from address (e.g. "NCR", "R7") */
+  region: text("region"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -22,6 +26,8 @@ export const drivers = pgTable("drivers", {
   plateNumber: text("plate_number"),
   isAvailable: boolean("is_available").default(true),
   isActive: boolean("is_active").default(true),
+  /** The Philippine region/zone this driver is registered to operate in */
+  serviceRegion: text("service_region"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -38,6 +44,8 @@ export const restaurants = pgTable("restaurants", {
   minOrder: integer("min_order").default(500),
   deliveryTime: text("delivery_time"),
   isActive: boolean("is_active").default(true),
+  /** Philippine region/zone where this restaurant is located */
+  region: text("region"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -63,6 +71,8 @@ export const orders = pgTable("orders", {
   discount: integer("discount").default(0),
   totalAmount: integer("total_amount").notNull(),
   deliveryAddress: text("delivery_address"),
+  /** Auto-detected Philippine region from deliveryAddress */
+  deliveryRegion: text("delivery_region"),
   paymentMethod: text("payment_method"),
   notes: text("notes"),
   deliveryPhotoUrl: text("delivery_photo_url"),
@@ -106,6 +116,8 @@ export const driverApplications = pgTable("driver_applications", {
   plateNumber: text("plate_number"),
   licenseNumber: text("license_number"),
   govIdUrl: text("gov_id_url"),
+  /** The Philippine region the driver intends to operate in */
+  serviceRegion: text("service_region"),
   adminNotes: text("admin_notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

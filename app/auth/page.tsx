@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, signUp } from "./actions";
+import { extractRegionFromAddress } from "@/lib/ph-regions";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -85,7 +86,7 @@ function InputField({
 }
 
 type SignInErrors = { email?: string; password?: string };
-type SignUpErrors = { first_name?: string; last_name?: string; email?: string; password?: string };
+type SignUpErrors = { first_name?: string; last_name?: string; email?: string; password?: string; address?: string; region?: string };
 
 function validateEmail(v: string) {
   if (!v.trim()) return "Email is required";
@@ -128,6 +129,10 @@ function AuthContent() {
   const [siTouched, setSiTouched] = useState<Record<string, boolean>>({});
   const [suErrors, setSuErrors] = useState<SignUpErrors>({});
   const [suTouched, setSuTouched] = useState<Record<string, boolean>>({});
+
+  // Sign-up: address + auto-detected region
+  const [suAddress, setSuAddress] = useState("");
+  const [suRegion, setSuRegion] = useState("");
 
   function siBlur(name: keyof SignInErrors, value: string) {
     setSiTouched(t => ({ ...t, [name]: true }));
@@ -181,10 +186,19 @@ function AuthContent() {
     const last_name = formData.get("last_name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const errs: SignUpErrors = { first_name: validateName(first_name, "First name"), last_name: validateName(last_name, "Last name"), email: validateEmail(email), password: validatePassword(password) };
+    const address = suAddress.trim();
+    const region = suRegion.trim();
+    const errs: SignUpErrors = {
+      first_name: validateName(first_name, "First name"),
+      last_name: validateName(last_name, "Last name"),
+      email: validateEmail(email),
+      password: validatePassword(password),
+      address: !address ? "Delivery address is required." : "",
+      region: !region ? "Please select your region." : "",
+    };
     setSuErrors(errs);
-    setSuTouched({ first_name: true, last_name: true, email: true, password: true });
-    if (errs.first_name || errs.last_name || errs.email || errs.password) return;
+    setSuTouched({ first_name: true, last_name: true, email: true, password: true, address: true, region: true });
+    if (errs.first_name || errs.last_name || errs.email || errs.password || errs.address || errs.region) return;
     setError(null);
     startTransition(async () => {
       // Re-check email existence right before submit in case the inline blur check was skipped
@@ -348,6 +362,101 @@ function AuthContent() {
                   onBlur={e => suBlur("password", e.target.value)}
                   onChange={e => suChange("password", e.target.value)}
                 />
+
+                {/* ── Address + Region ── */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium uppercase tracking-[0.12em] text-[#1a1208]/50">
+                    Delivery Address <span className="text-[#c8783a]">*</span>
+                  </label>
+                  <div className={`p-[1.5px] rounded-2xl ring-1 transition-all duration-200 ${suTouched.address && suErrors.address ? "bg-red-100 ring-red-300" : "bg-[#1a1208]/6 ring-[#1a1208]/8"}`}>
+                    <div className="rounded-[calc(1rem-1.5px)] bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
+                      <input
+                        name="address"
+                        type="text"
+                        placeholder="e.g. 123 Ayala Ave, Makati City"
+                        value={suAddress}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setSuAddress(val);
+                          // Auto-detect region as the user types
+                          const detected = extractRegionFromAddress(val);
+                          if (detected) setSuRegion(detected);
+                          if (suTouched.address) setSuErrors(er => ({ ...er, address: val.trim() ? "" : "Delivery address is required." }));
+                          if (suTouched.region && detected) setSuErrors(er => ({ ...er, region: "" }));
+                        }}
+                        onBlur={() => {
+                          setSuTouched(t => ({ ...t, address: true }));
+                          setSuErrors(er => ({ ...er, address: suAddress.trim() ? "" : "Delivery address is required." }));
+                        }}
+                        className={`w-full px-4 py-3.5 text-sm bg-transparent text-[#1a1208] placeholder:text-[#1a1208]/30 outline-none rounded-[calc(1rem-1.5px)] transition-all duration-300 ${suTouched.address && suErrors.address ? "focus:ring-2 focus:ring-red-300/50" : "focus:ring-2 focus:ring-[#c8783a]/30"}`}
+                      />
+                    </div>
+                  </div>
+                  {suTouched.address && suErrors.address && (
+                    <p className="flex items-center gap-1.5 text-[11px] text-red-500 font-medium">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      {suErrors.address}
+                    </p>
+                  )}
+                  <p className="text-[10.5px] text-[#1a1208]/35 leading-relaxed">
+                    Used to determine your delivery region and show you nearby restaurants.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium uppercase tracking-[0.12em] text-[#1a1208]/50">
+                    Region <span className="text-[#c8783a]">*</span>
+                  </label>
+                  {/* Hidden input so formData includes region */}
+                  <input type="hidden" name="region" value={suRegion} />
+                  <div className={`p-[1.5px] rounded-2xl ring-1 transition-all duration-200 ${suTouched.region && suErrors.region ? "bg-red-100 ring-red-300" : "bg-[#1a1208]/6 ring-[#1a1208]/8"}`}>
+                    <div className="relative rounded-[calc(1rem-1.5px)] bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
+                      <svg width="13" height="13" fill="none" stroke="#1a1208" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <select
+                        value={suRegion}
+                        onChange={e => {
+                          setSuRegion(e.target.value);
+                          setSuTouched(t => ({ ...t, region: true }));
+                          setSuErrors(er => ({ ...er, region: e.target.value ? "" : "Please select your region." }));
+                        }}
+                        onBlur={() => {
+                          setSuTouched(t => ({ ...t, region: true }));
+                          setSuErrors(er => ({ ...er, region: suRegion ? "" : "Please select your region." }));
+                        }}
+                        className={`w-full pl-9 pr-8 py-3.5 text-sm bg-transparent text-[#1a1208] appearance-none outline-none rounded-[calc(1rem-1.5px)] transition-all duration-300 ${suTouched.region && suErrors.region ? "focus:ring-2 focus:ring-red-300/50" : "focus:ring-2 focus:ring-[#c8783a]/30"}`}
+                        aria-label="Region"
+                      >
+                        <option value="">— Select your region —</option>
+                        <option value="NCR">NCR – Metro Manila</option>
+                        <option value="R7">Region VII – Metro Cebu</option>
+                      </select>
+                      <svg width="10" height="10" fill="none" stroke="#1a1208" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
+                  {suTouched.region && suErrors.region && (
+                    <p className="flex items-center gap-1.5 text-[11px] text-red-500 font-medium">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      {suErrors.region}
+                    </p>
+                  )}
+                  {suRegion && !suErrors.region && (
+                    <p className="text-[10.5px] text-[#c8783a]/80 font-medium flex items-center gap-1">
+                      <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      {suRegion === "NCR" ? "NCR – Metro Manila" : suRegion === "R7" ? "Region VII – Metro Cebu" : suRegion} detected
+                    </p>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={isPending}

@@ -95,27 +95,55 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
+  const [userRegionLabel, setUserRegionLabel] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("first_name")
-        .eq("id", data.user.id)
-        .single();
-      setFirstName(profile?.first_name ?? null);
-    });
-  }, [supabase]);
+    let cancelled = false;
 
-  useEffect(() => {
-    fetch("/api/restaurants")
-      .then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); })
-      .then((data: Restaurant[]) => setRestaurants(data))
-      .catch((e) => setError(e instanceof Error ? e.message : "Something went wrong"))
-      .finally(() => setLoading(false));
-  }, []);
+    async function init() {
+      // 1. Fetch profile first to get the user's region
+      let region: string | null = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Use /api/account which also seeds the profile if it doesn't exist yet
+          const res = await fetch("/api/account");
+          if (res.ok) {
+            const profile = await res.json();
+            setFirstName(profile.firstName ?? null);
+            region = profile.region ?? null;
+            if (region) {
+              const { regionLabel } = await import("@/lib/ph-regions");
+              setUserRegionLabel(regionLabel(region));
+            }
+          }
+        }
+      } catch { /* fail open */ }
+
+      if (cancelled) return;
+
+      // 2. Now fetch restaurants, explicitly passing the region so filtering
+      //    is guaranteed — no reliance on server-side session detection.
+      const url = region
+        ? `/api/restaurants?region=${encodeURIComponent(region)}`
+        : "/api/restaurants";
+
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error("Failed");
+        const data: Restaurant[] = await r.json();
+        if (!cancelled) setRestaurants(data);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Something went wrong");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    init();
+    return () => { cancelled = true; };
+  }, [supabase]);
 
   const filtered = restaurants.filter((r) => matchesCategory(r, activeCategory));
   const [hero, ...rest] = filtered;
@@ -133,6 +161,14 @@ export default function DashboardPage() {
             <h1 className="font-playfair text-[2rem] md:text-[2.6rem] font-bold text-[#1a1208] leading-none tracking-tight">
               What are you<br className="hidden sm:block" /> craving today?
             </h1>
+            {userRegionLabel && (
+              <p className="flex items-center gap-1.5 text-[11.5px] text-[#1a1208]/45 font-medium mt-2">
+                <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                </svg>
+                {userRegionLabel}
+              </p>
+            )}
           </div>
           {!loading && !error && (
             <div className="flex-shrink-0 text-right hidden sm:block">

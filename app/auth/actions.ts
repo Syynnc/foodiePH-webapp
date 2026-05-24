@@ -81,6 +81,8 @@ export async function signUp(formData: FormData) {
           first_name: (formData.get("first_name") as string).trim(),
           last_name: (formData.get("last_name") as string).trim(),
           company: (formData.get("company") as string)?.trim() ?? "",
+          address: (formData.get("address") as string)?.trim() ?? "",
+          region: (formData.get("region") as string)?.trim() ?? "",
         },
       },
     }));

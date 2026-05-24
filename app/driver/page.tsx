@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { PH_REGIONS, regionLabel } from "@/lib/ph-regions";
 
 /** Fixed delivery fee charged to the customer; the driver's allocated cut per delivery. */
 const DRIVER_DELIVERY_FEE = 50;
@@ -12,6 +13,7 @@ type AvailableOrder = {
   status: string;
   totalAmount: number;
   deliveryAddress: string | null;
+  deliveryRegion: string | null;
   paymentMethod: string | null;
   createdAt: string | null;
   restaurantName: string | null;
@@ -39,9 +41,11 @@ type DriverInfo = {
     vehicleType: string | null;
     plateNumber: string | null;
     licenseNumber: string | null;
+    serviceRegion: string | null;
   } | null;
   profileName: { firstName: string; lastName: string };
   application: Application | null;
+  driverRegion: string | null;
 };
 
 function timeAgo(dateStr: string | null) {
@@ -116,7 +120,7 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf
 const MAX_FILE_MB = 5;
 
 function validateDriverForm(
-  form: { plateNumber: string; licenseNumber: string },
+  form: { plateNumber: string; licenseNumber: string; serviceRegion: string },
   govIdFile: File | null,
 ) {
   const errs: Record<string, string> = {};
@@ -127,6 +131,8 @@ function validateDriverForm(
   const lic = form.licenseNumber.trim();
   if (!lic) errs.licenseNumber = "License number is required.";
   else if (!LICENSE_RE.test(lic)) errs.licenseNumber = "Enter a valid license number (e.g. N01-23-456789).";
+
+  if (!form.serviceRegion) errs.serviceRegion = "Please select your delivery zone.";
 
   if (!govIdFile) {
     errs.govId = "A government-issued ID is required.";
@@ -168,6 +174,7 @@ function ApplyForm({
     licenseNumber: "",
     vehicleType: "motorcycle",
     plateNumber: "",
+    serviceRegion: "",
   });
   const [govIdFile, setGovIdFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -208,7 +215,7 @@ function ApplyForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setTouched({ plateNumber: true, licenseNumber: true, govId: true });
+    setTouched({ plateNumber: true, licenseNumber: true, serviceRegion: true, govId: true });
     const errs = revalidate(form, govIdFile);
     if (Object.keys(errs).length > 0) return;
 
@@ -219,6 +226,7 @@ function ApplyForm({
       fd.append("vehicleType", form.vehicleType);
       fd.append("plateNumber", form.plateNumber.trim());
       fd.append("licenseNumber", form.licenseNumber.trim());
+      fd.append("serviceRegion", form.serviceRegion);
       fd.append("govId", govIdFile!);
 
       const res = await fetch("/api/driver/apply", { method: "POST", body: fd });
@@ -311,6 +319,33 @@ function ApplyForm({
                 <option value="bicycle">Bicycle</option>
                 <option value="car">Car</option>
               </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="serviceRegion" className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#1a1208]/40">
+                Delivery Zone <span className="normal-case tracking-normal text-red-400 font-medium">*</span>
+              </label>
+              <select
+                id="serviceRegion"
+                aria-label="Delivery Zone"
+                value={form.serviceRegion}
+                onChange={(e) => {
+                  const next = { ...form, serviceRegion: e.target.value };
+                  setForm(next);
+                  if (touched.serviceRegion) revalidate(next, govIdFile);
+                }}
+                onBlur={() => { touch("serviceRegion"); revalidate(); }}
+                className={inputCls(touched.serviceRegion && !!errors.serviceRegion)}
+              >
+                <option value="">— Select your area —</option>
+                {PH_REGIONS.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+              <FieldError msg={touched.serviceRegion ? errors.serviceRegion : undefined} />
+              <p className="text-[10.5px] text-[#1a1208]/35 leading-relaxed">
+                You will only receive orders delivered within this zone. Drivers cannot accept orders outside their registered area.
+              </p>
             </div>
 
             <div className="flex flex-col gap-1">
@@ -480,7 +515,7 @@ function ApplicationDenied({
 }
 
 // ── Stats sidebar panel ──────────────────────────────────────────────────────
-function StatsPanel({ driver, myOrders }: { driver: DriverInfo["driver"]; myOrders: MyOrder[] }) {
+function StatsPanel({ driver, myOrders, driverRegion }: { driver: DriverInfo["driver"]; myOrders: MyOrder[]; driverRegion: string | null }) {
   const todayStr = new Date().toDateString();
 
   const todayDeliveries = useMemo(
@@ -505,6 +540,14 @@ function StatsPanel({ driver, myOrders }: { driver: DriverInfo["driver"]; myOrde
               <p className="text-[11px] text-white/35 mt-0.5 font-medium">
                 {driver?.vehicleType ? driver.vehicleType.charAt(0).toUpperCase() + driver.vehicleType.slice(1) : "Rider"} &middot; {driver?.plateNumber || "—"}
               </p>
+              {driverRegion && (
+                <p className="text-[10px] text-[#c8783a]/70 mt-1 font-medium flex items-center gap-1">
+                  <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {regionLabel(driverRegion)}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -633,6 +676,10 @@ export default function DriverDashboard() {
     const data = await res.json();
     setAvailable(data.available ?? []);
     setMyOrders(data.myOrders ?? []);
+    // Keep the driver's region in sync (returned by the orders endpoint)
+    if (data.driverRegion !== undefined) {
+      setDriverInfo((prev) => prev ? { ...prev, driverRegion: data.driverRegion } : prev);
+    }
   }, []);
 
   useEffect(() => {
@@ -824,10 +871,21 @@ export default function DriverDashboard() {
                             </svg>
                             <p className="text-[12px] text-[#1a1208]/45 truncate">{order.deliveryAddress}</p>
                           </div>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <span className="text-[11px] text-[#1a1208]/40 bg-[#1a1208]/[0.05] px-2 py-0.5 rounded-full font-medium">
                               {PAYMENT_LABELS[order.paymentMethod ?? ""] ?? order.paymentMethod}
                             </span>
+                            {order.deliveryRegion && (
+                              <>
+                                <span className="text-[#1a1208]/15 text-[10px]">·</span>
+                                <span className="text-[11px] text-[#c8783a]/80 bg-[#c8783a]/[0.07] px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                                  <svg width="8" height="8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                                  </svg>
+                                  {regionLabel(order.deliveryRegion)}
+                                </span>
+                              </>
+                            )}
                             <span className="text-[#1a1208]/15 text-[10px]">·</span>
                             <span className="text-[11px] text-[#1a1208]/35">{timeAgo(order.createdAt)}</span>
                           </div>
@@ -849,7 +907,7 @@ export default function DriverDashboard() {
             </section>
 
             <aside className="space-y-4">
-              <StatsPanel driver={driverInfo.driver} myOrders={myOrders} />
+              <StatsPanel driver={driverInfo.driver} myOrders={myOrders} driverRegion={driverInfo.driverRegion ?? null} />
               <RecentDeliveriesList orders={myOrders} />
             </aside>
           </div>

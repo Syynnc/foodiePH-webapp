@@ -51,6 +51,7 @@ export async function POST(req: Request) {
     const vehicleType = (formData.get("vehicleType") as string) ?? "motorcycle";
     const plateNumber = (formData.get("plateNumber") as string) ?? "";
     const licenseNumber = (formData.get("licenseNumber") as string) ?? "";
+    const serviceRegion = (formData.get("serviceRegion") as string) || null;
     const govIdFile = formData.get("govId") as File | null;
 
     if (!govIdFile || govIdFile.size === 0) {
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
 
     const [newApp] = await db
         .insert(driverApplications)
-        .values({ userId: user.id, vehicleType, plateNumber, licenseNumber, govIdUrl })
+        .values({ userId: user.id, vehicleType, plateNumber, licenseNumber, govIdUrl, serviceRegion })
         .returning();
 
     return NextResponse.json({ application: newApp });

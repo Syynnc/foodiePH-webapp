@@ -19,20 +19,42 @@ async function getDriverUser() {
     return { userId: user.id, email: user.email ?? "" };
 }
 
-// GET — available orders (preparing, no driver) + this driver's active order
+// GET — available orders (ready_for_pickup, no driver, same region as this driver)
+//       + this driver's own orders (all statuses)
 export async function GET() {
     try {
         const driver = await getDriverUser();
         if (!driver) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        // Orders waiting for a driver — only after restaurant marks ready_for_pickup
-        const AVAILABLE_STATUSES = ["ready_for_pickup"] as const;
+        // Look up the driver's registered service region
+        const [driverRow] = await db
+            .select({ serviceRegion: drivers.serviceRegion })
+            .from(drivers)
+            .where(eq(drivers.id, driver.userId))
+            .limit(1);
+
+        const driverRegion = driverRow?.serviceRegion ?? null;
+
+        // Build the "available orders" query.
+        // If the driver has a registered service region, only show orders whose
+        // delivery_region matches. If no region is set yet (legacy / not set),
+        // fall back to showing all orders so the driver is not locked out.
+        const availableConditions = [
+            eq(orders.status, "ready_for_pickup"),
+            isNull(orders.driverId),
+        ] as Parameters<typeof and>;
+
+        if (driverRegion) {
+            availableConditions.push(eq(orders.deliveryRegion, driverRegion));
+        }
+
         const available = await db
             .select({
                 id: orders.id,
                 status: orders.status,
                 totalAmount: orders.totalAmount,
                 deliveryAddress: orders.deliveryAddress,
+                deliveryRegion: orders.deliveryRegion,
                 paymentMethod: orders.paymentMethod,
                 createdAt: orders.createdAt,
                 restaurantName: restaurants.name,
@@ -40,7 +62,7 @@ export async function GET() {
             })
             .from(orders)
             .leftJoin(restaurants, eq(orders.restaurantId, restaurants.id))
-            .where(and(inArray(orders.status, [...AVAILABLE_STATUSES]), isNull(orders.driverId)))
+            .where(and(...availableConditions))
             .orderBy(desc(orders.createdAt));
 
         // This driver's active delivery (on_the_way or still preparing but assigned to them)
@@ -50,6 +72,7 @@ export async function GET() {
                 status: orders.status,
                 totalAmount: orders.totalAmount,
                 deliveryAddress: orders.deliveryAddress,
+                deliveryRegion: orders.deliveryRegion,
                 paymentMethod: orders.paymentMethod,
                 createdAt: orders.createdAt,
                 deliveryPhotoUrl: orders.deliveryPhotoUrl,
@@ -86,6 +109,7 @@ export async function GET() {
         return NextResponse.json({
             available,
             myOrders: myOrders.map((o) => ({ ...o, items: itemsByOrder[o.id] ?? [] })),
+            driverRegion,
         });
     } catch (err) {
         console.error("[GET /api/driver/orders]", err);

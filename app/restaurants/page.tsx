@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ScrollReveal } from "@/app/components/ScrollReveal";
 import { Navbar } from "@/app/components/Navbar";
 import { Footer } from "@/app/components/Footer";
+import { PH_REGIONS } from "@/lib/ph-regions";
 
 type Restaurant = {
   id: string;
@@ -15,6 +16,7 @@ type Restaurant = {
   rating: string | null;
   minOrder: number | null;
   deliveryTime: string | null;
+  region: string | null;
 };
 
 const CUISINE_FILTERS = [
@@ -145,17 +147,23 @@ export default function RestaurantsPage() {
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCuisine, setActiveCuisine] = useState("All");
+  const [activeRegion, setActiveRegion] = useState("All");
 
   useEffect(() => {
-    fetch("/api/restaurants")
+    const url = activeRegion === "All"
+      ? "/api/restaurants"
+      : `/api/restaurants?region=${encodeURIComponent(activeRegion)}`;
+
+    setLoading(true);
+    fetch(url)
       .then((r) => {
         if (!r.ok) throw new Error("Failed");
         return r.json();
       })
-      .then((data: Restaurant[]) => setRestaurants(data))
+      .then((data: Restaurant[]) => { setRestaurants(data); setError(false); })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeRegion]);
 
   const filtered = restaurants.filter((r) => {
     const matchSearch =
@@ -210,39 +218,85 @@ export default function RestaurantsPage() {
         <div className="px-6 md:px-10 mb-10">
           <div className="max-w-5xl mx-auto">
             <ScrollReveal>
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                {/* Search */}
-                <div className="relative w-full sm:w-72">
-                  <svg
-                    width="14"
-                    height="14"
-                    fill="none"
-                    stroke="#1a1208"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    viewBox="0 0 24 24"
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-30"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.35-4.35" />
-                  </svg>
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search restaurants or cuisines…"
-                    className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-[#1a1208]/[0.09] rounded-full text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#1a1208]/25 transition-colors duration-300"
-                  />
+              <div className="flex flex-col gap-4">
+                {/* Row 1: Search + Region */}
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  {/* Search */}
+                  <div className="relative w-full sm:w-72">
+                    <svg
+                      width="14"
+                      height="14"
+                      fill="none"
+                      stroke="#1a1208"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-30"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search restaurants or cuisines…"
+                      className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-[#1a1208]/[0.09] rounded-full text-[#1a1208] placeholder-[#1a1208]/30 focus:outline-none focus:border-[#1a1208]/25 transition-colors duration-300"
+                    />
+                  </div>
+
+                  {/* Region selector */}
+                  <div className="relative w-full sm:w-auto sm:min-w-[220px]">
+                    <svg
+                      width="13"
+                      height="13"
+                      fill="none"
+                      stroke="#1a1208"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none"
+                    >
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <select
+                      value={activeRegion}
+                      onChange={(e) => { setActiveRegion(e.target.value); setActiveCuisine("All"); setSearch(""); }}
+                      className="w-full pl-9 pr-8 py-2.5 text-sm bg-white border border-[#1a1208]/[0.09] rounded-full text-[#1a1208] appearance-none focus:outline-none focus:border-[#c8783a]/40 transition-colors duration-300"
+                      aria-label="Filter by region"
+                    >
+                      <option value="All">All regions</option>
+                      {PH_REGIONS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                    <svg
+                      width="10"
+                      height="10"
+                      fill="none"
+                      stroke="#1a1208"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </div>
                 </div>
 
-                {/* Cuisine pills */}
+                {/* Row 2: Cuisine pills */}
                 <div className="flex overflow-x-auto gap-2 pb-1 -mb-1 scrollbar-none flex-nowrap sm:flex-wrap sm:overflow-visible sm:pb-0 sm:mb-0">
                   {CUISINE_FILTERS.map((c) => (
                     <button
                       key={c}
+                      type="button"
                       onClick={() => setActiveCuisine(c)}
-                      className={`px-4 py-2 rounded-full text-[12.5px] font-medium border transition-all duration-300 ${
+                      className={`px-4 py-2 rounded-full text-[12.5px] font-medium border transition-all duration-300 whitespace-nowrap ${
                         activeCuisine === c
                           ? "bg-[#1a1208] text-white border-[#1a1208]"
                           : "bg-white text-[#1a1208]/55 border-[#1a1208]/10 hover:border-[#1a1208]/25"
@@ -252,6 +306,28 @@ export default function RestaurantsPage() {
                     </button>
                   ))}
                 </div>
+
+                {/* Active region banner */}
+                {activeRegion !== "All" && (
+                  <div className="flex items-center gap-2 text-[12px] text-[#1a1208]/55">
+                    <svg width="11" height="11" fill="none" stroke="#c8783a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>
+                      Showing restaurants in{" "}
+                      <strong className="text-[#1a1208]">
+                        {PH_REGIONS.find((r) => r.value === activeRegion)?.label ?? activeRegion}
+                      </strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveRegion("All")}
+                      className="ml-1 text-[#c8783a] hover:text-[#b5692e] font-semibold underline underline-offset-2 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
               </div>
             </ScrollReveal>
           </div>
@@ -299,7 +375,7 @@ export default function RestaurantsPage() {
                 <p className="font-playfair text-xl font-semibold text-[#1a1208] mb-1">No results found</p>
                 <p className="text-sm text-[#1a1208]/40 mb-4">Try a different search term or cuisine filter.</p>
                 <button
-                  onClick={() => { setSearch(""); setActiveCuisine("All"); }}
+                  onClick={() => { setSearch(""); setActiveCuisine("All"); setActiveRegion("All"); }}
                   className="text-sm font-semibold text-[#c8783a] hover:text-[#b5692e] transition-colors underline underline-offset-4"
                 >
                   Clear filters
